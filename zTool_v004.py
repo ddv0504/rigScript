@@ -302,8 +302,8 @@ class zTool(MayaQWidgetDockableMixin,QWidget):
                 self.shelfList.append(i)
         
         self.setParent(maya_main_window())
-        self.setWindowTitle('zTool_V003')
-        self.setObjectName('zTool_V003')
+        self.setWindowTitle('zTool_V004')
+        self.setObjectName('zTool_V004')
         
         self.resize(120,800)
         self.setUI()
@@ -644,13 +644,16 @@ class shelfWin(QWidget):
         if self.path:
             with open( self.path,'r') as f:
                 lines = f.readlines()
+                
             for line in lines:
                 if 'global proc' in line:
                     funcName = '%s()' % line.split(' ')[2]
             mel.eval('source"%s"'% self.path)  
+            
         if cmds.shelfLayout(self.name,ex=True):
             cmds.deleteUI(self.name)                        
-        shelfLayout = cmds.shelfLayout(self.name,parent=mainWindow.objectName()) 
+        shelfLayout = cmds.shelfLayout(self.name,parent=mainWindow.objectName())
+        
         mel.eval(funcName)   
         ptr = omui.MQtUtil_findControl(shelfLayout)
         try:   
@@ -840,7 +843,7 @@ class optionDialog(QDialog):
         self.parent.setStyleSheet(styleSheet)
         self.parent.settings.setValue('styleSheet',styleSheet)
         self.parent.settings.setValue('rgb',(r,g,b))
-        cmds.dockControl('zTool_V003',e=True,bgc=(r,g,b))
+        cmds.dockControl('zTool_V004',e=True,bgc=(r,g,b))
         
     def setBgFont(self):
         #Set all font
@@ -885,7 +888,7 @@ class optionDialog(QDialog):
 class toolWidget(QDialog):
     pass
     
-windowList = ['zToolBox','zTool','zTool_V003']
+windowList = ['zToolBox','zTool','zTool_V004']
 def initial():
     if not len(os.listdir(shelfPath))>1:
         #Create a default shelf file
@@ -903,7 +906,7 @@ def main():
     r,g,b=(0.3,0.3,0.3)
     if ztWin.settings.value('rgb'):
         r,g,b = ztWin.settings.value('rgb')
-    cmds.dockControl('zTool_V003',area='left', bgc=(float(r),float(g),float(b)),content=ztWin.objectName(),floating = False, allowedArea=['right', 'left'],w=80)
+    cmds.dockControl('zTool_V004',area='left', bgc=(float(r),float(g),float(b)),content=ztWin.objectName(),floating = False, allowedArea=['right', 'left'],w=80)
     
     
 main()
