@@ -35,7 +35,7 @@ class rigWidget(MayaQWidgetDockableMixin, QMainWindow):
         self.mainWidget.setLayout(mainLayout)        
         disGrpBox = QGroupBox(self)
         mainLayout.addWidget(disGrpBox)
-        disGrpBox.setTitle('DISPLAY')
+        disGrpBox.setTitle('EDITOR')
         disHLayout = QHBoxLayout()
         disGrpBox.setLayout(disHLayout) 
                   

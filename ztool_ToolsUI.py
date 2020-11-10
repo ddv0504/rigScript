@@ -279,23 +279,23 @@ def selPolyMesh(typ=None):
             locator     = locator
             
     '''
-    sel = cmds.ls(long=True, sl=True)	
+    sel = cmds.ls(long=True, sl=True)   
     tops = list()
     for obj in sel:
-		short = cmds.ls(obj, shortNames=True)[0]		
-		hier = obj.split('|')		
-		if not ':' in short:
-			if len(hier) > 1:
-				tops.append(hier[1])
-			else:
-				tops.append(obj)
-			continue					
-		namespace1 = short.partition(':')[0]
-		namespace1 +=':'
-		for each in hier:
-			if namespace1 in each:
-				tops.append(each)
-				break		
+        short = cmds.ls(obj, shortNames=True)[0]        
+        hier = obj.split('|')       
+        if not ':' in short:
+            if len(hier) > 1:
+                tops.append(hier[1])
+            else:
+                tops.append(obj)
+            continue                    
+        namespace1 = short.partition(':')[0]
+        namespace1 +=':'
+        for each in hier:
+            if namespace1 in each:
+                tops.append(each)
+                break       
     if not tops:
         return
     
@@ -338,44 +338,44 @@ def selPolyMesh(typ=None):
             cmds.select(polyMeshes,r=True)           
     
 def selkeyedobjs():
-    	
-	sel = cmds.ls(long=True, sl=True)
-	
-	tops = list()
-	for obj in sel:
-		short = cmds.ls(obj, shortNames=True)[0]		
-		hier = obj.split('|')
-		
-		if not ':' in short:
-			if len(hier) > 1:
-				tops.append(hier[1])
-			else:
-				tops.append(obj)
-			continue
-					
-		namespace1 = short.partition(':')[0]
-		namespace1 +=':'
-		for each in hier:
-			if namespace1 in each:
-				tops.append(each)
-				break
-		
-	if not tops:
-		return
-	
-	nodes = cmds.listRelatives(tops, pa=True, type='transform', ad=True)
-	if not nodes:
-		return
-	
-	keyed = list()
-	
-	for node in nodes:
-	  
-		if cmds.keyframe(node, time=(':',), query=True, keyframeCount=True):
-			keyed.append(node)
-	
-	if keyed:
-		cmds.select(keyed, replace=True)
+        
+    sel = cmds.ls(long=True, sl=True)
+    
+    tops = list()
+    for obj in sel:
+        short = cmds.ls(obj, shortNames=True)[0]        
+        hier = obj.split('|')
+        
+        if not ':' in short:
+            if len(hier) > 1:
+                tops.append(hier[1])
+            else:
+                tops.append(obj)
+            continue
+                    
+        namespace1 = short.partition(':')[0]
+        namespace1 +=':'
+        for each in hier:
+            if namespace1 in each:
+                tops.append(each)
+                break
+        
+    if not tops:
+        return
+    
+    nodes = cmds.listRelatives(tops, pa=True, type='transform', ad=True)
+    if not nodes:
+        return
+    
+    keyed = list()
+    
+    for node in nodes:
+      
+        if cmds.keyframe(node, time=(':',), query=True, keyframeCount=True):
+            keyed.append(node)
+    
+    if keyed:
+        cmds.select(keyed, replace=True)
 
 def main():
     if cmds.window('Toolbox',ex=True):
