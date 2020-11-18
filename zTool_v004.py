@@ -179,13 +179,13 @@ checkEnv(envFile)
 startUpFile     = '%s/%s' % (os.getenv('HOME'),'maya/scripts/zTool/options/userSetup.py')
 startUpContents = u'''\
 import maya.cmds as cmds
-cmds.evalDeferred("import zTool_v003")
+cmds.evalDeferred("import zTool_v004")
     '''
 
 def userSetup(file):
     startUpContents = u'''\
     import maya.cmds as cmds
-    cmds.evalDeferred("import zTool_v003")
+    cmds.evalDeferred("import zTool_v004")
     '''
     if not os.path.isfile(file):
         if not os.path.isdir(os.path.dirname(file)):

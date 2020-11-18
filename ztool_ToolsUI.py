@@ -1,5 +1,7 @@
 import maya.OpenMayaUI as omui
 import maya.cmds as cmds
+import zt_AniUI
+reload(zt_AniUI) 
 try:
     import PySide2
     from PySide2.QtCore import *
@@ -15,7 +17,9 @@ except:
     from PySide.QtCore import *
     from PySide.QtUiTools import *
     import shiboken
-    
+
+
+
 def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()        
     try:
@@ -67,16 +71,17 @@ class toolBox(QMainWindow):
         
         self.utilBox = QGroupBox(self.mainWidget)
         self.utilBox.setTitle("Utils")       
-        self.utilLayout  = QVBoxLayout()
+        self.utilLayout  = QHBoxLayout()
         self.utilBox.setLayout(self.utilLayout)
         
         self.mainLayout.addWidget(self.selBox)
         self.mainLayout.addWidget(self.consBox)
         self.mainLayout.addWidget(self.keyBox)
         self.mainLayout.addWidget(self.utilBox)
-        self.addSelection()
-        self.addConstraint()
-        self.addKeyframe()
+        self.addSelection()  #Add selection items  ex: Polygon,Curves,Locator etc...
+        self.addConstraint() #Add Constraint items 
+        self.addKeyframe()   #Add Keyframe items
+        self.addUtil()       #Add Util items
         
     def addSelection(self):
         for seq,btnName in  enumerate(self.selList):
@@ -169,7 +174,19 @@ class toolBox(QMainWindow):
                 btn.clicked.connect(cmdB(key))
             keyLayout.addWidget(btn)                
             self.keyLayout.addLayout(keyLayout)
-            
+
+    def addUtil(self):
+        
+        niceNameLst = ['Animation','Rig','Model','Light','FX']
+        toolNameLst = ['zt_AniUI','zt_RigUI','zt_ModelUI','zt_LightUI','zt_FXUI']
+        
+        for name,tool in zip(niceNameLst,toolNameLst):     
+            toolBtn = utilBtn(name=name,module=tool)                
+            toolBtn.setText(name)
+            self.utilLayout.addWidget(toolBtn)
+        
+
+
     def parentconstraint(self):
         offset = False
         if self.offsetCheckBox.checkState() == Qt.Checked:
@@ -239,7 +256,23 @@ class toolBox(QMainWindow):
     
     def moveEvent(self,event):
         self.setting.setValue("pos",self.pos())   
+
+class utilBtn(QPushButton):
+    def __init__(self,name=None,module=None):
+        QPushButton.__init__(self)
+        self.name = name
+        self.module = module
+        self.clicked.connect(self.push)
+
+    def push(self):
+        module = __import__(self.module)
+        reload(module)
+        if not module:
+            print('No module %s' % module)
+            return 
+        module.main()
         
+
 def constraintLoc(src,*trgs):
     '''
     Add contraint target parent
@@ -339,8 +372,7 @@ def selPolyMesh(typ=None):
     
 def selkeyedobjs():
         
-    sel = cmds.ls(long=True, sl=True)
-    
+    sel = cmds.ls(long=True, sl=True)    
     tops = list()
     for obj in sel:
         short = cmds.ls(obj, shortNames=True)[0]        
