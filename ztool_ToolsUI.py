@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
 import maya.OpenMayaUI as omui
 import maya.cmds as cmds
+import maya.mel as mel
 import zt_AniUI
 reload(zt_AniUI) 
 try:
@@ -68,6 +71,9 @@ class toolBox(QMainWindow):
         self.keyBox.setTitle("Keyframe")
         self.keyLayout  = QVBoxLayout()
         self.keyBox.setLayout(self.keyLayout)
+
+        self.connectBox = QGroupBox(self.mainWidget)
+        self.connectBox.setTitle("Connection:")
         
         self.utilBox = QGroupBox(self.mainWidget)
         self.utilBox.setTitle("Utils")       
@@ -76,10 +82,13 @@ class toolBox(QMainWindow):
         
         self.mainLayout.addWidget(self.selBox)
         self.mainLayout.addWidget(self.consBox)
+        self.mainLayout.addWidget(self.connectBox)
         self.mainLayout.addWidget(self.keyBox)
         self.mainLayout.addWidget(self.utilBox)
+        
         self.addSelection()  #Add selection items  ex: Polygon,Curves,Locator etc...
         self.addConstraint() #Add Constraint items 
+        self.setConnectBox()    #Set Connect Box Widget
         self.addKeyframe()   #Add Keyframe items
         self.addUtil()       #Add Util items
         
@@ -239,11 +248,63 @@ class toolBox(QMainWindow):
             if obj != objs [0]:
                 exec(u'cmds.scaleConstraint(objs[0],objs[seq],mo=offset,%s)' % skip)
         
-    
+    def setConnectBox(self):
+        mainLayout = QVBoxLayout()
+        self.connectBox.setLayout(mainLayout)
+        topLayout   = QHBoxLayout()
+
+        srcLayout = QVBoxLayout()
+        trgLayout = QVBoxLayout()
+
+        srcWidget = QListWidget()
+        srcWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        trgWidget = QListWidget()
+        trgWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+
+        srcBtnLayout = QHBoxLayout()
+        trgBtnLayout = QHBoxLayout()
+
+        srcAddBtn = QPushButton('Add Source')
+        srcRemBtn = QPushButton('Remove Source')
+        srcClsBtn = QPushButton('Clear')
+
+        srcLayout.addWidget(srcWidget)
+        srcLayout.addLayout(srcBtnLayout)
+        srcBtnLayout.addWidget(srcAddBtn)
+        srcBtnLayout.addWidget(srcRemBtn)
+        srcBtnLayout.addWidget(srcClsBtn)
+
+        trgAddBtn = QPushButton('Add Source')
+        trgRemBtn = QPushButton('Remove Source')
+        trgClsBtn = QPushButton('Clear')
+
+        trgLayout.addWidget(trgWidget)
+        trgLayout.addLayout(trgBtnLayout)
+        trgBtnLayout.addWidget(trgAddBtn)
+        trgBtnLayout.addWidget(trgRemBtn)
+        trgBtnLayout.addWidget(trgClsBtn)
+
+        topLayout.addLayout(srcLayout)
+        topLayout.addLayout(trgLayout)
+
+        connectBtn = QPushButton('<==Connect==>')
+
+        mainLayout.addLayout(topLayout)
+        mainLayout.addWidget(connectBtn)
+
+
+        srcAddBtn.clicked.connect(lambda:(srcWidget.addItems(getObjAttrs())))
+        srcRemBtn.clicked.connect(lambda:(removeItems(srcWidget)))
+        srcClsBtn.clicked.connect(lambda:srcWidget.clear())    
+
+        trgAddBtn.clicked.connect(lambda:(trgWidget.addItems(getObjAttrs())))
+        trgRemBtn.clicked.connect(lambda:(removeItems(trgWidget)))
+        trgClsBtn.clicked.connect(lambda:trgWidget.clear())
+        
+        connectBtn.clicked.connect(lambda:connectAttrs(srcWidget.selectedItems()[0].text(),[i.text() for i in trgWidget.selectedItems()]))
+
     def aimconstraint(self):
         skip = self.skipChannel()
-        
-        offset = False
         if self.offsetCheckBox.checkState() == Qt.Checked:
             offset = True            
         objs = cmds.ls(sl=True)
@@ -271,7 +332,29 @@ class utilBtn(QPushButton):
             print('No module %s' % module)
             return 
         module.main()
-        
+
+def connectAttrs(srcAttr,trgAttrs):
+    for trgAttr in trgAttrs:        
+        cmds.connectAttr(srcAttr,trgAttr,f=True)
+
+def removeItems(listWidget):      #Remove items from QListWidget
+        indexes = listWidget.selectedIndexes()
+        indexLst = sorted([index.row() for index in indexes],reverse=True)
+        for i in indexLst:
+            listWidget.takeItem(i) 
+
+def getObjAttrs(): # Get attributes from channelBox
+
+    objs = cmds.ls(sl=True)
+    attrs = mel.eval('channelBox -q -selectedMainAttributes mainChannelBox;')
+    if not attrs:
+        return
+    attrFullNames = []
+    for obj in objs:
+        for attr in attrs:
+            attrFullNames.append('%s.%s' % (obj,attr))
+            
+    return attrFullNames
 
 def constraintLoc(src,*trgs):
     '''
@@ -355,7 +438,7 @@ def selPolyMesh(typ=None):
          
     elif typ == 'animNode':
         nodes =   cmds.listRelatives(tops, pa=True, type='transform', ad=True)  
-        animCurves = []
+        
         cmds.select(cl=True)
         for node in nodes: 
             if not cmds.listConnections(node) :
