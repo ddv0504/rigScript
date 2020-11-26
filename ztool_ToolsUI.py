@@ -6,7 +6,7 @@ import maya.mel as mel
 import zt_AniUI
 reload(zt_AniUI) 
 try:
-    import PySide2
+    
     from PySide2.QtCore import *
     from PySide2.QtWidgets import *
     from PySide2.QtGui import *
@@ -15,7 +15,7 @@ try:
 
 except:
 
-    import PySide
+    
     from PySide.QtGui import *
     from PySide.QtCore import *
     from PySide.QtUiTools import *
@@ -274,8 +274,8 @@ class toolBox(QMainWindow):
         srcBtnLayout.addWidget(srcRemBtn)
         srcBtnLayout.addWidget(srcClsBtn)
 
-        trgAddBtn = QPushButton('Add Source')
-        trgRemBtn = QPushButton('Remove Source')
+        trgAddBtn = QPushButton('Add Target')
+        trgRemBtn = QPushButton('Remove Target')
         trgClsBtn = QPushButton('Clear')
 
         trgLayout.addWidget(trgWidget)
@@ -287,10 +287,12 @@ class toolBox(QMainWindow):
         topLayout.addLayout(srcLayout)
         topLayout.addLayout(trgLayout)
 
+        drivenConnectBtn = QPushButton('SetDrivenKey==>')
         connectBtn = QPushButton('<==Connect==>')
 
         mainLayout.addLayout(topLayout)
         mainLayout.addWidget(connectBtn)
+        mainLayout.addWidget(drivenConnectBtn)
 
 
         srcAddBtn.clicked.connect(lambda:(srcWidget.addItems(getObjAttrs())))
@@ -302,7 +304,7 @@ class toolBox(QMainWindow):
         trgClsBtn.clicked.connect(lambda:trgWidget.clear())
         
         connectBtn.clicked.connect(lambda:connectAttrs(srcWidget.selectedItems()[0].text(),[i.text() for i in trgWidget.selectedItems()]))
-
+        drivenConnectBtn.clicked.connect(lambda:setDrivenKey(srcWidget.selectedItems()[0].text(),[i.text() for i in trgWidget.selectedItems()]))
     def aimconstraint(self):
         skip = self.skipChannel()
         if self.offsetCheckBox.checkState() == Qt.Checked:
@@ -332,6 +334,10 @@ class utilBtn(QPushButton):
             print('No module %s' % module)
             return 
         module.main()
+
+def setDrivenKey(driver,drivens):
+    for dri in drivens:
+        cmds.setDrivenKeyframe(dri,currentDriver=driver)  
 
 def connectAttrs(srcAttr,trgAttrs):
     for trgAttr in trgAttrs:        
