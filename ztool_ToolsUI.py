@@ -76,7 +76,7 @@ class toolBox(QMainWindow):
         self.connectBox.setTitle("Connection:")
         
         self.utilBox = QGroupBox(self.mainWidget)
-        self.utilBox.setTitle("Utils")       
+        self.utilBox.setTitle("Category")       
         self.utilLayout  = QHBoxLayout()
         self.utilBox.setLayout(self.utilLayout)
         
