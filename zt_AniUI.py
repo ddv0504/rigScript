@@ -25,6 +25,7 @@ def maya_main_window():
     return mWindow 
 curser = QCursor()
 class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
+    toggle = False
     def __init__(self,parent=None):
         QWidget.__init__(self,parent=None)          
                
@@ -84,40 +85,59 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         tabWidget.addTab(localWidget,'Local')
         localLayout = QVBoxLayout()
         localWidget.setLayout(localLayout)
+
+        urlLayout = QHBoxLayout()
+        urlLabel = QLabel()        
+        icon = QIcon(self.style().standardIcon(getattr(QStyle, 'SP_DirLinkIcon')))
+        pixmap = icon.pixmap(80,80)        
+        urlLabel.setPixmap(pixmap)
+        self.urlLineEdit = QLineEdit()
+        self.urlLineEdit.setReadOnly(True)
+        explanBtn = QPushButton()
+        explanBtn.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_TitleBarUnshadeButton')))
+        
+        urlLayout.addWidget(urlLabel)
+        urlLayout.addWidget(self.urlLineEdit)
+        urlLayout.addWidget(explanBtn)
+
+        localLayout.addLayout(urlLayout)   
         self.dirTreeView = dirView()
-        #self.dirTreeView.setEditTriggers(QAbstractItemView.DoubleClicked)
-        self.dirTreeView.setSortingEnabled(True)
-        
-       
+        self.dirTreeView.setSortingEnabled(True)       
         localLayout.addWidget(self.dirTreeView)
-        
-        #self.dirTreeView.doubleClicked.connect(self.modelIndexClicked)
-        
+
+        explanBtn.clicked.connect(self.setToggle)
+    
+    def setToggle(self):
+        if self.toggle==False:
+            self.hideColumns()
+            self.toggle=True
+        else:
+            self.showColumns()
+            self.toggle=False
+
     def setLocalList(self):
         fileName = cmds.file(sn=True,q=True)
-        path = os.path.dirname(fileName) 
-        
-        # self.model = QStandardItemModel()
-        # self.model.setHorizontalHeaderLabels(['Name'])
-        
+        path = os.path.dirname(fileName)
+
         if not os.path.isdir(path):
             self.dirTreeView.setModel(None)
-            return
-        
+            return 
+
         self.dirTreeView.setPath(path)
         self.dirTreeView.setRootIndex(self.dirTreeView.model.index(path))
-        # for i,f in enumerate(os.listdir(path)):
-        #     item = localItem(f)
-        #     item.setEditable(False)
-        #     self.model.setItem(i,item)
-        #     fullName = os.path.join(path,f)
-        #     item.setFileName(fullName)
-        #     item.setFileIcon()
-        #     item.setData({'fileName':fullName})
-            
-            
-        #self.dirTreeView.setRootIndex(self.dirTreeView.model.index(tempDir))
-        #self.dirTreeView.setModel(self.model) 
+        self.urlLineEdit.setText(path)
+        
+    def hideColumns(self):
+        self.dirTreeView.hideColumn(1)
+        self.dirTreeView.hideColumn(2)
+        self.dirTreeView.hideColumn(3)
+        self.dirTreeView.hideColumn(4)
+    def showColumns(self):
+        self.dirTreeView.showColumn(1)
+        self.dirTreeView.showColumn(2)
+        self.dirTreeView.showColumn(3)
+        self.dirTreeView.showColumn(4)
+        self.dirTreeView.resizeColumnToContents(0)
 
     def moveKeys(self):
         try:
@@ -149,12 +169,6 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         else:
             self.overLapRadioBtn.setEnabled(True)
             self.moveRadioBtn.setEnabled(True)
-    # @Slot(QModelIndex)
-    # def modelIndexClicked(self,QModelIndex):
-    #     data = self.model.itemData(QModelIndex)
-    #     for value in data.values():
-    #         if type(value) == dict and value.keys()[0] == 'fileName':
-    #             os.startfile(value.values()[0])
 
 def breakAnimCycle():
     currentTime=cmds.currentTime(q=True)      
@@ -192,6 +206,7 @@ class dirView(QTreeView):
         self.path = r''
         self.model = QFileSystemModel()
         self.doubleClicked.connect(self.openFile)
+      
     def contextMenuEvent(self,event):
         menu = QMenu(self)
 
@@ -199,25 +214,22 @@ class dirView(QTreeView):
         dirAction = QAction('Go to Path',self)
 
         fileAction.triggered.connect(lambda:self.openFile(self.selectedIndexes()[0]))
-        dirAction.triggered.connect(lambda:self.openPath(self.selectedIndexes()[0]))
+        dirAction.triggered.connect(self.openPath)
 
         menu.addAction(fileAction)
         menu.addAction(dirAction)
-        menu.exec_(self.mapToParent(event.globalPos()))
+        menu.exec_(self.mapFromParent(event.globalPos()))
     @Slot(QModelIndex)
-    def openFile(self,index):
-        #source_index = self.proxy_model.mapToSource(index)
+    def openFile(self,index):        
         fileName = self.model.filePath(index)
-        #fileName = self.model.fileName(path)
         os.startfile(fileName)
     
-    def openPath(self,index):
-        fileName = self.model.filePath(index)
-        path = os.path.dirname(fileName)
-        os.startfile(path)
-        #os.start()
-    def setPath(self,path):
+    def openPath(self):
+        # fileName = self.model.filePath(index)
+        # path = os.path.dirname(fileName)
+        os.startfile(self.path)
         
+    def setPath(self,path):        
         self.path = path
         self.model.setRootPath(self.path)
         self.setModel(self.model)

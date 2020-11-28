@@ -5,23 +5,18 @@ import maya.cmds as cmds
 import maya.mel as mel
 import zt_AniUI
 reload(zt_AniUI) 
-try:
-    
+try:    
     from PySide2.QtCore import *
     from PySide2.QtWidgets import *
     from PySide2.QtGui import *
     from PySide2.QtUiTools import *
     import shiboken2
 
-except:
-
-    
+except:    
     from PySide.QtGui import *
     from PySide.QtCore import *
     from PySide.QtUiTools import *
     import shiboken
-
-
 
 def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()        
@@ -30,7 +25,6 @@ def maya_main_window():
     except:
         mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow)             
     return mWindow
-
    
 class toolBox(QMainWindow):
     selList =    ["Polygon","Curves","Locator","Constraint","Hierachy","HideObject","Joint","AnimObject","AnimNode"]
@@ -499,8 +493,8 @@ def selkeyedobjs():
         cmds.select(keyed, replace=True)
 
 def main():
-    if cmds.window('Toolbox',ex=True):
-        cmds.deleteUI('Toolbox')
+    if cmds.window('ZT_Toolbox',ex=True):
+        cmds.deleteUI('ZT_Toolbox')
     
     win = toolBox()         
     print("win:",win.objectName())

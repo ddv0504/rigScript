@@ -5,6 +5,7 @@ import maya.OpenMayaUI as omui
 from datetime import datetime
 import maya.OpenMaya as OpenMaya
 import maya.mel as mel
+import pymel.core as pm
 import textwrap
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin  
 try:
@@ -143,10 +144,22 @@ baseIcons = [
 #The option path add to current maya version enviroment file.
 envFile = '%s/maya/%s/Maya.env' %(os.getenv('HOME'),mayaVersion)
 
+def onMayaDroppedPythonFile(*args):    
+    shelfTab = mel.eval('''global string $gShelfTopLevel;
+                string $shelves = `tabLayout -q -selectTab $gShelfTopLevel`;''')
+    cmds.shelfButton(annotation='Start zTool', label='zTool',imageOverlayLabel="ZTool",image1='commandButton.png', command='import zTool_v004\nzTool_v004.main()' ,p=shelfTab)
+    path = getScriptPath()
+    os.system('cmd /c "set PYTHONPATH={}"'.format(path))
+    sys.path.append(path)
+def getScriptPath():
+    path = os.path.dirname(__file__)       
+    return path
+
 def checkEnv(envFile):    
     if not os.path.isfile(envFile):
         with open(envFile,'w') as f:
-            f.write('')              
+            f.write('') 
+               
     lineContent = ''    
     with open(envFile,'r') as f:
         lst = f.readlines()
@@ -154,13 +167,13 @@ def checkEnv(envFile):
     for l in lst:
         if not pythonStr in l:
             continue
-        elif optionPath in l:
+        elif optionPath and getScriptPath() in l:
             return
         lineContent = l
     if lineContent:
         if '\r\n' in lineContent:
             newlineContent = lineContent.split('\r\n')[0]
-            newLineContent = '%s ; %s\r\n' % (newlineContent,optionPath)
+            newLineContent = '%s;%s;%s;\r\n' % (newlineContent,optionPath,getScriptPath())
             index = lst.index(lineContent)
             lst[index] = newLineContent
             t = time.time()
@@ -171,21 +184,24 @@ def checkEnv(envFile):
             for l in lst:
                 f.write(l)        
     else:
+        print(getScriptPath())
         with open(envFile,'w') as f:
-            f.write('PYTHONPATH = %s\r\n' % optionPath )         
+            f.write('PYTHONPATH = %s;%s;\r\n' % (optionPath,getScriptPath()) )         
 checkEnv(envFile)
     
 #Startup file contents
-startUpFile     = '%s/%s' % (os.getenv('HOME'),'maya/scripts/zTool/options/userSetup.py')
+startUpFile     = '%s/maya/scripts/zTool/options/userSetup.py' % os.getenv('HOME')
 startUpContents = u'''\
 import maya.cmds as cmds
 cmds.evalDeferred("import zTool_v004")
+cmds.evalDeferred("zTool_v004.main()")
     '''
 
 def userSetup(file):
     startUpContents = u'''\
     import maya.cmds as cmds
     cmds.evalDeferred("import zTool_v004")
+    cmds.evalDeferred("zTool_v004.main()")
     '''
     if not os.path.isfile(file):
         if not os.path.isdir(os.path.dirname(file)):
@@ -907,7 +923,6 @@ def main():
     if ztWin.settings.value('rgb'):
         r,g,b = ztWin.settings.value('rgb')
     cmds.dockControl('zTool_V004',area='left', bgc=(float(r),float(g),float(b)),content=ztWin.objectName(),floating = False, allowedArea=['right', 'left'],w=80)
-    
-    
-main()
+
+
     
