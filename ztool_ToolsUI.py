@@ -494,9 +494,7 @@ def selkeyedobjs():
 
 def main():
     if cmds.window('ZT_Toolbox',ex=True):
-        cmds.deleteUI('ZT_Toolbox')
-    
-    win = toolBox()         
-    print("win:",win.objectName())
-    
+        cmds.deleteUI('ZT_Toolbox')    
+    win = toolBox() 
+    win.setObjectName('ZT_Toolbox')        
     win.show()

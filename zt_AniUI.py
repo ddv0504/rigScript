@@ -29,8 +29,8 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
     def __init__(self,parent=None):
         QWidget.__init__(self,parent=None)          
                
-        self.setMinimumSize(500,200)
-        self.setMaximumSize(500,200)        
+        self.setMinimumSize(500,350)
+        self.setMaximumSize(500,350)        
         self.move(curser.pos())
         self.setForm()
         self.setLocalList()
@@ -44,15 +44,32 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         tabWidget.addTab(toolWidget,'Tools') 
 
         #Tools UI
-        toolLayout = QVBoxLayout()      
+        toolLayout = QVBoxLayout()
+        alignLayout = QVBoxLayout()
+        alignKeyLayout = QHBoxLayout()    
         moveKeysLayout = QHBoxLayout()
         overLapLayout  = QHBoxLayout()
-        labelLayout = QHBoxLayout()        
+        labelLayout = QVBoxLayout()        
         toolWidget.setLayout(toolLayout)
         toolLayout.addLayout(labelLayout)
         toolLayout.addLayout(moveKeysLayout)
-        toolLayout.addLayout(overLapLayout)        
-        label = QLabel('Move Keys:')
+        toolLayout.addLayout(overLapLayout)   
+        topSpacerItem = QSpacerItem(20, 300, QSizePolicy.Minimum,QSizePolicy.Expanding)  
+
+        ###Align Widgets###
+        alignLabel= QLabel('Align Keys:')
+        alignLeftBtn = QPushButton()
+        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSkipBackward')) 
+        alignLeftBtn.setIcon(icon)
+        alignCenterBtn = QPushButton()
+        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaPause')) 
+        alignCenterBtn.setIcon(icon)
+        alignRightBtn = QPushButton() 
+        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSkipForward'))        
+        alignRightBtn.setIcon(icon)
+        alignSpacerItem = QSpacerItem(500, 40, QSizePolicy.Minimum,QSizePolicy.Expanding)  
+        ###Move key Widgets###
+        moveKeyLabel = QLabel('Move Keys:')
         self.valueLine = QLineEdit()
         forwardBtn   = QPushButton()
         icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSeekForward'))  
@@ -62,15 +79,49 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         self.moveRadioBtn.setChecked(True)
         self.overLapRadioBtn  = QRadioButton('OverLap')
         breakAnimCycleBtn = QPushButton('<==Break Cycle==>')
+        playBlastBtn     = QPushButton('<==PlayBlast With QuickTime==>')
 
-        labelLayout.addWidget(label)
+
+        #### Layout add widgets ###
+        alignKeyLayout.addWidget(alignLeftBtn)
+        alignKeyLayout.addWidget(alignCenterBtn)
+        alignKeyLayout.addWidget(alignRightBtn)
+        alignKeyLayout.addSpacerItem(alignSpacerItem) 
+        alignLayout.addWidget(alignLabel)
+        alignLayout.addLayout(alignKeyLayout)
+        labelLayout.addSpacerItem(topSpacerItem)
         
+        labelLayout.addLayout(alignLayout)
+        labelLayout.addWidget(moveKeyLabel)        
         moveKeysLayout.addWidget(self.valueLine)
         moveKeysLayout.addWidget(forwardBtn)
         moveKeysLayout.addWidget(self.startPosCheckBox)
         moveKeysLayout.addWidget(self.moveRadioBtn)
         moveKeysLayout.addWidget(self.overLapRadioBtn)
-        moveKeysLayout.addWidget(breakAnimCycleBtn)
+        moveKeysLayout.addWidget(breakAnimCycleBtn)        
+
+        mainLayout.addWidget(playBlastBtn)
+
+        alignLeftBtn.clicked.connect(
+            lambda:(
+            cmds.undoInfo(openChunk=True),
+            alignKeyframe(),
+            cmds.undoInfo(closeChunk=True)
+        ))
+
+        alignCenterBtn.clicked.connect(
+            lambda:(
+            cmds.undoInfo(openChunk=True),
+            alignKeyframe(current=True),
+            cmds.undoInfo(closeChunk=True)
+        ))
+
+        alignRightBtn.clicked.connect(
+            lambda:(
+            cmds.undoInfo(openChunk=True),
+            alignKeyframe(right=True),
+            cmds.undoInfo(closeChunk=True)
+        ))
 
         self.startPosCheckBox.stateChanged.connect(self.startPosCheckBoxState)
         forwardBtn.clicked.connect(self.moveKeys)
@@ -80,6 +131,9 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
                                                     cmds.undoInfo(closeChunk=True)
                                                     ))
         
+
+        playBlastBtn.clicked.connect(self.playBlast)
+
         #Local UI
         localWidget = QWidget()
         tabWidget.addTab(localWidget,'Local')
@@ -107,6 +161,48 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
 
         explanBtn.clicked.connect(self.setToggle)
     
+    def playBlast(self):
+        fileName = cmds.file(sn=True,q=True)
+        if fileName ==u'':
+            print('File may not saved yet')
+            return
+        movFile = self.setMovFileName(fileName)
+        widthHeight = [cmds.getAttr('defaultResolution.%s' % i) for i in ["width","height"]]
+        timeRange = mel.eval('timeControl -q -ra $gPlayBackSlider;')
+        startFrame = cmds.playbackOptions(q=True,min=True)
+        endFrame   = cmds.playbackOptions(q=True,max=True)
+        if timeRange[1] - timeRange[0] >1:
+            startFrame = timeRange[0]
+            endFrame   = timeRange[1]
+            
+        try:
+            cmds.playblast( startTime=startFrame,endTime=endFrame,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,offScreen=True,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
+        except Exception as e:
+            print("Install quicktime first.")
+            
+    def setMovFileName(self,sceneFileName):
+        movFile = ''        
+        dirName = os.path.dirname(sceneFileName)
+        allBaseName = [
+            '%s/%s' % (dirName,i.split('.mov')[0]) for i in os.listdir(dirName) if all([
+            '.mov' in os.path.splitext(i)[1],
+            os.path.splitext(os.path.basename(sceneFileName))[0] in i,
+            i.split("_")[-1].startswith('P')
+            ])
+            ]
+        
+        if not allBaseName:
+            movFile = '%s_P01.mov' % os.path.splitext(sceneFileName)[0]
+            print(movFile)
+            return movFile
+
+        lastBaseName = sorted(allBaseName)[-1]
+        nextVer = int(lastBaseName.split('_P')[-1]) + 1
+        movFile = '%s_P%s.mov' % (lastBaseName[:-4],str(nextVer).zfill(2))
+        print(movFile)
+        
+        return movFile            
+
     def setToggle(self):
         if self.toggle==False:
             self.hideColumns()
@@ -121,10 +217,11 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
 
         if not os.path.isdir(path):
             self.dirTreeView.setModel(None)
+            self.urlLineEdit.setText('File may not saved yet.')
             return 
-
         self.dirTreeView.setPath(path)
         self.dirTreeView.setRootIndex(self.dirTreeView.model.index(path))
+        
         self.urlLineEdit.setText(path)
         
     def hideColumns(self):
@@ -159,8 +256,9 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
     def startScriptJob(self):
         jobNum = cmds.scriptJob( event = ["SceneOpened", self.refreshAll ], parent='ZT_AniTools')
         jobNum = cmds.scriptJob( event = ["SceneSaved", self.refreshAll ], parent='ZT_AniTools')
+        #jobNum = cmds.scriptJob( event = ["NewSceneOpened", self.refreshAll ], parent='ZT_AniTools')
     def refreshAll(self):
-        print('refreshed')        
+        print('Local refreshed')        
         self.setLocalList()  
     def startPosCheckBoxState(self):
         if self.startPosCheckBox.checkState() == Qt.Checked:
@@ -268,10 +366,33 @@ def moveKeyFrame(frame=0,toFrame=False,move=False,overLap=False):
             cmds.keyframe(obj,e=True,tc=n,iub=True,r=True,o='over')
             n+=frame
 
+def alignKeyframe(right=False,current=False):
+    animCurves = pm.keyframe(name=True,q=True)
+    times  = pm.keyframe(tc=True,q=True)
+    if not any([animCurves,times]):
+        print('Select keys first...')
+        return
+    dic = {}
+    for animCurve,t in zip(animCurves,times):
+        dic[animCurve] = t
+    minTime = min(dic.values())
+    maxTime = max(dic.values())
+    currentTime = cmds.currentTime(q=True)
+
+    for anim,t in dic.items():
+        tc = (t-minTime)*-1
+        if right:
+            tc = (t-maxTime)*-1
+        if current:
+            tc = (currentTime - t)
+        cmds.keyframe(anim,e=True, iub=True,r=True, o='over',tc=tc,t=(t,t))
+
+
 def main():
     title = 'ZT_AniTools'
-    if cmds.window(title, exists =True):
-        cmds.deleteUI(title, wnd =True)
+    if cmds.window('ZT_AniTools', exists =True):
+        cmds.deleteUI('ZT_AniTools', wnd =True)
+    
     win = aniToolsUI()
     win.setObjectName(title)
     win.setWindowTitle(title)    
