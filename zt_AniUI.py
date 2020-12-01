@@ -34,6 +34,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         self.move(curser.pos())
         self.setForm()
         self.setLocalList()
+        self.setFocusPolicy(Qt.NoFocus)
         
     def setForm(self):
         mainLayout = QVBoxLayout()

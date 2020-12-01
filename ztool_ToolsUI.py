@@ -36,7 +36,8 @@ class toolBox(QMainWindow):
         self.mainWidget = QWidget(self)
         self.setCentralWidget(self.mainWidget)
         self.init()
-        self.setForm()        
+        self.setForm() 
+        self.setFocusPolicy(Qt.NoFocus)       
         
     def init(self):
         self.setting = QSettings("optionData","toolBoxOptions")
@@ -252,8 +253,10 @@ class toolBox(QMainWindow):
 
         srcWidget = QListWidget()
         srcWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        srcWidget.setFocusPolicy(Qt.NoFocus)
         trgWidget = QListWidget()
         trgWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        trgWidget.setFocusPolicy(Qt.NoFocus)
 
         srcBtnLayout = QHBoxLayout()
         trgBtnLayout = QHBoxLayout()
