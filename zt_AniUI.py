@@ -170,6 +170,8 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         movFile = self.setMovFileName(fileName)
         widthHeight = [cmds.getAttr('defaultResolution.%s' % i) for i in ["width","height"]]
         timeRange = mel.eval('timeControl -q -ra $gPlayBackSlider;')
+        timeControl = mel.eval('$tmpVar = $gPlayBackSlider')
+        sound = cmds.timeControl(timeControl,q=True,sound=True)
         startFrame = cmds.playbackOptions(q=True,min=True)
         endFrame   = cmds.playbackOptions(q=True,max=True)
         if timeRange[1] - timeRange[0] >1:
@@ -177,7 +179,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
             endFrame   = timeRange[1]
             
         try:
-            cmds.playblast( startTime=startFrame,endTime=endFrame,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,offScreen=True,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
+            cmds.playblast( startTime=startFrame,endTime=endFrame,sound=sound,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,offScreen=True,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
         except Exception as e:
             print("Install quicktime first.")
             
