@@ -26,6 +26,7 @@ def maya_main_window():
 curser = QCursor()
 class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
     toggle = False
+    playBlastInfo = {}
     def __init__(self,parent=None):
         QWidget.__init__(self,parent=None)          
                
@@ -50,7 +51,8 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         alignKeyLayout = QHBoxLayout()    
         moveKeysLayout = QHBoxLayout()
         overLapLayout  = QHBoxLayout()
-        labelLayout = QVBoxLayout()        
+        labelLayout = QVBoxLayout() 
+        setCameraLayout = QHBoxLayout()       
         toolWidget.setLayout(toolLayout)
         toolLayout.addLayout(labelLayout)
         toolLayout.addLayout(moveKeysLayout)
@@ -80,6 +82,11 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         self.moveRadioBtn.setChecked(True)
         self.overLapRadioBtn  = QRadioButton('OverLap')
         breakAnimCycleBtn = QPushButton('<==Break Cycle==>')
+        self.setCameraLabel = QLabel('cam:')
+        if self.playBlastInfo:
+            self.setCameraLabel.setText(self.playBlastInfo['cam'])
+        setCameraBtn   = QPushButton('setCamera')
+        setCameraBtn.setIcon(QIcon(':CameraDown.png'))
         playBlastBtn     = QPushButton('<==PlayBlast With QuickTime==>')
 
 
@@ -101,7 +108,11 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         moveKeysLayout.addWidget(self.overLapRadioBtn)
         moveKeysLayout.addWidget(breakAnimCycleBtn)        
 
-        mainLayout.addWidget(playBlastBtn)
+        setCameraLayout.addWidget(self.setCameraLabel)
+        setCameraLayout.addWidget(setCameraBtn)
+        setCameraLayout.addWidget(playBlastBtn)
+
+        mainLayout.addLayout(setCameraLayout)
 
         alignLeftBtn.clicked.connect(
             lambda:(
@@ -132,7 +143,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
                                                     cmds.undoInfo(closeChunk=True)
                                                     ))
         
-
+        setCameraBtn.clicked.connect(self.setPlayblastCam)                
         playBlastBtn.clicked.connect(self.playBlast)
 
         #Local UI
@@ -161,13 +172,29 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         localLayout.addWidget(self.dirTreeView)
 
         explanBtn.clicked.connect(self.setToggle)
-    
+    def setPlayblastCam(self):
+        try:
+            panel = cmds.getPanel(wf=True)        
+            cam = cmds.modelEditor(panel,cam=True,q=True)
+            self.playBlastInfo['panel'] = panel
+            self.playBlastInfo['cam']  = cam
+
+            self.setCameraLabel.setText('cam:%s' % cam)
+        except RuntimeError:
+            print('Select viewport 1st.')
+            cmds.warning('Camera was not set')
+        
     def playBlast(self):
         fileName = cmds.file(sn=True,q=True)
+        panel = None
         if fileName ==u'':
-            print('File may not saved yet')
+            print('File may not saved yet')            
             return
+        if  self.playBlastInfo:
+            panel = self.playBlastInfo['panel']
+        
         movFile = self.setMovFileName(fileName)
+        
         widthHeight = [cmds.getAttr('defaultResolution.%s' % i) for i in ["width","height"]]
         timeRange = mel.eval('timeControl -q -ra $gPlayBackSlider;')
         timeControl = mel.eval('$tmpVar = $gPlayBackSlider')
@@ -179,7 +206,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
             endFrame   = timeRange[1]
             
         try:
-            cmds.playblast( startTime=startFrame,endTime=endFrame,sound=sound,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,offScreen=True,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
+            cmds.playblast(epn=panel,startTime=startFrame,endTime=endFrame,sound=sound,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,offScreen=True,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
         except Exception as e:
             print("Install quicktime first.")
             
@@ -261,7 +288,8 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         jobNum = cmds.scriptJob( event = ["SceneSaved", self.refreshAll ], parent='ZT_AniTools')
         #jobNum = cmds.scriptJob( event = ["NewSceneOpened", self.refreshAll ], parent='ZT_AniTools')
     def refreshAll(self):
-        print('Local refreshed')        
+        print('Local refreshed')
+        self.playBlastInfo={}        
         self.setLocalList()  
     def startPosCheckBoxState(self):
         if self.startPosCheckBox.checkState() == Qt.Checked:
