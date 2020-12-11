@@ -186,7 +186,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         
     def playBlast(self):
         fileName = cmds.file(sn=True,q=True)
-        panel = None
+        panel = cmds.getPanel(wf=True)  
         if fileName ==u'':
             print('File may not saved yet')            
             return
@@ -206,8 +206,10 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
             endFrame   = timeRange[1]
             
         try:
+            
             cmds.playblast(epn=panel,startTime=startFrame,endTime=endFrame,sound=sound,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,offScreen=True,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
         except Exception as e:
+            
             print("Install quicktime first.")
             
     def setMovFileName(self,sceneFileName):
