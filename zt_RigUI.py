@@ -10,7 +10,7 @@ import pymel.core as pm
 import maya.mel as mel
 import os
 
-shelfPath = '%s/shelves' % os.path.dirname(__file__)
+shelfPath = '%s/shelves' % os.path.dirname(__file__).replace('\\','/')
 
 def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()
@@ -21,31 +21,39 @@ def maya_main_window():
         mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow) 
             
     return mWindow     
-    
-class rigWidget(MayaQWidgetDockableMixin, QMainWindow):
+mainWindow = maya_main_window()    
+class rigWindow(MayaQWidgetDockableMixin, QMainWindow):
 
     def __init__(self,parent=None):
         QMainWindow.__init__(self,parent=None)
-        
+    
         self.resize(480,820)
         self.mainUI()
+        self.addMenu()
     def mainUI(self):
         self.mainWidget = QWidget(self)
         mainLayout = QVBoxLayout()
-        self.mainWidget.setLayout(mainLayout)        
-        disGrpBox = QGroupBox(self)
-        mainLayout.addWidget(disGrpBox)
-        disGrpBox.setTitle('EDITOR')
-        disHLayout = QHBoxLayout()
-        disGrpBox.setLayout(disHLayout) 
-                  
-        jntGrpBox = QGroupBox(self)
-        mainLayout.addWidget(jntGrpBox)
-        jntGrpBox.setTitle('JOINT')
-        
-        
+        self.mainWidget.setLayout(mainLayout)            
+        displayBox = QToolBox()        
+        mainLayout.addWidget(displayBox)
+        for f in [ '%s/%s.mel' % (shelfPath,i) for i in ['ztRigDisplay','ztRigEditModel','ztRigBuild','ztRigDeformation','ztRigExtraTools']]:
+            name = os.path.splitext(os.path.basename(f))[0].split('Rig')[1]
+            displayShelf = mayaShelfWidget(name=name,path = f)
+            displayBox.addItem(displayShelf,name)
         self.setCentralWidget(self.mainWidget)
+    def addMenu(self):
+        menubar = self.menuBar()
+        fileMenu = QMenu('File',self)
+        saveAct = QAction('Save',self)
+        fileMenu.addAction(saveAct)
+        menubar.addMenu(fileMenu)
 
+        saveAct.triggered.connect(self.saveShelf)
+    def saveShelf(self):
+        for f in [ '%s/%s' % (shelfPath,i) for i in os.listdir(shelfPath)]:
+            name = os.path.splitext(os.path.basename(f))[0].split('Rig')[1]
+            cmds.saveShelf(name,os.path.splitext(f)[0])
+            print('%s was Saved' % name)
 class listItem(QStandardItem):
     def __init__(self,name=None,image=None,cmd=None):
         QStandardItem.__init__(self)
@@ -64,14 +72,43 @@ class listItem(QStandardItem):
             except Exception as e:
                 
                 print(e)     
-               
-              
+class mayaShelfWidget(QWidget):
+    def __init__(self,name,path='',parent=None):
+        super(mayaShelfWidget,self).__init__()
+        self.name = name
+        self.path = path
+        self.setObjectName = self.name
+        self.vLayout = QVBoxLayout(self)
+        self.widget = self.shelfWidget()
+        self.widget.setParent(self)
+        self.vLayout.addWidget(self.widget)
+    def shelfWidget(self): 
+        funcName = ''
+        if self.path:
+            with open( self.path,'r') as f:
+                lines = f.readlines()
+                
+            for line in lines:
+                if 'global proc' in line:
+                    funcName = '%s()' % line.split(' ')[2]
+            mel.eval('source"%s"'% self.path)  
+            
+        if cmds.shelfLayout(self.name,ex=True):
+            cmds.deleteUI(self.name)                        
+        shelfLayout = cmds.shelfLayout(self.name,parent=mainWindow.objectName())
+        
+        mel.eval(funcName)   
+        ptr = omui.MQtUtil_findControl(shelfLayout)
+        try:   
+            return shiboken2.wrapInstance(long(ptr),QWidget)  
+        except:
+            return shiboken.wrapInstance(long(ptr),QWidget)    
 def main():
         
     title = 'ZT_RIGTools'
     if cmds.window(title, exists =True):
         cmds.deleteUI(title, wnd =True)
-    win = rigWidget(maya_main_window())
+    win = rigWindow(maya_main_window())
     win.setObjectName(title)
     win.setWindowTitle(title)
     win.show() 
