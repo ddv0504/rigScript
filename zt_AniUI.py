@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 from PySide2.QtCore import *
 from PySide2.QtWidgets import *
 from PySide2.QtGui import *
 from PySide2.QtUiTools import *
 import shiboken2
 import ztool_ToolsUI as zToolUI
-from maya.app.general.mayaMixin import MayaQWidgetDockableMixin  
+from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 import maya.OpenMayaUI as omui
 import maya.cmds as cmds
 import pymel.core as pm
@@ -13,69 +14,70 @@ import maya.mel as mel
 import os
 from collections import OrderedDict
 
+
 currentDir = os.path.dirname(__file__)
 tempDir = currentDir + '/temp'
 shelfPath = '%s/shelves' % os.path.dirname(__file__)
 
 def maya_main_window():
-    mayaMainWindowPtr = omui.MQtUtil.mainWindow()        
-    
-    mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow) 
-            
-    return mWindow 
+    mayaMainWindowPtr = omui.MQtUtil.mainWindow()
+
+    mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow)
+
+    return mWindow
 curser = QCursor()
 class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
     toggle = False
     playBlastInfo = {}
     def __init__(self,parent=None):
-        QWidget.__init__(self,parent=None)          
-               
+        QWidget.__init__(self,parent=None)
+
         self.setMinimumSize(500,350)
-        self.setMaximumSize(500,350)        
+        self.setMaximumSize(500,350)
         self.move(curser.pos())
         self.setForm()
         self.setLocalList()
         self.setFocusPolicy(Qt.NoFocus)
-        
+        self.pbSetting = QSettings('ZT_AniTools_playblaset_setting')
     def setForm(self):
         mainLayout = QVBoxLayout()
-        self.setLayout(mainLayout)        
+        self.setLayout(mainLayout)
         tabWidget  = QTabWidget()
         mainLayout.addWidget(tabWidget)
-        toolWidget = QWidget()        
-        tabWidget.addTab(toolWidget,'Tools') 
+        toolWidget = QWidget()
+        tabWidget.addTab(toolWidget,'Tools')
 
         #Tools UI
         toolLayout = QVBoxLayout()
         alignLayout = QVBoxLayout()
-        alignKeyLayout = QHBoxLayout()    
+        alignKeyLayout = QHBoxLayout()
         moveKeysLayout = QHBoxLayout()
         overLapLayout  = QHBoxLayout()
-        labelLayout = QVBoxLayout() 
-        setCameraLayout = QHBoxLayout()       
+        labelLayout = QVBoxLayout()
+        setCameraLayout = QHBoxLayout()
         toolWidget.setLayout(toolLayout)
         toolLayout.addLayout(labelLayout)
         toolLayout.addLayout(moveKeysLayout)
-        toolLayout.addLayout(overLapLayout)   
-        topSpacerItem = QSpacerItem(20, 300, QSizePolicy.Minimum,QSizePolicy.Expanding)  
+        toolLayout.addLayout(overLapLayout)
+        topSpacerItem = QSpacerItem(20, 300, QSizePolicy.Minimum,QSizePolicy.Expanding)
 
         ###Align Widgets###
         alignLabel= QLabel('Align Keys:')
         alignLeftBtn = QPushButton()
-        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSkipBackward')) 
+        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSkipBackward'))
         alignLeftBtn.setIcon(icon)
         alignCenterBtn = QPushButton()
-        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaPause')) 
+        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaPause'))
         alignCenterBtn.setIcon(icon)
-        alignRightBtn = QPushButton() 
-        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSkipForward'))        
+        alignRightBtn = QPushButton()
+        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSkipForward'))
         alignRightBtn.setIcon(icon)
-        alignSpacerItem = QSpacerItem(500, 40, QSizePolicy.Minimum,QSizePolicy.Expanding)  
+        alignSpacerItem = QSpacerItem(500, 40, QSizePolicy.Minimum,QSizePolicy.Expanding)
         ###Move key Widgets###
         moveKeyLabel = QLabel('Move Keys:')
         self.valueLine = QLineEdit()
         forwardBtn   = QPushButton()
-        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSeekForward'))  
+        icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSeekForward'))
         forwardBtn.setIcon(icon)
         self.startPosCheckBox = QCheckBox('To Frame')
         self.moveRadioBtn     = QRadioButton('Move')
@@ -88,29 +90,29 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         setCameraBtn   = QPushButton('setCamera')
         setCameraBtn.setIcon(QIcon(':CameraDown.png'))
         playBlastBtn     = QPushButton('<==PlayBlast With QuickTime==>')
-
-
+        playBlastOptionBtn = QPushButton('Setting')
         #### Layout add widgets ###
         alignKeyLayout.addWidget(alignLeftBtn)
         alignKeyLayout.addWidget(alignCenterBtn)
         alignKeyLayout.addWidget(alignRightBtn)
-        alignKeyLayout.addSpacerItem(alignSpacerItem) 
+        alignKeyLayout.addSpacerItem(alignSpacerItem)
         alignLayout.addWidget(alignLabel)
         alignLayout.addLayout(alignKeyLayout)
         labelLayout.addSpacerItem(topSpacerItem)
-        
+
         labelLayout.addLayout(alignLayout)
-        labelLayout.addWidget(moveKeyLabel)        
+        labelLayout.addWidget(moveKeyLabel)
         moveKeysLayout.addWidget(self.valueLine)
         moveKeysLayout.addWidget(forwardBtn)
         moveKeysLayout.addWidget(self.startPosCheckBox)
         moveKeysLayout.addWidget(self.moveRadioBtn)
         moveKeysLayout.addWidget(self.overLapRadioBtn)
-        moveKeysLayout.addWidget(breakAnimCycleBtn)        
+        moveKeysLayout.addWidget(breakAnimCycleBtn)
 
         setCameraLayout.addWidget(self.setCameraLabel)
         setCameraLayout.addWidget(setCameraBtn)
         setCameraLayout.addWidget(playBlastBtn)
+        setCameraLayout.addWidget(playBlastOptionBtn)
 
         mainLayout.addLayout(setCameraLayout)
 
@@ -142,10 +144,10 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
                                                     breakAnimCycle(),
                                                     cmds.undoInfo(closeChunk=True)
                                                     ))
-        
-        setCameraBtn.clicked.connect(self.setPlayblastCam)                
-        playBlastBtn.clicked.connect(self.playBlast)
 
+        setCameraBtn.clicked.connect(self.setPlayblastCam)
+        playBlastBtn.clicked.connect(self.playBlast)
+        playBlastOptionBtn.clicked.connect(self.playBlastSetting)
         #Local UI
         localWidget = QWidget()
         tabWidget.addTab(localWidget,'Local')
@@ -153,28 +155,28 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         localWidget.setLayout(localLayout)
 
         urlLayout = QHBoxLayout()
-        urlLabel = QLabel()        
+        urlLabel = QLabel()
         icon = QIcon(self.style().standardIcon(getattr(QStyle, 'SP_DirLinkIcon')))
-        pixmap = icon.pixmap(80,80)        
+        pixmap = icon.pixmap(80,80)
         urlLabel.setPixmap(pixmap)
         self.urlLineEdit = QLineEdit()
         self.urlLineEdit.setReadOnly(True)
         explanBtn = QPushButton()
         explanBtn.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_TitleBarUnshadeButton')))
-        
+
         urlLayout.addWidget(urlLabel)
         urlLayout.addWidget(self.urlLineEdit)
         urlLayout.addWidget(explanBtn)
 
-        localLayout.addLayout(urlLayout)   
+        localLayout.addLayout(urlLayout)
         self.dirTreeView = dirView()
-        self.dirTreeView.setSortingEnabled(True)       
+        self.dirTreeView.setSortingEnabled(True)
         localLayout.addWidget(self.dirTreeView)
 
         explanBtn.clicked.connect(self.setToggle)
     def setPlayblastCam(self):
         try:
-            panel = cmds.getPanel(wf=True)        
+            panel = cmds.getPanel(wf=True)
             cam = cmds.modelEditor(panel,cam=True,q=True)
             self.playBlastInfo['panel'] = panel
             self.playBlastInfo['cam']  = cam
@@ -183,19 +185,30 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         except RuntimeError:
             print('Select viewport 1st.')
             cmds.warning('Camera was not set')
-        
+
     def playBlast(self):
+
         fileName = cmds.file(sn=True,q=True)
-        panel = cmds.getPanel(wf=True)  
+        panel = cmds.getPanel(wf=True)
         if fileName ==u'':
-            print('File may not saved yet')            
+            print('File may not saved yet')
             return
         if  self.playBlastInfo:
             panel = self.playBlastInfo['panel']
-        
+
         movFile = self.setMovFileName(fileName)
-        
-        widthHeight = [cmds.getAttr('defaultResolution.%s' % i) for i in ["width","height"]]
+
+        widthHeight = [i for i in [self.pbSetting.value('width'),self.pbSetting.value('height')] if not i == None]
+        if not widthHeight:
+            widthHeight = [cmds.getAttr('defaultResolution.%s' % i) for i in ["width","height"]]
+        if not self.pbSetting.value('offScreen'):
+            offScreen = True
+        else:
+            if self.pbSetting.value('offScreen') == 0:
+                offScreen = False
+            else:
+                offScreen = True
+
         timeRange = mel.eval('timeControl -q -ra $gPlayBackSlider;')
         timeControl = mel.eval('$tmpVar = $gPlayBackSlider')
         sound = cmds.timeControl(timeControl,q=True,sound=True)
@@ -204,16 +217,55 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         if timeRange[1] - timeRange[0] >1:
             startFrame = timeRange[0]
             endFrame   = timeRange[1]
-            
+
         try:
-            
-            cmds.playblast(epn=panel,startTime=startFrame,endTime=endFrame,sound=sound,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,offScreen=True,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
+            cmds.playblast(epn=panel,startTime=startFrame,endTime=endFrame,sound=sound,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,offScreen=offScreen,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
         except Exception as e:
-            
-            print("Install quicktime first.")
-            
+
+            print(e)
+
+    def playBlastSetting(self):
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Playblast options')
+        dialog.resize(300,150)
+        mainLayout = QVBoxLayout()
+        dialog.setLayout(mainLayout)
+
+        offScreen  = QCheckBox('OffScreen')
+        sizeLayout = QHBoxLayout()
+        widthLabel = QLabel('Width:')
+        widthLineEdit = QLineEdit()
+        heightLabel = QLabel('Height:')
+        heightLineEdit = QLineEdit()
+
+        for widget in [widthLabel,widthLineEdit,heightLabel,heightLineEdit]:
+            sizeLayout.addWidget(widget)
+        mainLayout.addWidget(offScreen)
+        mainLayout.addLayout(sizeLayout)
+
+        try:
+            offScreenValue = self.pbSetting.value('offScreen')
+            widthLineEdit.setText(str(self.pbSetting.value('width')))
+            heightLineEdit.setText(str(self.pbSetting.value('height')))
+            if offScreenValue == 0:
+                offScreen.setCheckState(Qt.Unchecked)
+            else:
+                offScreen.setCheckState(Qt.Checked)
+        except Exception as e:
+            print(e)
+            pass
+        saveBtn = QPushButton("Save")
+        saveBtn.clicked.connect(lambda:(self.pbSetting.setValue('offscreen',offScreen.checkState()),
+                                        (self.pbSetting.setValue('width',int(widthLineEdit.text()))),
+                                        (self.pbSetting.setValue('height',int(heightLineEdit.text()))),
+                                        dialog.deleteLater()))
+
+        mainLayout.addWidget(saveBtn)
+        dialog.exec_()
+
     def setMovFileName(self,sceneFileName):
-        movFile = ''        
+        movFile = ''
         dirName = os.path.dirname(sceneFileName)
         allBaseName = [
             '%s/%s' % (dirName,i.split('.mov')[0]) for i in os.listdir(dirName) if all([
@@ -222,7 +274,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
             i.split("_")[-1].startswith('P')
             ])
             ]
-        
+
         if not allBaseName:
             movFile = '%s_P01.mov' % os.path.splitext(sceneFileName)[0]
             print(movFile)
@@ -232,8 +284,8 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         nextVer = int(lastBaseName.split('_P')[-1]) + 1
         movFile = '%s_P%s.mov' % (lastBaseName[:-4],str(nextVer).zfill(2))
         print(movFile)
-        
-        return movFile            
+
+        return movFile
 
     def setToggle(self):
         if self.toggle==False:
@@ -250,12 +302,12 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         if not os.path.isdir(path):
             self.dirTreeView.setModel(None)
             self.urlLineEdit.setText('File may not saved yet.')
-            return 
+            return
         self.dirTreeView.setPath(path)
         self.dirTreeView.setRootIndex(self.dirTreeView.model.index(path))
-        
+
         self.urlLineEdit.setText(path)
-        
+
     def hideColumns(self):
         self.dirTreeView.hideColumn(1)
         self.dirTreeView.hideColumn(2)
@@ -282,17 +334,17 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
                 moveKeyFrame(value,move=True)
             else:
                 cmds.undoInfo(openChunk=True)
-                moveKeyFrame(value,overLap=True)  
+                moveKeyFrame(value,overLap=True)
                 cmds.undoInfo(closeChunk=True)
-    
+
     def startScriptJob(self):
         jobNum = cmds.scriptJob( event = ["SceneOpened", self.refreshAll ], parent='ZT_AniTools')
         jobNum = cmds.scriptJob( event = ["SceneSaved", self.refreshAll ], parent='ZT_AniTools')
         #jobNum = cmds.scriptJob( event = ["NewSceneOpened", self.refreshAll ], parent='ZT_AniTools')
     def refreshAll(self):
         print('Local refreshed')
-        self.playBlastInfo={}        
-        self.setLocalList()  
+        self.playBlastInfo={}
+        self.setLocalList()
     def startPosCheckBoxState(self):
         if self.startPosCheckBox.checkState() == Qt.Checked:
             self.overLapRadioBtn.setEnabled(False)
@@ -302,31 +354,31 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
             self.moveRadioBtn.setEnabled(True)
 
 def breakAnimCycle():
-    currentTime=cmds.currentTime(q=True)      
+    currentTime=cmds.currentTime(q=True)
     animCurves = cmds.keyframe(n=True,sl=True,q=True)
     if not animCurves:
         print('Select animation curves first!')
         return
     for animCurve in animCurves:
-        frames = cmds.keyframe(animCurve,q=True)        
+        frames = cmds.keyframe(animCurve,q=True)
         maxFrame = max(frames)
         minFrame = min(frames)
         frameRange = maxFrame-minFrame
-        cmds.copyKey(animCurve)         
-        if currentTime > maxFrame: 
-            while maxFrame < currentTime:           
-                cmds.pasteKey(animCurve,copies= 1)        
+        cmds.copyKey(animCurve)
+        if currentTime > maxFrame:
+            while maxFrame < currentTime:
+                cmds.pasteKey(animCurve,copies= 1)
                 maxFrame = max(cmds.keyframe(animCurve,q=True))
             cmds.setKeyframe(animCurve,insert=True,t=currentTime)
             cmds.cutKey(animCurve,t=(currentTime+1,currentTime+frameRange))
-            
-        if currentTime < minFrame:             
+
+        if currentTime < minFrame:
             n=0
             while minFrame > currentTime:
                 n += 1
                 pastFrame = maxFrame-frameRange*n
                 cmds.pasteKey(animCurve,copies=1,timeOffset = 0,option='merge',connect=0,floatOffset=0,valueOffset=0,t=(pastFrame,pastFrame))
-                minFrame = min(cmds.keyframe(animCurve,q=True))                
+                minFrame = min(cmds.keyframe(animCurve,q=True))
                 minFrame=min(cmds.keyframe(animCurve,q=True))
             cmds.setKeyframe(animCurve,insert=True,t=currentTime)
             cmds.cutKey(animCurve,t=(currentTime-frameRange,currentTime-1))
@@ -337,7 +389,7 @@ class dirView(QTreeView):
         self.path = r''
         self.model = QFileSystemModel()
         self.doubleClicked.connect(self.openFile)
-      
+
     def contextMenuEvent(self,event):
         menu = QMenu(self)
 
@@ -351,26 +403,26 @@ class dirView(QTreeView):
         menu.addAction(dirAction)
         menu.exec_(self.mapFromParent(event.globalPos()))
     @Slot(QModelIndex)
-    def openFile(self,index):        
+    def openFile(self,index):
         fileName = self.model.filePath(index)
         os.startfile(fileName)
-    
+
     def openPath(self):
         # fileName = self.model.filePath(index)
         # path = os.path.dirname(fileName)
         os.startfile(self.path)
-        
-    def setPath(self,path):        
+
+    def setPath(self,path):
         self.path = path
         self.model.setRootPath(self.path)
         self.setModel(self.model)
-        
+
 
 class localItem(QStandardItem):
     def __init__(self,text):
         super(localItem,self).__init__()
         self.setText(text)
-        self.fileName = ''       
+        self.fileName = ''
 
     def setFileName(self,fileName):
         self.fileName = fileName
@@ -392,7 +444,7 @@ def moveKeyFrame(frame=0,toFrame=False,move=False,overLap=False):
 
     if move:
         cmds.keyframe(e=True,tc=frame,iub=True,r=True,o='over')
-    
+
     if overLap:
         n=0
         for obj in cmds.ls(sl=True):
@@ -425,11 +477,11 @@ def main():
     title = 'ZT_AniTools'
     if cmds.window('ZT_AniTools', exists =True):
         cmds.deleteUI('ZT_AniTools', wnd =True)
-    
+
     win = aniToolsUI()
     win.setObjectName(title)
-    win.setWindowTitle(title)    
+    win.setWindowTitle(title)
     win.startScriptJob()
     win.show()
-    
+
 
