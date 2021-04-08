@@ -3,6 +3,7 @@ from __future__ import print_function
 import maya.OpenMayaUI as omui
 import maya.cmds as cmds
 import maya.mel as mel
+import os
 import zt_AniUI
 reload(zt_AniUI) 
 try:    
@@ -18,6 +19,7 @@ except:
     from PySide.QtUiTools import *
     import shiboken
 
+shelfPath = '%s/shelves' % os.path.dirname(__file__).replace('\\','/')
 def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()        
     try:
@@ -25,7 +27,46 @@ def maya_main_window():
     except:
         mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow)             
     return mWindow
-   
+
+class mayaShelfWidget(QWidget):
+    def __init__(self,name,path='',parent=None):
+        super(mayaShelfWidget,self).__init__()
+        self.name = name
+        self.path = path
+        self.setObjectName = self.name
+        self.vLayout = QVBoxLayout(self)
+        self.widget = self.shelfWidget()
+        self.widget.setParent(self)
+        self.vLayout.addWidget(self.widget)
+    def shelfWidget(self): 
+        mainWindow = maya_main_window()
+        funcName = ''
+        if self.path:
+            with open( self.path,'r') as f:
+                lines = f.readlines()
+                
+            for line in lines:
+                if 'global proc' in line:
+                    funcName = '%s()' % line.split(' ')[2]
+            mel.eval('source"%s"'% self.path)  
+            
+        if cmds.shelfLayout(self.name,ex=True):
+            cmds.deleteUI(self.name)                        
+        shelfLayout = cmds.shelfLayout(self.name,parent=mainWindow.objectName())
+        
+        mel.eval(funcName)   
+        ptr = omui.MQtUtil_findControl(shelfLayout)
+        try:   
+            return shiboken2.wrapInstance(long(ptr),QWidget)  
+        except:
+            return shiboken.wrapInstance(long(ptr),QWidget)  
+    def contextMenuEvent(self,event):
+        contextMenu = QMenu(self)
+        saveAction = QAction(u'save',self)
+        contextMenu.addAction(saveAction)
+        saveAction.triggered.connect(lambda:(cmds.saveShelf(self.name,os.path.splitext(self.path)[0]),print('Shelf was saved')))
+        contextMenu.exec_(self.mapToGlobal(event.pos()))
+
 class toolBox(QMainWindow):
     selList =    ["Polygon","Curves","Locator","Constraint","Hierachy","HideObject","Joint","AnimObject","AnimNode"]
     constrains = ["ParentConstraint","PointConstraint","OrientConstraint","ScaleConstraint","AimConstraint"]
@@ -52,6 +93,33 @@ class toolBox(QMainWindow):
         self.mainLayout = QVBoxLayout(self.mainWidget)
         
         self.setLayout(self.mainLayout)
+        self.viewEditorLayout = QHBoxLayout()
+        self.viewEditorLayout.setSpacing(0)
+        self.viewEditorLayout.setContentsMargins(0,0,0,0)
+        self.viewerBox = QGroupBox()
+        self.viewerBox.setTitle('View')
+        self.viewerBox.setContentsMargins(0,0,0,0)
+        viewerBoxLayout = QHBoxLayout()
+        viewerBoxLayout.setContentsMargins(0,0,0,0)
+        viewerBoxLayout.setSpacing(0)
+        self.viewerBox.setLayout(viewerBoxLayout)
+        viewerShelf = mayaShelfWidget(name='ztView',path='%s/ztView.mel' % shelfPath)
+        viewerBoxLayout.addWidget(viewerShelf)
+        self.editorBox = QGroupBox()
+        self.editorBox.setTitle('EdiorWindows')
+        self.editorBox.setContentsMargins(0,0,0,0)
+        editorBoxLayout = QHBoxLayout()
+        editorBoxLayout.setSpacing(0)
+        editorBoxLayout.setContentsMargins(0,0,0,0)
+        self.editorBox.setLayout(editorBoxLayout)
+        editorShelf = mayaShelfWidget(name='ztEditorWindow',path='%s/ztEditorWindow.mel' % shelfPath)
+        editorBoxLayout.addWidget(editorShelf)
+        
+
+        self.viewEditorLayout.addWidget(self.viewerBox)
+        self.viewEditorLayout.addWidget(self.editorBox)
+        
+
         self.selBox  = QGroupBox(self.mainWidget)
         self.selBox.setTitle("Selection:")
         self.selLayout  = QVBoxLayout()
@@ -74,7 +142,8 @@ class toolBox(QMainWindow):
         self.utilBox.setTitle("Category")       
         self.utilLayout  = QHBoxLayout()
         self.utilBox.setLayout(self.utilLayout)
-        
+
+        self.mainLayout.addLayout(self.viewEditorLayout)
         self.mainLayout.addWidget(self.selBox)
         self.mainLayout.addWidget(self.consBox)
         self.mainLayout.addWidget(self.connectBox)

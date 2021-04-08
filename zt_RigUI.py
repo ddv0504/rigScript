@@ -38,8 +38,8 @@ class rigWindow(MayaQWidgetDockableMixin, QMainWindow):
         mainLayout.addWidget(displayBox)
         for f in [ '%s/%s.mel' % (shelfPath,i) for i in ['ztRigDisplay','ztRigEditModel','ztRigBuild','ztRigDeformation','ztRigExtraTools']]:
             name = os.path.splitext(os.path.basename(f))[0].split('Rig')[1]
-            displayShelf = mayaShelfWidget(name=name,path = f)
-            displayBox.addItem(displayShelf,name)
+            shelf = mayaShelfWidget(name=name,path = f)
+            displayBox.addItem(shelf,name)
         self.setCentralWidget(self.mainWidget)
     def addMenu(self):
         menubar = self.menuBar()
