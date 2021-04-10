@@ -261,15 +261,9 @@ curser = QCursor()
 def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()
     try:
-<<<<<<< HEAD
-        mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow) 
-    except:
-        mWindow= shiboken2.wrapInstance(int(mayaMainWindowPtr), QMainWindow)             
-=======
-        mWindow= shiboken.wrapInstance(long(mayaMainWindowPtr), QMainWindow)
-    except:
         mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow)
->>>>>>> 3544b7c49ba5627504dfc9d40475eba3bc944cfe
+    except:
+        mWindow= shiboken2.wrapInstance(int(mayaMainWindowPtr), QMainWindow)
     return mWindow
 
 #Maya main window global var
@@ -689,13 +683,8 @@ class shelfWin(QWidget):
         try:
             return shiboken2.wrapInstance(long(ptr),QWidget)
         except:
-<<<<<<< HEAD
             return shiboken2.wrapInstance(int(ptr),QWidget)    
             
-=======
-            return shiboken.wrapInstance(long(ptr),QWidget)
-
->>>>>>> 3544b7c49ba5627504dfc9d40475eba3bc944cfe
     def contextMenuEvent(self,event):
         menu = QMenu(self)
         #Create rename Action
@@ -740,18 +729,11 @@ class shelfWin(QWidget):
                 cmds.deleteUI('IconLibrary')
             self.iconWidget = iconWidget(parent=self)
             self.iconWidget.move(curser.pos())
-<<<<<<< HEAD
             self.iconWidget.show()             
                
         elif action == saveAction:  
             print(self.name,os.path.splitext(self.path)[0],self.path)          
             cmds.saveShelf(self.name,os.path.splitext(self.path)[0])      
-=======
-            self.iconWidget.show()
-
-        elif action == saveAction:
-            cmds.saveShelf(self.name,os.path.splitext(self.path)[0])
->>>>>>> 3544b7c49ba5627504dfc9d40475eba3bc944cfe
             print('Current shelf: %s was saved'%self.path)
 
         elif action == saveAllAction:
