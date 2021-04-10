@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+from imp import reload
 import maya.OpenMayaUI as omui
 import maya.cmds as cmds
 import maya.mel as mel
@@ -19,13 +20,14 @@ except:
     from PySide.QtUiTools import *
     import shiboken
 
-shelfPath = '%s/shelves' % os.path.dirname(__file__).replace('\\','/')
+SHELF_PATH = '%s/shelves' % os.path.dirname(__file__).replace('\\','/')
+ICON_PATH  = '%s/icons' % os.path.dirname(__file__).replace('\\','/')
 def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()        
     try:
-        mWindow= shiboken.wrapInstance(long(mayaMainWindowPtr), QMainWindow) 
+        mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow) 
     except:
-        mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow)             
+        mWindow= shiboken2.wrapInstance(int(mayaMainWindowPtr), QMainWindow)             
     return mWindow
 
 class mayaShelfWidget(QWidget):
@@ -59,7 +61,7 @@ class mayaShelfWidget(QWidget):
         try:   
             return shiboken2.wrapInstance(long(ptr),QWidget)  
         except:
-            return shiboken.wrapInstance(long(ptr),QWidget)  
+            return shiboken2.wrapInstance(int(ptr),QWidget)  
     def contextMenuEvent(self,event):
         contextMenu = QMenu(self)
         saveAction = QAction(u'save',self)
@@ -103,7 +105,7 @@ class toolBox(QMainWindow):
         viewerBoxLayout.setContentsMargins(0,0,0,0)
         viewerBoxLayout.setSpacing(0)
         self.viewerBox.setLayout(viewerBoxLayout)
-        viewerShelf = mayaShelfWidget(name='ztView',path='%s/ztView.mel' % shelfPath)
+        viewerShelf = mayaShelfWidget(name='ztView',path='%s/ztView.mel' % SHELF_PATH)
         viewerBoxLayout.addWidget(viewerShelf)
         self.editorBox = QGroupBox()
         self.editorBox.setTitle('EdiorWindows')
@@ -112,7 +114,7 @@ class toolBox(QMainWindow):
         editorBoxLayout.setSpacing(0)
         editorBoxLayout.setContentsMargins(0,0,0,0)
         self.editorBox.setLayout(editorBoxLayout)
-        editorShelf = mayaShelfWidget(name='ztEditorWindow',path='%s/ztEditorWindow.mel' % shelfPath)
+        editorShelf = mayaShelfWidget(name='ztEditorWindow',path='%s/ztEditorWindow.mel' % SHELF_PATH)
         editorBoxLayout.addWidget(editorShelf)
         
 
@@ -563,8 +565,14 @@ def selkeyedobjs():
     
     if keyed:
         cmds.select(keyed, replace=True)
-
+def setEnv():
+    print(os.environ['XBMLANGPATH'])  
+    print(ICON_PATH)  
+    if not ICON_PATH in os.environ['XBMLANGPATH']:
+        os.environ['XBMLANGPATH'] += ';%s' % ICON_PATH
+        print(ICON_PATH,'was add')
 def main():
+    setEnv()
     if cmds.window('ZT_Toolbox',ex=True):
         cmds.deleteUI('ZT_Toolbox')    
     win = toolBox() 

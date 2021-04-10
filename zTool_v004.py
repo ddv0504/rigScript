@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys,os,random,json,subprocess,logging,shutil,threading,pprint,getpass,time,collections
+from imp import reload
 import maya.cmds as cmds
 import maya.OpenMayaUI as omui
 from datetime import datetime
@@ -24,7 +25,7 @@ except:
     from PySide.QtUiTools import *
     import shiboken   
 
-mayaVersion = cmds.about(v=True)
+MAYA_VERSION = cmds.about(v=True)
 
 #Save option data function
 def saveJson(filePath,data):
@@ -142,7 +143,7 @@ baseIcons = [
             ]    
 
 #The option path add to current maya version enviroment file.
-envFile = '%s/maya/%s/Maya.env' %(os.getenv('HOME'),mayaVersion)
+envFile = '%s/maya/%s/Maya.env' %(os.getenv('HOME'),MAYA_VERSION)
 
 def onMayaDroppedPythonFile(*args):    
     shelfTab = mel.eval('''global string $gShelfTopLevel;
@@ -237,7 +238,7 @@ elif not len(os.listdir(shelfPath))>1:
         f.write(defaultContent)
 
 #Organize optionfile contents.
-if os.listdir(shelfPath) > 0:
+if len(os.listdir(shelfPath)) > 0:
     keyList =[]
     for i in os.listdir(shelfPath):
         if os.path.splitext(i)[-1] == ".mel":
@@ -260,9 +261,9 @@ curser = QCursor()
 def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()        
     try:
-        mWindow= shiboken.wrapInstance(long(mayaMainWindowPtr), QMainWindow) 
+        mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow) 
     except:
-        mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow)             
+        mWindow= shiboken2.wrapInstance(int(mayaMainWindowPtr), QMainWindow)             
     return mWindow
 
 #Maya main window global var
@@ -675,7 +676,7 @@ class shelfWin(QWidget):
         try:   
             return shiboken2.wrapInstance(long(ptr),QWidget)  
         except:
-            return shiboken.wrapInstance(long(ptr),QWidget)    
+            return shiboken2.wrapInstance(int(ptr),QWidget)    
             
     def contextMenuEvent(self,event):
         menu = QMenu(self)
@@ -723,7 +724,8 @@ class shelfWin(QWidget):
             self.iconWidget.move(curser.pos())
             self.iconWidget.show()             
                
-        elif action == saveAction:            
+        elif action == saveAction:  
+            print(self.name,os.path.splitext(self.path)[0],self.path)          
             cmds.saveShelf(self.name,os.path.splitext(self.path)[0])      
             print('Current shelf: %s was saved'%self.path)
             

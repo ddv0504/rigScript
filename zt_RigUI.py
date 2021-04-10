@@ -16,9 +16,9 @@ def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()
         
     try:
-        mWindow= shiboken.wrapInstance(long(mayaMainWindowPtr), QMainWindow) 
-    except:
         mWindow= shiboken2.wrapInstance(long(mayaMainWindowPtr), QMainWindow) 
+    except:
+        mWindow= shiboken2.wrapInstance(int(mayaMainWindowPtr), QMainWindow) 
             
     return mWindow     
 mainWindow = maya_main_window()    
@@ -37,7 +37,7 @@ class rigWindow(MayaQWidgetDockableMixin, QMainWindow):
         displayBox = QToolBox()        
         mainLayout.addWidget(displayBox)
         for f in [ '%s/%s.mel' % (shelfPath,i) for i in ['ztRigDisplay','ztRigEditModel','ztRigBuild','ztRigDeformation','ztRigExtraTools']]:
-            name = os.path.splitext(os.path.basename(f))[0].split('Rig')[1]
+            name = os.path.splitext(os.path.basename(f))[0]
             shelf = mayaShelfWidget(name=name,path = f)
             displayBox.addItem(shelf,name)
         self.setCentralWidget(self.mainWidget)
@@ -51,7 +51,8 @@ class rigWindow(MayaQWidgetDockableMixin, QMainWindow):
         saveAct.triggered.connect(self.saveShelf)
     def saveShelf(self):
         for f in [ '%s/%s' % (shelfPath,i) for i in os.listdir(shelfPath)]:
-            name = os.path.splitext(os.path.basename(f))[0].split('Rig')[1]
+            name = os.path.basename(os.path.splitext(f)[0])
+            print(name,os.path.splitext(f)[0])
             cmds.saveShelf(name,os.path.splitext(f)[0])
             print('%s was Saved' % name)
 class listItem(QStandardItem):
@@ -102,7 +103,7 @@ class mayaShelfWidget(QWidget):
         try:   
             return shiboken2.wrapInstance(long(ptr),QWidget)  
         except:
-            return shiboken.wrapInstance(long(ptr),QWidget)    
+            return shiboken2.wrapInstance(int(ptr),QWidget)    
 def main():
         
     title = 'ZT_RIGTools'
