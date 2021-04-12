@@ -10,7 +10,8 @@ import pymel.core as pm
 import maya.mel as mel
 import os
 
-shelfPath = '%s/shelves' % os.path.dirname(__file__).replace('\\','/')
+currentPath = os.path.dirname(__file__).replace('\\','/')
+shelfPath = '%s/shelves' % currentPath
 
 def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()
@@ -97,6 +98,7 @@ class mayaShelfWidget(QWidget):
         if cmds.shelfLayout(self.name,ex=True):
             cmds.deleteUI(self.name)                        
         shelfLayout = cmds.shelfLayout(self.name,parent=mainWindow.objectName())
+
         
         mel.eval(funcName)   
         ptr = omui.MQtUtil_findControl(shelfLayout)

@@ -1,0 +1,247 @@
+source "N:/b1Env/maya/JHLee/script/SourceScripts/progressBar_v001";
+global string $g_selectSkinCopyWindowMem = "SelectSkinCopyWinMemName";
+
+// Select Skin Copy System
+SelectSkinCopySystem();
+global proc SelectSkinCopySystem()
+{
+    global string $g_selectSkinCopyWindowMem;
+    string $selections[] = `ls -selection -flatten`;
+    if(`size($selections)` > 0)
+    {
+        string $shapes[] = `listRelatives -shapes -fullPath $selections[1]`;
+        if(`size($shapes)` > 0)
+        {
+            if(`objectType ($shapes[0])` == "mesh")
+            {
+                string $skinObject = $selections[0];
+                string $buffers[]; clear $buffers;
+                tokenize $selections[1] "." $buffers;
+                string $targetObject = $buffers[0];
+                
+                string $skinCluster = `findRelatedSkinCluster $skinObject`;
+                string $skinVertex = $skinObject + ".vtx[0]";
+                string $skinJoints[] = `skinPercent -query -transform $skinCluster $skinVertex`;
+                
+                string $targetCluster = `findRelatedSkinCluster $targetObject`;
+                
+                if(`size($targetCluster)` > 0)
+                {
+                    string $targetVertex = $targetObject + ".vtx[0]";
+                    string $targetSkinJoints[] = `skinPercent -query -transform ($targetCluster) ($targetVertex)`;
+                    
+                    int $flag = false;
+                    for($skinJoint in $skinJoints)
+                    {
+                        $flag = false;
+                        for($targetSkinJoint in $targetSkinJoints)
+                        {
+                            if($skinJoint == $targetSkinJoint)
+                            {
+                                $flag = true;
+                            }
+                        }
+                        if($flag == false)
+                        {
+                            skinCluster -e -dr 4 -lw true -wt 0 -ai $skinJoint $targetCluster;
+                        }
+                    }
+                }
+                
+                CopySkinSystem($skinObject, $targetObject);
+            }
+        }
+        else
+        {
+            string $skinObject = $selections[0];
+            string $targetVertexs[]; clear $targetVertexs;
+            for($selection in $selections)
+            {
+                if(`objectType $selection` == "mesh")
+                {
+                    $targetVertexs[`size($targetVertexs)`] = $selection;
+                }
+            }
+            if(`size($targetVertexs)` > 0)
+            {
+                string $buffers[]; clear $buffers;
+                tokenize $targetVertexs[0] "." $buffers;
+                string $targetObject = $buffers[0];
+
+                CopyVertexSkinSystem($skinObject, $targetObject, $targetVertexs);
+            }
+        }
+    }
+    else
+    {
+        if(`window -exists $g_selectSkinCopyWindowMem` == true)
+        {
+            deleteUI $g_selectSkinCopyWindowMem;
+        }
+        window 
+            -title "Skin Copy"
+            -toolbox true 
+            $g_selectSkinCopyWindowMem;
+        columnLayout -adjustableColumn true MainUI;
+            textScrollList -enable false -numberOfRows 1 SelectSkinCopySkinObjectMem;
+            button -label "Select Skin Object" -command "SelectSkinObjectButton()";
+            separator;
+            textScrollList -enable false -numberOfRows 10 SelectSkinCopyTargetObjectMem;
+            button -label "Select Target Object" -command "SelectTargetObjectButton()";
+            separator;
+            button -label "Skin Copy" -command "SkinCopyButton()" -height 40 -backgroundColor 0.4 0.2 0.2;
+        showWindow $g_selectSkinCopyWindowMem;
+    }
+}
+
+global proc SelectSkinObjectButton()
+{
+    string $selections[] = `ls -selection -type "transform"`;
+    if(`size($selections)` > 0)
+    {
+        textScrollList -edit -removeAll SelectSkinCopySkinObjectMem;
+        textScrollList -edit -append $selections[0] SelectSkinCopySkinObjectMem;
+    }
+}
+
+global proc SelectTargetObjectButton()
+{
+    string $selections[] = `ls -selection -flatten`;
+    if(`size($selections)` > 0)
+    {
+        textScrollList -edit -removeAll SelectSkinCopyTargetObjectMem;
+        for($selection in $selections)
+        {
+            textScrollList -edit -append $selection SelectSkinCopyTargetObjectMem;
+        }
+    }
+}
+
+global proc SkinCopyButton()
+{
+    string $skinObjects[] = `textScrollList -query -allItems SelectSkinCopySkinObjectMem`;
+    string $targetObjects[] = `textScrollList -query -allItems SelectSkinCopyTargetObjectMem`;
+    string $skinObject = $skinObjects[0];
+    
+    if(`objectType $targetObjects[0]` == "mesh")
+    {
+        string $buffers[]; clear $buffers;
+        tokenize $targetObjects[0] "." $buffers;
+        string $targetObject = $buffers[0];
+        
+        CopyVertexSkinSystem($skinObject, $targetObject, $targetObjects);
+    }
+    else
+    {
+        ProgressStart(`size($targetObjects)`);
+        int $i = 0;
+        for($target in $targetObjects)
+        {
+            CopySkinSystem($skinObject, $target);
+            $i++;
+            Progressing($i);
+        }
+        ProgressEnd();
+    }
+    
+    select -clear;
+}
+
+global proc CopySkinSystem(string $skinObject, string $targetObject)
+{
+    string $skinCluster = `findRelatedSkinCluster $skinObject`;
+    string $skinVertex = $skinObject + ".vtx[0]";
+    string $skinJoints[] = `skinPercent -query -transform $skinCluster $skinVertex`;
+    
+    string $targetCluster = `findRelatedSkinCluster $targetObject`;
+    if(`objExists $targetCluster` == true)
+    {
+        delete $targetCluster;
+    }
+
+    string $filterJoints[]; clear $filterJoints;
+    string $filterGeometrys[]; clear $filterGeometrys;
+    for($skinJoint in $skinJoints)
+    {
+        if(`objectType $skinJoint` == "joint")
+        {
+            $filterJoints[`size($filterJoints)`] = $skinJoint;
+        }
+        if(`objectType $skinJoint` == "transform")
+        {
+            $filterGeometrys[`size($filterGeometrys)`] = $skinJoint;
+        }
+    }
+    
+    if(`size($filterJoints)` > 0)
+    {
+        string $targetClusters[] = `skinCluster -toSelectedBones $filterJoints $targetObject`;
+        $targetCluster = $targetClusters[0];
+    }
+    if(`size($filterGeometrys)` > 0)
+    {
+        for($filterGeo in $filterGeometrys)
+        {
+            skinCluster -edit -useGeometry -dropoffRate 4 -polySmoothness 0 -lockWeights false -weight 0 -addInfluence $filterGeo $targetCluster;
+        }
+        setAttr($targetCluster + ".useComponents") true;
+    }
+
+    select -replace $skinObject;
+    select -add $targetObject;
+    //copySkinWeights  -noMirror -surfaceAssociation closestPoint -influenceAssociation closestJoint;
+    copySkinWeights  -noMirror -surfaceAssociation closestPoint -influenceAssociation name;
+}
+
+global proc CopyVertexSkinSystem(string $skinObject, string $targetObject, string $targetVertexs[])
+{
+    string $skinCluster = `findRelatedSkinCluster $skinObject`;
+    string $skinVertex = $skinObject + ".vtx[0]";
+    string $skinJoints[] = `skinPercent -query -transform $skinCluster $skinVertex`;
+    
+    string $filterJoints[]; clear $filterJoints;
+    for($skinJoint in $skinJoints)
+    {
+        if(`objectType $skinJoint` == "joint")
+        {
+            $filterJoints[`size($filterJoints)`] = $skinJoint;
+        }
+    }
+        
+    string $targetCluster = `findRelatedSkinCluster $targetObject`;
+    if(`size($targetCluster)` == 0)
+    {
+        skinCluster -toSelectedBones $filterJoints $targetObject;
+    }
+    else
+    {
+        string $targetVertex = $targetObject + ".vtx[0]";
+        string $targetJoints[] = `skinPercent -query -transform $targetCluster $targetVertex`;
+        int $i = 0;
+        for($i = 0; $i < `size($filterJoints)`; $i++)
+        {
+            int $flag = false;
+            for($targetJoint in $targetJoints)
+            {
+                if($targetJoint == $skinJoints[$i])
+                {
+                    $flag = true;
+                }
+            }
+            if($flag == false)
+            {
+                skinCluster -edit -useGeometry -dropoffRate 4 -polySmoothness 0 -nurbsSamples 10 -lockWeights true -weight 0 -addInfluence ($filterJoints[$i]) $targetCluster;
+            }
+        }
+    }
+
+    select -replace $skinObject;
+    select -add $targetVertexs;
+    copySkinWeights  -noMirror -surfaceAssociation closestPoint -influenceAssociation closestJoint;
+    //copySkinWeights  -noMirror -surfaceAssociation closestPoint -influenceAssociation name;
+
+    select -replace $targetVertexs;
+}
+
+
+
