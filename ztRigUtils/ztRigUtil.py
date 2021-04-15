@@ -1,6 +1,10 @@
 #-*- coding: utf-8 -*-
 import sys,os
 import maya.cmds as cmds
+import pymel.core as pm
+import maya.mel as mel
+import pprint
+from collections import OrderedDict
 
 def jointDrawUI():
     '''
@@ -119,4 +123,91 @@ def constraint(src,trg,translate=False,rotate=False,scale=False,mo=False):
         cmds.select([i for i in cmds.listRelatives(src,p=True)][0])        
     else:
         cmds.select(src,r=True)
+
+
+###### blenShape #######
+'''
+Get connected blendshape node 
+'''
+def getBlendShapeNodes(obj):       
+    history = cmds.listHistory(obj)
+    bs = cmds.ls(history,type='blendShape')
+
+    return bs     
+'''
+Blendshape command 
+'''
+def blendShape():
+    src,trg = cmds.ls(sl=True)
+    bsName = cmds.blendShape(name='%s_blendShape'%src,origin='world')
+    return bsName
+
+def setBlendShapeWeight(bsNode,val):
+    bsNode = pm.ls(bsNode)[0]
+    attr , weight = bsNode.listAliases()[0]
+    bsNode.setAttr(attr,val)
+
+def selectChirdrenNursCurve(): # 하위 넓스 커브를 전부 선택
+    cmds.select([cmds.listRelatives(i,p=True)[0] for i in cmds.ls(sl=True,dag=True,type='nurbsCurve')])
+
+def createControlDrv(): #실제 컨트롤러를 제어할 locator 생성
+    objs = cmds.ls(sl=True)
+    for obj in objs:
+        locator = cmds.spaceLocator(name='%s_DrvCons' % obj) 
+        cmds.matchTransform(locator,obj)
+        drvGroup = obj.replace(obj.split("_")[-1],'drv')
+
+        cmds.parentConstraint(locator,drvGroup,mo=False)
+
+def getBlendShapeNode(obj):
+    shape = cmds.listRelatives(obj,c=True,type='shape')[0]
+    bsNode = cmds.listConnections(shape,source=True,type='blendShape')[0]
+    
+    return bsNode
+
+def getBlendShapeWeights(obj):    
+    bsNode = getBlendShapeNode(obj)    
+    VertexNb = cmds.polyEvaluate(obj, v=1)    
+    weightLst = cmds.getAttr('{0}.inputTarget[0].baseWeights[0:{1}]'.format(bsNode, VertexNb))
+    return weightLst
+
+def setBlendShapeWeights(obj,weightLst):
+    bsNode = getBlendShapeNode(obj)
+    
+    VertexNb = cmds.polyEvaluate(obj, v=1)    
+    cmds.setAttr('{0}.inputTarget[0].baseWeights[0:{1}]'.format(bsNode, VertexNb),*weightLst)  
+
+def addSelectionAsTarget(bsNode,newNodeName=None):
+    try:
+        bsNode = [i for i in pm.ls(bsNode) if pm.objectType(i.name()) == 'blendShape'][0]
+        mel.eval('doBlendShapeAddSelectionAsTarget %s 1 1 "" 1 1;' % (bsNode.name()))
+        last_used_index = pm.blendShape(bsNode, q=True, weightCount=True)
+        new_target_index = 0 if last_used_index == 0 else last_used_index - 1
+        if newNodeName:
+            
+            attr = bsNode.listAliases()[new_target_index][1]
+            pm.aliasAttr(newNodeName,attr)
         
+    except Exception as e:
+        print(e)
+        return
+
+###### vertex operation ##########
+def getVtxPos( shapeNode ) :
+     
+	vtxWorldPosition = []    # will contain positions un space of all object vertex
+ 
+	vtxIndexList = cmds.getAttr( shapeNode+".vrts", multiIndices=True )
+ 
+	for i in vtxIndexList :
+		curPointPosition = cmds.xform( str(shapeNode)+".pnts["+str(i)+"]", query=True, translation=True, worldSpace=True )    # [1.1269192869360154, 4.5408735275268555, 1.3387055339628269]
+		vtxWorldPosition.append( curPointPosition )
+ 
+	return vtxWorldPosition
+
+def setVtxPos( shapeNode, valueLst=None):
+    cmds.undoInfo(ock=True,chunkName='verticsMatch')
+    if valueLst:
+        for index,value in enumerate(valueLst):
+            cmds.xform(str(shapeNode)+".pnts["+str(index)+"]",translation=value,worldSpace=True)
+    cmds.undoInfo(cck=True)
