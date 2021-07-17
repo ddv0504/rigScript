@@ -356,10 +356,21 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
 def breakAnimCycle():
     currentTime=cmds.currentTime(q=True)
     animCurves = cmds.keyframe(n=True,sl=True,q=True)
+    
     if not animCurves:
         print('Select animation curves first!')
         return
+    if cmds.window('AnimCurveCycle',ex=True):
+        cmds.deleteUI('AnimCurveCycle')
+    window = cmds.window('AnimCurveCycle')
+    cmds.frameLayout('AnimCurveCycleLayout')
+    
+    progressControl = cmds.progressBar(maxValue=100, width=300)
+    cmds.showWindow( window )
     for animCurve in animCurves:
+        cmds.frameLayout('AnimCurveCycleLayout',e=True,l='Copy %s...' % animCurve)
+        if cmds.progressBar(progressControl, query=True, isCancelled=True):
+            break
         frames = cmds.keyframe(animCurve,q=True)
         maxFrame = max(frames)
         minFrame = min(frames)
@@ -382,7 +393,9 @@ def breakAnimCycle():
                 minFrame=min(cmds.keyframe(animCurve,q=True))
             cmds.setKeyframe(animCurve,insert=True,t=currentTime)
             cmds.cutKey(animCurve,t=(currentTime-frameRange,currentTime-1))
-
+        cmds.progressBar(progressControl,e=True,step=1)
+    cmds.progressBar(progressControl,endProgress=True)
+    cmds.deleteUI('AnimCurveCycle')
 class dirView(QTreeView):
     def __init__(self):
         super(dirView,self).__init__()
