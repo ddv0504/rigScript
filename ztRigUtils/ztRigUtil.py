@@ -6,7 +6,7 @@ import maya.mel as mel
 import pprint
 from collections import OrderedDict
 
-def jointDrawUI():
+def jointDrawUI(*args):
     '''
     jnt: string ; joint name
     style: int ;  0 or 2

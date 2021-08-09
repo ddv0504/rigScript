@@ -103,5 +103,40 @@ global proc ztRigBuild () {
         -commandRepeatable 1
         -flat 1
     ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "def ringFaceInfluenceSkinBind(skinObject,parentJnt):\n    faces =..." 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "def ringFaceInfluenceSkinBind(skinObject,parentJnt):\n    faces =..." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "ringRivetSkin" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "circlePoly.png" 
+        -image1 "circlePoly.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "def ringFaceInfluenceSkinBind(skinObject,parentJnt):\n    faces = cmds.ls(sl=True,fl=True)\n    cmds.select(cl=True)\n    jntLst = []\n    for face in faces:\n        cmds.select(face,r=True)\n        cmds.Rivet()\n        pin,loc = cmds.ls(sl=True)\n        pin = cmds.rename(pin, '%s_UVPin' % face.split('.')[0])\n        loc = cmds.rename(loc, '%s_pinTransform' % face.split('.')[0])\n        cmds.delete(cmds.listRelatives(loc,c=True))\n        cmds.select(cl=True)\n        jnt = cmds.joint(name='%s_jnt' % loc)    \n        cmds.matchTransform(jnt,loc)\n        if cmds.objExists(parentJnt):\n            cmds.parent(jnt,parentJnt)\n        \n        cmds.connectAttr('%s.worldMatrix' % loc,'%s.offsetParentMatrix' % jnt,f=True)\n        cmds.matchTransform(jnt,loc)\n        jntLst.append(jnt)\n    \n    cmds.select(jntLst,r=True)\n    kwargs = {\n        'name': '%s_skinCluster' % skinObject,  # or whatever you want to call it...\n        'toSelectedBones': True,\n        'bindMethod': 0,\n        'skinMethod': 0,\n        'normalizeWeights': 1\n    }\n    scls = cmds.skinCluster(jntLst, skinObject, **kwargs)[0]\n     \ndef ringFaceInfluenceUI(*args):\n    if cmds.window('ringFaceInfluenceWindow',ex=True):\n        cmds.deleteUI('ringFaceInfluenceWindow')\n    cmds.window('ringFaceInfluenceWindow')\n    cmds.frameLayout(lv=False)\n    cmds.rowLayout(nc=2)\n    cmds.textFieldButtonGrp('jntParentField',l='Parent of joint',bl='<<',bc=lambda:cmds.textFieldButtonGrp('jntParentField',e=True,text=cmds.ls(sl=True)[0]))\n    cmds.setParent('..')\n    cmds.rowLayout(nc=2)\n    cmds.textFieldButtonGrp('skinObjField',l='Skin object',bl='<<',bc=lambda:cmds.textFieldButtonGrp('skinObjField',e=True,text=cmds.ls(sl=True)[0]))\n    cmds.setParent('..')\n    \n    cmds.button(l='Execute',c=lambda *args:ringFaceInfluenceSkinBind(cmds.textFieldButtonGrp('skinObjField',q=True,text=True),cmds.textFieldButtonGrp('jntParentField',q=True,text=True)))\n    cmds.showWindow()\n\nringFaceInfluenceUI()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
 
 } 
