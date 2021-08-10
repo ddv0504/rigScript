@@ -211,3 +211,13 @@ def setVtxPos( shapeNode, valueLst=None):
         for index,value in enumerate(valueLst):
             cmds.xform(str(shapeNode)+".pnts["+str(index)+"]",translation=value,worldSpace=True)
     cmds.undoInfo(cck=True)
+    
+
+###### Matrix #########
+
+def setDefaultMatrix(node,*args):
+    defaultMatrix =[1.0,0.0,0.0,0.0,
+                    0.0,1.0,0.0,0.0,
+                    0.0,0.0,1.0,0.0,
+                    0.0,0.0,0.0,1.0 ]
+    cmds.setAttr('%s.offsetParentMatrix' % node,defaultMatrix,type='matrix')
