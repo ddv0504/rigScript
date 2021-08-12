@@ -421,8 +421,12 @@ def getObjAttrs(): # Get attributes from channelBox
 
     objs = cmds.ls(sl=True)
     attrs = mel.eval('channelBox -q -selectedMainAttributes mainChannelBox;')
+    
     if not attrs:
-        return
+        try:
+            attrs = mel.eval('channelBox -q -sha mainChannelBox;')
+        except:
+            return
     attrFullNames = []
     for obj in objs:
         for attr in attrs:
