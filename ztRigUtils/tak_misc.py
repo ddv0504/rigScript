@@ -23,11 +23,11 @@ import maya.mel as mel
 import pymel.core as pm
 
 import tak_cleanUpModel
-import tak_createCtrl
+
 import tak_lib
 import json
 import takRiggingToolkit.base.control as control
-from OBB.api import OBB
+
 
 
 def mirJntUi():

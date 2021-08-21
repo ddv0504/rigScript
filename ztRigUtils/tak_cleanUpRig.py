@@ -18,12 +18,12 @@ import maya.OpenMaya as OpenMaya
 from functools import partial
 import tak_cleanUpModel
 import tak_lib
-import tak_misc
-import takRiggingToolkit as trt
+
+
 
 reload(tak_lib)
 reload(tak_cleanUpModel)
-reload(trt)
+
 
 mel.eval('source channelBoxCommand;')
 mel.eval('source cleanUpScene;')
