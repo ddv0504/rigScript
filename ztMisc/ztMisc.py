@@ -51,3 +51,25 @@ def getClosetFace(vtx,polygon,*args):
     vtxPos = cmds.xform(vtx,t=True,ws=True,q=True)
     
     
+def TransSkinWeights(*args):
+    selList = mel.eval('string $selList[] = `ls -sl`;')
+    src = mel.eval('string $source = $selList[0];')
+    trgs = selList[1:]
+
+    for trg in trgs:
+        # get the source's shape
+        srcShape = cmds.listRelatives(src, c=True, s=True)[0]
+        # get skin cluster of the source
+        skClu = mel.eval('findRelatedSkinCluster($source);')
+        jnts = cmds.skinCluster(skClu, q=True, inf=True)
+        # get the target shape
+        trgShape = cmds.listRelatives(trg, c=True, s=True, path=True)[0]
+        # bind target shape with joints of the source
+        desSkClu = cmds.skinCluster(jnts, trgShape, mi=3, dr=4.5, tsb=True, omi=False, nw=1)[0]
+        # copy skin weights from the source to the target
+        cmds.copySkinWeights(ss=skClu, ds=desSkClu, sa='closestPoint', ia='oneToOne', nm=True)
+        print('Skin weights transfered from %s to %s.' % (src, trg))
+    print('#' * 50)
+    print('Transfer skin weights job is done.')
+    print('#' * 50)
+    cmds.select(selList)
