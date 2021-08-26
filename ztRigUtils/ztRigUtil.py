@@ -5,6 +5,9 @@ import pymel.core as pm
 import maya.mel as mel
 import pprint
 from collections import OrderedDict
+import maya.OpenMaya as OpenMaya
+import maya.OpenMayaAnim as OpenMayaAnim
+
 
 def jointDrawUI(*args):
     '''
@@ -221,3 +224,156 @@ def setDefaultMatrix(node,*args):
                     0.0,0.0,1.0,0.0,
                     0.0,0.0,0.0,1.0 ]
     cmds.setAttr('%s.offsetParentMatrix' % node,defaultMatrix,type='matrix')
+
+
+
+
+class checkMaxSkinInfluences(object):
+    ''' This script takes a mesh with a skinCluster and checks it for N skin weights.
+    If it has more than N, it selects the verts, so you can edit them.
+    The script automatically prunes tiny values, because if you paint away an influence,
+    it won't always zero out the values properly.
+    Usage: select the number of influences your engine supports and a tiny prune value.
+    Select the mesh and run the script
+    # based on the script by Tyler Thornock from http://www.charactersetup.com/tutorial_skinWeights.html
+    Modified for use by Chris Lesage
+    '''
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.name = 'checkMaxSkinInfluences'
+        self.title = 'Check Max Skin Influences'
+        self.version = 0.8
+        self.author = 'Chris Lesage'
+
+        self.maxInfluences = 4
+        self.pruneValue = 0.001
+        self.btn1 = None
+        self.btn2 = None
+
+        self.ui()
+
+
+    def ui(self):
+        if pm.window(self.name, q=1, exists=1):
+            pm.deleteUI(self.name)
+
+        with pm.window(self.name, title=self.title + " v" + str(self.version), width=200, menuBar=True) as win:
+            with pm.rowLayout(nc=4):
+                pm.text(label='Max Influences: ', font='boldLabelFont', align='center')
+                self.btn1 = pm.intField(width=40)
+                self.btn1.setValue(self.maxInfluences)
+                self.btn1.changeCommand(pm.Callback(self.max_inf_value_change, self.btn1, self.maxInfluences))
+                pm.text(label='Auto Prune: ', font='boldLabelFont', align='center')
+                self.btn2 = pm.floatField(width=40 * 3)
+                self.btn2.setValue(self.pruneValue)
+                self.btn2.changeCommand(pm.Callback(self.prune_value_change, self.btn2, self.pruneValue))
+            with pm.horizontalLayout() as layout:
+                btn = pm.button(width=290, label=str('Check Max Influences'), command=pm.Callback(self.do_the_thing))
+            layout.redistribute()
+        pm.showWindow()
+
+
+    def prune_value_change(self, button, value):
+        self.pruneValue = button.getValue()
+
+
+    def max_inf_value_change(self, button, value):
+        self.maxInfluences = button.getValue()
+
+
+    def check_influences(self, mesh, maxInfluences, pruneValue):
+        # TODO: Make a simple interface for choosing the options.
+        #pm.select(mesh, d=True)
+        skinCluster = None
+        for node in pm.listHistory(mesh):
+            if type(node) == pm.nodetypes.SkinCluster:
+                skinCluster = node
+                break
+
+        #TODO: Do a first pass with NO pruning. If it passes check, make no change!
+        pm.skinPercent(skinCluster, mesh, pruneWeights=pruneValue)
+        # get the MFnSkinCluster for skinCluster
+        selList = OpenMaya.MSelectionList()
+        selList.add(skinCluster.name())
+        clusterNode = OpenMaya.MObject()
+        selList.getDependNode(0, clusterNode)
+        skinFn = OpenMayaAnim.MFnSkinCluster(clusterNode)
+
+        # get the MDagPath for all influence
+        infDags = OpenMaya.MDagPathArray()
+        skinFn.influenceObjects(infDags)
+
+        # create a dictionary whose key is the MPlug indice id and
+        # whose value is the influence list id
+        infIds = {}
+        infs = []
+        for x in xrange(infDags.length()):
+            infPath = infDags[x].fullPathName()
+            infId = int(skinFn.indexForInfluenceObject(infDags[x]))
+            infIds[infId] = x
+            infs.append(infPath)
+
+        # get the MPlug for the weightList and weights attributes
+        wlPlug = skinFn.findPlug('weightList')
+        wPlug = skinFn.findPlug('weights')
+        wlAttr = wlPlug.attribute()
+        wAttr = wPlug.attribute()
+        wInfIds = OpenMaya.MIntArray()
+
+        # the weights are stored in dictionary, the key is the vertId,
+        # the value is another dictionary whose key is the influence id and
+        # value is the weight for that influence
+        weights = {}
+        for vId in xrange(wlPlug.numElements()):
+            vWeights = {}
+            # tell the weights attribute which vertex id it represents
+            wPlug.selectAncestorLogicalIndex(vId, wlAttr)
+
+            # get the indice of all non-zero weights for this vert
+            wPlug.getExistingArrayAttributeIndices(wInfIds)
+
+            # create a copy of the current wPlug
+            infPlug = OpenMaya.MPlug(wPlug)
+            for infId in wInfIds:
+                # tell the infPlug it represents the current influence id
+                infPlug.selectAncestorLogicalIndex(infId, wAttr)
+
+                # add this influence and its weight to this verts weights
+                try:
+                    vWeights[infIds[infId]] = infPlug.asDouble()
+                except KeyError:
+                    # assumes a removed influence
+                    pass
+            weights[vId] = vWeights
+
+        overWeighted = [x for x in weights.keys() if len(weights[x]) > maxInfluences]
+        [pm.select(mesh.vtx[x], add=True) for x in overWeighted]
+        if len(overWeighted) > 0:
+            pm.selectMode(component=True)
+            pm.warning('{1} has {0} overloaded ({2}) influences.'.format(len(overWeighted), mesh, self.maxInfluences))
+        else:
+            pm.select(mesh.vtx, d=True)
+            print('{1} is properly pruned to max {2}.'.format(len(overWeighted), mesh, self.maxInfluences))
+
+
+    def do_the_thing(self):
+        # hack: get the values of the buttons, in case they didn't register a change. (type but don't hit enter)
+        self.maxInfluences = self.btn1.getValue()
+        self.pruneValue = self.btn2.getValue()
+
+        # NOTE: This is a bit of a selection hack. The purpose is this:
+        # Even if I have component or object selected, it will search the proper mesh
+        # And it puts me into component mode so I can instantly work with the weights
+        # And it doesn't remove the transform from my selection list, so I can keep working on the same mesh
+        # AND it clears the existing component selection (if you don't, it causes bugs.)
+        pm.selectMode(object=True)  # this lets you have components selected when running the script
+        for node in pm.selected(type='transform'):
+            pm.selectMode(component=True)
+            pm.select(node.vtx, d=True)  # first, clear any vtx selection
+        pm.selectMode(object=True)
+        for node in pm.selected(type='transform'):
+            self.check_influences(node, self.maxInfluences, self.pruneValue)  # mesh, maxInfluences, pruneValue
+
+
