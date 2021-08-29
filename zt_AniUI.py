@@ -12,6 +12,7 @@ import maya.cmds as cmds
 import pymel.core as pm
 import maya.mel as mel
 import os
+import zt_AniUtil as zAni
 from collections import OrderedDict
 
 
@@ -39,6 +40,14 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         self.setLocalList()
         self.setFocusPolicy(Qt.NoFocus)
         self.pbSetting = QSettings('ZT_AniTools_playblaset_setting')
+        if self.pbSetting.value('cam'):
+            self.playBlastInfo['cam']  = self.pbSetting.value('cam')           
+            self.setCameraLabel.setText('cam:%s' % self.playBlastInfo['cam'])
+        
+    #Remove set camera name.
+    def removePBCam(self):        
+        self.pbSetting.remove('cam')
+        self.setCameraLabel.setText('cam:')        
     def setForm(self):
         mainLayout = QVBoxLayout()
         self.setLayout(mainLayout)
@@ -90,7 +99,6 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         setCameraBtn   = QPushButton('setCamera')
         setCameraBtn.setIcon(QIcon(':CameraDown.png'))
         playBlastBtn     = QPushButton('<==PlayBlast With QuickTime==>')
-        playBlastOptionBtn = QPushButton('Setting')
         #### Layout add widgets ###
         alignKeyLayout.addWidget(alignLeftBtn)
         alignKeyLayout.addWidget(alignCenterBtn)
@@ -112,28 +120,27 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         setCameraLayout.addWidget(self.setCameraLabel)
         setCameraLayout.addWidget(setCameraBtn)
         setCameraLayout.addWidget(playBlastBtn)
-        setCameraLayout.addWidget(playBlastOptionBtn)
 
         mainLayout.addLayout(setCameraLayout)
 
         alignLeftBtn.clicked.connect(
             lambda:(
             cmds.undoInfo(openChunk=True),
-            alignKeyframe(),
+            zAni.alignKeyframe(),
             cmds.undoInfo(closeChunk=True)
         ))
 
         alignCenterBtn.clicked.connect(
             lambda:(
             cmds.undoInfo(openChunk=True),
-            alignKeyframe(current=True),
+            zAni.alignKeyframe(current=True),
             cmds.undoInfo(closeChunk=True)
         ))
 
         alignRightBtn.clicked.connect(
             lambda:(
             cmds.undoInfo(openChunk=True),
-            alignKeyframe(right=True),
+            zAni.alignKeyframe(right=True),
             cmds.undoInfo(closeChunk=True)
         ))
 
@@ -141,13 +148,12 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         forwardBtn.clicked.connect(self.moveKeys)
         breakAnimCycleBtn.clicked.connect(lambda:(
                                                     cmds.undoInfo(openChunk=True),
-                                                    breakAnimCycle(),
+                                                    zAni.breakAnimCycle(),
                                                     cmds.undoInfo(closeChunk=True)
                                                     ))
 
         setCameraBtn.clicked.connect(self.setPlayblastCam)
         playBlastBtn.clicked.connect(self.playBlast)
-        playBlastOptionBtn.clicked.connect(self.playBlastSetting)
         #Local UI
         localWidget = QWidget()
         tabWidget.addTab(localWidget,'Local')
@@ -178,10 +184,10 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         try:
             panel = cmds.getPanel(wf=True)
             cam = cmds.modelEditor(panel,cam=True,q=True)
-            self.playBlastInfo['panel'] = panel
             self.playBlastInfo['cam']  = cam
-
+            
             self.setCameraLabel.setText('cam:%s' % cam)
+            self.pbSetting.setValue('cam',cam)
         except RuntimeError:
             print('Select viewport 1st.')
             cmds.warning('Camera was not set')
@@ -191,23 +197,17 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         fileName = cmds.file(sn=True,q=True)
         panel = cmds.getPanel(wf=True)
         if fileName ==u'':
-            print('File may not saved yet')
+            msg = QErrorMessage(self)
+            msg.setWindowTitle('Error Message')
+            msg.showMessage('''Must have a scene name,
+            Try again after save this scene''')
+            #print('File may not saved yet')
             return
-        if  self.playBlastInfo:
-            panel = self.playBlastInfo['panel']
+        if  self.playBlastInfo:            
+            cam = self.playBlastInfo['cam']
 
         movFile = self.setMovFileName(fileName)
-
-        widthHeight = [i for i in [self.pbSetting.value('width'),self.pbSetting.value('height')] if not i == None]
-        if not widthHeight:
-            widthHeight = [cmds.getAttr('defaultResolution.%s' % i) for i in ["width","height"]]
-        if not self.pbSetting.value('offScreen'):
-            offScreen = True
-        else:
-            if self.pbSetting.value('offScreen') == 0:
-                offScreen = False
-            else:
-                offScreen = True
+        widthHeight = [cmds.getAttr('defaultResolution.%s' % i) for i in ["width","height"]]
 
         timeRange = mel.eval('timeControl -q -ra $gPlayBackSlider;')
         timeControl = mel.eval('$tmpVar = $gPlayBackSlider')
@@ -217,52 +217,20 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         if timeRange[1] - timeRange[0] >1:
             startFrame = timeRange[0]
             endFrame   = timeRange[1]
-
+        #playblast window
+        if cmds.window('zt_pbWin',ex=True):
+            cmds.deleteUI('zt_pbWin')
+        win = cmds.window('zt_pbWin')
+        cmds.paneLayout()
+        panel = cmds.modelPanel(cam=cam)
+        cmds.modelEditor(mp=panel,pm=True,dtx=True,displayAppearance='smoothShaded',th=True,alo=False)
+        cmds.window(win,e=True,wh=widthHeight)
+        cmds.showWindow(win)
         try:
-            cmds.playblast(epn=panel,startTime=startFrame,endTime=endFrame,sound=sound,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,offScreen=offScreen,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
-        except Exception as e:
-
-            print(e)
-
-    def playBlastSetting(self):
-
-        dialog = QDialog(self)
-        dialog.setWindowTitle('Playblast options')
-        dialog.resize(300,150)
-        mainLayout = QVBoxLayout()
-        dialog.setLayout(mainLayout)
-
-        offScreen  = QCheckBox('OffScreen')
-        sizeLayout = QHBoxLayout()
-        widthLabel = QLabel('Width:')
-        widthLineEdit = QLineEdit()
-        heightLabel = QLabel('Height:')
-        heightLineEdit = QLineEdit()
-
-        for widget in [widthLabel,widthLineEdit,heightLabel,heightLineEdit]:
-            sizeLayout.addWidget(widget)
-        mainLayout.addWidget(offScreen)
-        mainLayout.addLayout(sizeLayout)
-
-        try:
-            offScreenValue = self.pbSetting.value('offScreen')
-            widthLineEdit.setText(str(self.pbSetting.value('width')))
-            heightLineEdit.setText(str(self.pbSetting.value('height')))
-            if offScreenValue == 0:
-                offScreen.setCheckState(Qt.Unchecked)
-            else:
-                offScreen.setCheckState(Qt.Checked)
+            cmds.playblast(epn=panel,startTime=startFrame,endTime=endFrame,sound=sound,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
         except Exception as e:
             print(e)
-            pass
-        saveBtn = QPushButton("Save")
-        saveBtn.clicked.connect(lambda:(self.pbSetting.setValue('offscreen',offScreen.checkState()),
-                                        (self.pbSetting.setValue('width',int(widthLineEdit.text()))),
-                                        (self.pbSetting.setValue('height',int(heightLineEdit.text()))),
-                                        dialog.deleteLater()))
-
-        mainLayout.addWidget(saveBtn)
-        dialog.exec_()
+        cmds.deleteUI(win)       
 
     def setMovFileName(self,sceneFileName):
         movFile = ''
@@ -328,18 +296,21 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
             return
 
         if self.startPosCheckBox.checkState() == Qt.Checked:
-            moveKeyFrame(value,toFrame=True)
+            zAni.moveKeyFrame(value,toFrame=True)
         else:
             if self.moveRadioBtn.isChecked():
-                moveKeyFrame(value,move=True)
+                zAni.moveKeyFrame(value,move=True)
             else:
                 cmds.undoInfo(openChunk=True)
-                moveKeyFrame(value,overLap=True)
+                zAni.moveKeyFrame(value,overLap=True)
                 cmds.undoInfo(closeChunk=True)
 
     def startScriptJob(self):
-        jobNum = cmds.scriptJob( event = ["SceneOpened", self.refreshAll ], parent='ZT_AniTools')
-        jobNum = cmds.scriptJob( event = ["SceneSaved", self.refreshAll ], parent='ZT_AniTools')
+        jobNum = cmds.scriptJob( event = ["SceneOpened", self.refreshAll ], parent=self.objectName())
+        jobNum = cmds.scriptJob( event = ["SceneSaved", self.refreshAll ], parent=self.objectName())
+        cmds.scriptJob(event=['SceneOpened',self.removePBCam],parent=self.objectName())
+        cmds.scriptJob(event=['NewSceneOpened',self.removePBCam],parent=self.objectName())
+        
         #jobNum = cmds.scriptJob( event = ["NewSceneOpened", self.refreshAll ], parent='ZT_AniTools')
     def refreshAll(self):
         print('Local refreshed')
@@ -353,49 +324,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
             self.overLapRadioBtn.setEnabled(True)
             self.moveRadioBtn.setEnabled(True)
 
-def breakAnimCycle():
-    currentTime=cmds.currentTime(q=True)
-    animCurves = cmds.keyframe(n=True,sl=True,q=True)
-    
-    if not animCurves:
-        print('Select animation curves first!')
-        return
-    if cmds.window('AnimCurveCycle',ex=True):
-        cmds.deleteUI('AnimCurveCycle')
-    window = cmds.window('AnimCurveCycle')
-    cmds.frameLayout('AnimCurveCycleLayout')
-    
-    progressControl = cmds.progressBar(maxValue=100, width=300)
-    cmds.showWindow( window )
-    for animCurve in animCurves:
-        cmds.frameLayout('AnimCurveCycleLayout',e=True,l='Copy %s...' % animCurve)
-        if cmds.progressBar(progressControl, query=True, isCancelled=True):
-            break
-        frames = cmds.keyframe(animCurve,q=True)
-        maxFrame = max(frames)
-        minFrame = min(frames)
-        frameRange = maxFrame-minFrame
-        cmds.copyKey(animCurve)
-        if currentTime > maxFrame:
-            while maxFrame < currentTime:
-                cmds.pasteKey(animCurve,copies= 1)
-                maxFrame = max(cmds.keyframe(animCurve,q=True))
-            cmds.setKeyframe(animCurve,insert=True,t=currentTime)
-            cmds.cutKey(animCurve,t=(currentTime+1,currentTime+frameRange))
 
-        if currentTime < minFrame:
-            n=0
-            while minFrame > currentTime:
-                n += 1
-                pastFrame = maxFrame-frameRange*n
-                cmds.pasteKey(animCurve,copies=1,timeOffset = 0,option='merge',connect=0,floatOffset=0,valueOffset=0,t=(pastFrame,pastFrame))
-                minFrame = min(cmds.keyframe(animCurve,q=True))
-                minFrame=min(cmds.keyframe(animCurve,q=True))
-            cmds.setKeyframe(animCurve,insert=True,t=currentTime)
-            cmds.cutKey(animCurve,t=(currentTime-frameRange,currentTime-1))
-        cmds.progressBar(progressControl,e=True,step=1)
-    cmds.progressBar(progressControl,endProgress=True)
-    cmds.deleteUI('AnimCurveCycle')
 class dirView(QTreeView):
     def __init__(self):
         super(dirView,self).__init__()
@@ -448,42 +377,6 @@ class localItem(QStandardItem):
             icon = iconProvider.icon(fileInfo)
             self.setIcon(icon)
         pass
-
-def moveKeyFrame(frame=0,toFrame=False,move=False,overLap=False):
-    if toFrame:
-        minFrame = min(cmds.keyframe(sl=True,q=True))
-        moveValue = frame - minFrame
-        cmds.keyframe(e=True,tc=moveValue,iub=True,r=True,o='over')
-
-    if move:
-        cmds.keyframe(e=True,tc=frame,iub=True,r=True,o='over')
-
-    if overLap:
-        n=0
-        for obj in cmds.ls(sl=True):
-            cmds.keyframe(obj,e=True,tc=n,iub=True,r=True,o='over')
-            n+=frame
-
-def alignKeyframe(right=False,current=False):
-    animCurves = pm.keyframe(name=True,q=True)
-    times  = pm.keyframe(tc=True,q=True)
-    if not any([animCurves,times]):
-        print('Select keys first...')
-        return
-    dic = {}
-    for animCurve,t in zip(animCurves,times):
-        dic[animCurve] = t
-    minTime = min(dic.values())
-    maxTime = max(dic.values())
-    currentTime = cmds.currentTime(q=True)
-
-    for anim,t in dic.items():
-        tc = (t-minTime)*-1
-        if right:
-            tc = (t-maxTime)*-1
-        if current:
-            tc = (currentTime - t)
-        cmds.keyframe(anim,e=True, iub=True,r=True, o='over',tc=tc,t=(t,t))
 
 
 def main():
