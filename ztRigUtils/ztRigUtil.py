@@ -127,7 +127,37 @@ def constraint(src,trg,translate=False,rotate=False,scale=False,mo=False):
     else:
         cmds.select(src,r=True)
 
+###### skin weight ######
+#Get skinning joint list
 
+def getSkinClusterFromMesh(mesh,*args):
+    return mel.eval('findRelatedSkinCluster %s;'%mesh)
+
+def skinJntLstFromMesh(mesh,*args):    
+    skinCluster = getSkinClusterFromMesh(mesh)
+    return skinJntLstFromSkinCluster(skinCluster)
+
+def skinJntLstFromSkinCluster(skinCluster,*args):
+    return cmds.skinCluster(skinCluster,inf=True,q=True)
+
+def getLockState(mesh,jnt):
+    skinCluster = getSkinClusterFromMesh(mesh)
+    return cmds.skinCluster(skinCluster,q=True,lw=True,inf=jnt)
+
+def lockInf(mesh,jnt):
+    jntLst = skinJntLstFromMesh(mesh)
+    if not jnt in jntLst:
+        print('%s is not infuluence joint in %s' % (jnt,mesh))
+        return
+    cmds.skinCluster(mesh,e=True,lw=True,inf=jnt)
+
+def unlockInf(mesh,jnt):
+    jntLst = skinJntLstFromMesh(mesh)
+    if not jnt in jntLst:
+        print('%s is not infuluence joint in %s' % (jnt,mesh))
+        return
+    cmds.skinCluster(mesh,e=True,lw=False,inf=jnt)
+    
 ###### blenShape #######
 '''
 Get connected blendshape node 

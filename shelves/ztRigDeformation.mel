@@ -6,6 +6,8 @@ global proc ztRigDeformation () {
 
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -38,6 +40,8 @@ global proc ztRigDeformation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -68,6 +72,8 @@ global proc ztRigDeformation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -98,6 +104,8 @@ global proc ztRigDeformation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -129,6 +137,8 @@ global proc ztRigDeformation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -160,6 +170,8 @@ global proc ztRigDeformation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -187,6 +199,41 @@ global proc ztRigDeformation () {
         -marginWidth 1
         -marginHeight 1
         -command "from ztRigUtils import ztRigUtil\nreload(ztRigUtil)\n\nztRigUtil.checkMaxSkinInfluences()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "from ztRigUtils import infLockerUI\nreload(infLockerUI)\ninfLocker..." 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "from ztRigUtils import infLockerUI\nreload(infLockerUI)\ninfLocker..." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "skinWeightLock" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "bind.png" 
+        -image1 "bind.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from ztRigUtils import infLockerUI\nreload(infLockerUI)\ninfLockerUI.main()" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1
