@@ -6,8 +6,7 @@ global proc ztEditorWindow () {
 
     shelfButton
         -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 32
+        
         -enable 1
         -width 32
         -height 32
@@ -39,8 +38,7 @@ global proc ztEditorWindow () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 32
+        
         -enable 1
         -width 32
         -height 32
@@ -72,8 +70,7 @@ global proc ztEditorWindow () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 32
+        
         -enable 1
         -width 32
         -height 32
@@ -105,8 +102,7 @@ global proc ztEditorWindow () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 32
+        
         -enable 1
         -width 32
         -height 32
@@ -138,8 +134,7 @@ global proc ztEditorWindow () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 32
+        
         -enable 1
         -width 32
         -height 32
@@ -171,8 +166,7 @@ global proc ztEditorWindow () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 32
+        
         -enable 1
         -width 32
         -height 32
@@ -204,8 +198,7 @@ global proc ztEditorWindow () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 32
+        
         -enable 1
         -width 32
         -height 32
@@ -237,8 +230,7 @@ global proc ztEditorWindow () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 32
+        
         -enable 1
         -width 32
         -height 32
