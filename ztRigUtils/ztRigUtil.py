@@ -133,12 +133,35 @@ def constraint(src,trg,translate=False,rotate=False,scale=False,mo=False):
 def getSkinClusterFromMesh(mesh,*args):
     return mel.eval('findRelatedSkinCluster %s;'%mesh)
 
+def getSkinData(skinCluster,*args):
+    data = {}
+    jntLst = skinJntLstFromSkinCluster(skinCluster)
+    mesh   = getMeshFromSkinCluster(skinCluster)
+    vertexLst = getVtxNames(mesh)
+    weightData = {}
+    for jnt in jntLst:
+        for vertex in vertexLst:            
+            value = cmds.skinPercent(skinCluster, vertex, transform=jnt, query=True )
+            weightData[vertex] = value
+        data[jnt] = weightData
+    return data
+def getMeshFromSkinCluster(skinCluster):
+    return cmds.skinCluster(skinCluster,q=True,g=True)[0]
 def skinJntLstFromMesh(mesh,*args):    
     skinCluster = getSkinClusterFromMesh(mesh)
     return skinJntLstFromSkinCluster(skinCluster)
 
 def skinJntLstFromSkinCluster(skinCluster,*args):
     return cmds.skinCluster(skinCluster,inf=True,q=True)
+
+def getGeoFromSkinCluster(skinCluster,*args):
+    return cmds.skinCluster(skinCluster,g=True,q=True)[0]
+
+def setSkinWeight(skinCluster,vtx,joint,value,*args):
+    cmds.skinPercent( skinCluster, vtx, transformValue=[(joint,value)])
+
+def pruneSmallWeight(skinCluster,vtx,joint,*args):
+    pass
 
 def getLockState(mesh,jnt):
     skinCluster = getSkinClusterFromMesh(mesh)
@@ -244,7 +267,10 @@ def setVtxPos( shapeNode, valueLst=None):
         for index,value in enumerate(valueLst):
             cmds.xform(str(shapeNode)+".pnts["+str(index)+"]",translation=value,worldSpace=True)
     cmds.undoInfo(cck=True)
-    
+
+def getVtxNames(mesh):
+    vtxCount = cmds.polyEvaluate(mesh,v=True)
+    return ['%s.vtx[%s]' % (mesh,i) for i in xrange(vtxCount)]    
 
 ###### Matrix #########
 
@@ -277,7 +303,7 @@ class checkMaxSkinInfluences(object):
         self.version = 0.8
         self.author = 'Chris Lesage'
 
-        self.maxInfluences = 4
+        self.maxInfluences = 8
         self.pruneValue = 0.001
         self.btn1 = None
         self.btn2 = None
