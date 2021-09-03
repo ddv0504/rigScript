@@ -1,0 +1,454 @@
+/*
+TT_AutoSmooth
+Created By: Tyler Thornock
+
+//$sel = `ls -sl -fl`;for($obj in $sel){select -r $obj;TT_WeightEqualizerMain;}select -r $sel;
+*/
+///////////////////////////////////////////////////////////
+global proc TT_AutoSmooth (int $openUI)
+{
+	if($openUI == 1)
+		TT_AutoSmoothWin;
+}
+
+///////////////////////////////////////////////////////////
+//	Creates the main UI.
+global proc TT_AutoSmoothWin ()
+{
+	if(`window -exists TT_AutoSmoothWin`)
+		deleteUI TT_AutoSmoothWin;
+	//if( `windowPref -exists TT_AutoSmoothWin` )
+	//	windowPref -r TT_AutoSmoothWin;
+
+	window -w 315 -h 215 -t "Auto Smooth" TT_AutoSmoothWin;
+
+	columnLayout -cw 315 -cat "both" 3 -rs 2;
+		floatSliderGrp -l "Smooth Opacity" -ann "Specifies how much of the original weighting is preserved. 0 = All, 2 = None" 
+			-cw3 95 40 150 -v 1.0 -min .01 -max 2 -f 1 TT_AutoSmoothOpacity;
+		intSliderGrp -l "Smooth Distance" -ann "Specifies the smoothing area. 1 = adjacent verts, 2 = adjacent verts AND their adjacent verts, etc"
+			-cw3 95 40 150 -v 1 -min 1 -max 4 -f 1 -fmx 10 -s 1 TT_AutoSmoothDistance; 
+		floatSliderGrp -l "Prune Below" -ann "Prune all influences below this amount."
+			-cw3 95 40 150 -v .005 -min 0 -max 1 -f 1 -pre 3 TT_AutoSmoothPrune;
+		intSliderGrp -l "Max Influences" -ann "Specifies the maximum number of influences.  Use 0 for none." 
+			-cw3 95 40 150 -v 4 -min 0 -max 10 -f 1 -fmx 50 -s 1 TT_AutoSmoothMaxInfs;
+		checkBox -l "Fast Mode" -v 1 -al "left" -ann "Uses experimental fast mode to set weights, faster." TT_AutoSmoothFastMode;
+		rowLayout -nc 3 -cw3 195 55 55 -cat 1 "both" 1 -cat 2 "both" 1 -cat 3 "both" 1 -cal 1 "center";
+		    iconTextButton -l "Paint Smooth" -bgc .7 .7 .9 -h 30 -style "textOnly" -ann "Start paint select tool to smooth after extra stroke.." -c "TT_AutoSmoothWinCommands 3";
+			iconTextButton -l "Smooth" -bgc .7 .7 .9 -h 30 -style "textOnly" -ann "Performs smoothing with given settings. Select bound meshes or verticies." -c "TT_AutoSmoothWinCommands 1";
+			iconTextButton -l "Equalize" -bgc .9 .7 .7 -h 30 -style "textOnly" -ann "Averages weighting for the selected verts.  Prune and Max Influences settings are also applied." -c "TT_AutoSmoothWinCommands 2";
+		setParent..;
+		separator -w 300;
+		text -l "Selection Tools...";
+		rowLayout -nc 4 -cw4 75 75 75 75 -ct4 "both" "both" "both" "both";
+			iconTextButton -h 32 -l "Paint" -style "iconAndTextHorizontal" -i1 "artSelect.xpm" -c "ArtPaintSelectTool";
+			iconTextButton -h 32 -l "Loop" -style "iconAndTextHorizontal" -i1 "polyConvertToEdgeLoop.xpm" -c "SelectEdgeLoop;ConvertSelectionToVertices;";
+			iconTextButton -h 32 -l "Ring" -style "iconAndTextHorizontal" -i1 "polyConvertToEdgeRing.xpm" -c "SelectEdgeRing;ConvertSelectionToVertices;";
+			iconTextButton -h 32 -l "Verts" -style "iconAndTextHorizontal" -i1 "polyConvertToVertices.xpm" -c "ConvertSelectionToVertices;";
+	showWindow TT_AutoSmoothWin;
+}
+///////////////////////////////////////////////////////////
+//	Helper script to perform tasks from the UI.
+global proc TT_AutoSmoothWinCommands (int $command)
+{
+    global float $TT_AutoSmoothBrushRadius;
+    string $smoothCtx = "smoothPaintCtx";
+	float $opacity = `floatSliderGrp -q -v TT_AutoSmoothOpacity`;
+	float $prune = `floatSliderGrp -q -v TT_AutoSmoothPrune`;
+	int $distance = `intSliderGrp -q -v TT_AutoSmoothDistance`;
+	int $maxInfs = `intSliderGrp -q -v TT_AutoSmoothMaxInfs`;
+	int $fastMode = `checkBox -q -v TT_AutoSmoothFastMode`;
+
+	string $sel[] = `ls -fl -sl`;
+	int $allObjs = 1;
+	for($obj in $sel)
+		if(`nodeType $obj` != "transform"){
+			$allObjs = 0;
+			break;
+		}
+	if($command == 1){
+	    int $valid = 1;
+		string $ctx = `currentCtx`;
+		if ($ctx == $smoothCtx){
+		    float $curBrushRadius = `artSelectCtx -q -radius $smoothCtx`;
+		    if ($TT_AutoSmoothBrushRadius >= $curBrushRadius+.00001 || $TT_AutoSmoothBrushRadius <= $curBrushRadius-.00001){
+		        eval("$TT_AutoSmoothBrushRadius = " + $curBrushRadius + ";");
+		        $valid = 0;
+            }
+        }
+        if ($valid){
+            if($allObjs == 1)
+                for($obj in $sel)
+                    TT_AutoSmoothRun {$obj} $opacity $prune $maxInfs $distance $fastMode;
+            else
+                TT_AutoSmoothRun $sel $opacity $prune $maxInfs $distance $fastMode;
+        }
+	}
+	if($command == 2){
+		if($allObjs == 1)
+			for($obj in $sel)
+				TT_Equalizer {$obj} $prune $maxInfs;
+		else
+			TT_Equalizer $sel $prune $maxInfs;
+	}
+	if($command == 3){
+	    if (!`artSelectCtx -q -ex $smoothCtx`)
+	        artSelectCtx -ads 0 -afterStrokeCmd "TT_AutoSmoothWinCommands 1" $smoothCtx;
+        setToolTo $smoothCtx;
+        float $curBrushRadius = `artSelectCtx -q -radius $smoothCtx`;
+        eval("$TT_AutoSmoothBrushRadius = " + $curBrushRadius + ";");
+	}
+
+}
+///////////////////////////////////////////////////////////
+//	Adds two float arrays together using a opacity multiplier for each array.
+//	New array is returned.
+proc float[] addFloatArrays (float $array1[], float $array2[], float $opacity1, float $opacity2)
+{
+	float $returnArray[] = {};
+	int $size1 = size($array1), $size2 = size($array2), $loop = $size1;
+	if($size1 < $size2)
+		$loop = $size2;
+
+	for($x = 0; $x < $loop; $x++)
+		$returnArray[$x] = ($array1[$x] * $opacity1) + ($array2[$x] * $opacity2);
+
+	return $returnArray;
+}
+///////////////////////////////////////////////////////////
+//	Searches the float array for any value below the $pruneBelow value and sets it to 0.
+//	Given array is modified.
+proc float[] pruneFloatArray (float $array[], float $pruneBelow)
+{
+	for($x = 0; $x < size($array); $x++)
+		if($array[$x] < $pruneBelow)
+			$array[$x] = 0;
+	return $array;
+}
+///////////////////////////////////////////////////////////
+//	Normalizes all indices of the float array so it will add up to $normalizeTo.
+//	Given array is modified.
+proc float[] normalizeFloatArray (float $array[], float $normalizeTo)
+{
+	int $arraySize = size($array);
+	float $normTotal = 0;
+	for($x = 0; $x < $arraySize; $x++)
+		$normTotal += $array[$x];
+	if($normTotal != $normalizeTo){
+		float $normMult = $normalizeTo / $normTotal;
+		for($x = 0; $x < $arraySize; $x++)
+			$array[$x] *= $normMult;
+	}
+	return $array;
+}
+///////////////////////////////////////////////////////////
+//	Goes through the given float array and keeps the highest values, once the number of kept values
+//	equals $maxCount all other values in the array are set to 0
+//	New array is returned.
+proc float[] limitFloatArray (float $array[], int $maxCount)
+{
+	float $sArray[] = sort($array);
+	float $newArray[] = {};
+	int $curCount = 0;
+	int $y = $arraySize = size($array);
+	while($curCount < $maxCount && $y >= 1){
+		$y--;
+		for($x = 0; $x < $arraySize; $x++)
+			if($array[$x] == $sArray[$y]){
+				$newArray[$x] = $array[$x];	
+				$curCount++;
+			}	
+	}
+	$newArray[($arraySize-1)] = $newArray[($arraySize-1)];		//makes sure array sizes match... hacky way to force 0s
+	return $newArray;
+}
+///////////////////////////////////////////////////////////
+//	Rounds the values to the given decimal point.  Always rounds up, ie .0011 would be rounded to .002
+//	Given array is modified.  (Note: not currently used)
+proc float[] roundFloatArray (float $array[], int $roundTo)
+{
+	int $roundMult = 1;
+	for($x = 0; $x < $roundTo; $x++)
+		$roundMult *= 10;
+
+	for($x = 0; $x < size($array); $x++){
+		$array[$x] = $array[$x] * $roundMult;
+		$array[$x] = `ceil($array[$x])` / $roundMult;
+	}
+	return $array;
+}
+///////////////////////////////////////////////////////////
+//	Returns the integer within the first set of brackets, ie weightList[1].weightNum[2] would return 1.
+proc int stripBracket (string $str)
+{
+	string $bracketStrip = `match "[0-9]+]" $str`;
+	$bracketStrip = substitute("]", $bracketStrip, "");
+	return int($bracketStrip);
+}
+///////////////////////////////////////////////////////////
+//	Returns all influences for the given skincluster.
+proc string[] returnInfs (string $skin)
+{
+	string $infs[] = `skinCluster -q -inf $skin`;
+	return $infs;
+}
+///////////////////////////////////////////////////////////
+//	Returns weighting information for all influences in the given skin for the given vert.
+proc float[] returnInfVals (string $vert, string $skin)
+{
+	float $infVals[] = `skinPercent -q -v $skin $vert`;
+	return $infVals;
+}
+///////////////////////////////////////////////////////////
+//	Returns the weighting matrix number for the influences for the given skin.
+proc int[] returnInfIndices (string $infs[], string $skin)
+{
+	int $indices[] = {};
+	for($x = 0; $x < size($infs); $x++){
+		string $tempStr = stringArrayToString((`listConnections -p 1 -type "skinCluster" ($infs[$x]+".worldMatrix[0]")`), ",");
+		$tempStr = `match ($skin+"\.matrix[[0-9]*]") $tempStr`;
+		if($tempStr == "")
+			error "Could not find all influence's weighting indices, unable to use Fast Mode.";
+		$indices[$x] = `stripBracket $tempStr`;
+	}
+	return $indices;
+}
+///////////////////////////////////////////////////////////
+//	Returns verticies bordering the given vert.  $borderSize controls how thick the border is.
+proc string[] returnBorderVerts (string $vert, int $borderSize)
+{
+	string $borderVerts[] = {$vert};
+	for($x = 0; $x < $borderSize; $x++){
+		string $faces[] = `polyListComponentConversion -fv -tf $borderVerts`;
+		$borderVerts = `polyListComponentConversion -ff -tv $faces`;
+	}
+	$borderVerts = `ls -fl $borderVerts`;
+	$borderVerts = stringArrayRemove({$vert}, $borderVerts);
+	return $borderVerts;
+}
+///////////////////////////////////////////////////////////
+//	Converts the given objects and components to a list of only objects.
+proc string[] returnObjects (string $list[])
+{
+	string $objects[] = {};
+	for($obj in $list)
+		$objects[size($objects)] = `match "^[^\.]*" $obj`;;
+	$objects = stringArrayRemoveDuplicates($objects);
+	return $objects;
+}
+///////////////////////////////////////////////////////////
+//	Converts the given string to a float array.
+proc float[] convertStringToFloatArray (string $str, string $separator)
+{
+	string $strArray[] = {};
+	float $array[] = {};
+	int $count = `tokenize $str $separator $strArray`;
+	for($x = 0; $x < $count; $x++)
+		$array[$x] = float($strArray[$x]);
+	return $array;
+}
+///////////////////////////////////////////////////////////
+//	If given verts, makes sure they are flattened and all part of the same mesh.
+//	If given a single mesh, modifies the array to contact all of its verticies.
+//	Modifies the given array and returns the attached skincluster.	
+proc string validateObjVerts (string $objVerts[])
+{
+	$objVerts = `ls -fl $objVerts`;
+	string $obj = $objVerts[0];
+	if(size($objVerts) > 1 || `gmatch $objVerts[0] "*.vtx*"`){
+		string $objs[] = `returnObjects $objVerts`;
+		if(size($objs) > 1)
+			error "All verts must be on a single object.";
+		$obj = $objs[0];
+	}
+	else
+		$objVerts = `ls -fl ($obj+".vtx[*]")`;
+	if(size($objVerts) == 0)
+		error "No valid objects/verts specified.";
+
+	string $skin = `findRelatedSkinCluster $obj`;
+	if($skin == "")
+		error "Could not locate skinCluster.";
+	return $skin;
+}
+///////////////////////////////////////////////////////////
+//	Returns an int array of the current lock state of the given influence.
+proc int[] returnLockStates (string $infs[])
+{
+	int $states[] = {};
+	for ($i = 0; $i < `size($infs)`;$i++)
+		$states[$i] = `getAttr ($infs[$i]+".liw")`;
+	return $states;
+}
+///////////////////////////////////////////////////////////
+//	Adjusts the current lock states of the given influence by the given array.
+proc applyLockStates (string $infs[], int $states[])
+{
+	for ($i = 0; $i < `size($infs)`;$i++)
+		setAttr ($infs[$i]+".liw") $states[$i];
+}
+
+proc int[] skinAdjustPrep (string $skin, string $infs[], int $maxInfs)
+{
+	int $lockStates[] = `returnLockStates $infs`;
+	if($maxInfs > 0){
+		setAttr ($skin+".maintainMaxInfluences") 1;
+		setAttr ($skin+".maxInfluences") $maxInfs;
+	}
+	applyLockStates $infs {};
+
+	return $lockStates;
+}
+
+///////////////////////////////////////////////////////////
+//	Averages weighting for the given verts.  Prunes values below $pruneBelow and lowest values if $maxInfs is reached.
+global proc TT_Equalizer (string $verts[], float $pruneBelow, int $maxInfs)
+{
+	string $skin = `validateObjVerts $verts`;
+	string $infs[] = `returnInfs $skin`;
+	int $lockStates[] = `skinAdjustPrep $skin $infs $maxInfs`;
+
+//adds up all weighting for the given verts
+	int $vertCount = size($verts);
+	float $eInfVals[] = {};
+	for($x = 0; $x < $vertCount; $x++){
+		float $infVals[] = `returnInfVals $verts[$x] $skin`;
+		if($x == 0)
+			$eInfVals = $infVals;
+		else
+			$eInfVals = `addFloatArrays $eInfVals $infVals 1 1`;
+	}
+//prunes small weights and the lowest weights if $maxInfs is reached
+	$eInfVals = `pruneFloatArray $eInfVals $pruneBelow`;
+	if($maxInfs > 0)
+		$eInfVals = `limitFloatArray $eInfVals $maxInfs`;
+	$eInfVals = `normalizeFloatArray $eInfVals 1`;
+
+//modifies weighting for all verts
+	string $cmd = "";
+	for($y = 0; $y < size($eInfVals);$y++)
+		if($eInfVals[$y] > 0){
+			$cmd += " -tv \""+$infs[$y]+"\" "+$eInfVals[$y];
+			print ($infs[$y] + " : " + $eInfVals[$y]+"\n");		//prints new weighting for the influence
+		}
+	if($cmd != "")
+		eval("skinPercent -nrm 1"+$cmd+" \""+$skin+"\" \""+stringArrayToString($verts, "\" \"")+"\";");
+
+//restores lock state
+	applyLockStates $infs $lockStates;
+
+	print "Equalize Complete.\n";
+}
+///////////////////////////////////////////////////////////
+//	Goes through every vert and smooths its weighting based on an average weighting of the bordering verts.
+//	$bOpacity - controls how strong of an influence the bordering verts have when changing the center vert, 0 none - 2 full
+//	$pruneBelow - removes weighting below this threshold
+//	$maxInfs - keeps only the highest influence up to $maxInfs, removes the rest
+//	$borderSize - specifices how many "rows" thick the bordering verts are (thicker border, smoother weights)
+//		note:  if the border is too large, weighting can end up too smooth and cause weighting in undesired areas
+//		note2: a large border can exponentially increase smoothing time, be careful if you work with dense meshes
+//string $ignoreVerts[], 
+global proc TT_AutoSmoothRun (string $verts[], float $bOpacity, float $pruneBelow, int $maxInfs, int $borderSize, int $fastMode)
+{
+	float $sTime = `timerX`, $bTime = 0, $xTime = 0, $aTime = 0;
+	int $bq = 0;
+
+	string $skin = `validateObjVerts $verts`;
+	string $infs[] = `returnInfs $skin`;
+	string $allInfVals[] = {};
+	float $vOpacity = (1-$bOpacity)+1;
+	int $infIndices[] = `returnInfIndices $infs $skin`;
+	int $lockStates[] = `skinAdjustPrep $skin $infs $maxInfs`;
+	int $vertCount = size($verts);	
+	for($x = 0; $x < $vertCount; $x++){
+//queries current weighting of vert and finds its bordering verts
+		float $nTime = `timerX`;
+		string $vert = $verts[$x];
+		float $vInfVals[] = `returnInfVals $vert $skin`;
+		string $bVerts[] = `returnBorderVerts $vert $borderSize`;
+//		$bVerts = stringArrayRemove($ignoreVerts, $bVerts);
+		$bTime += `timerX` - $nTime;
+
+//Adds up weighing of bordering verts.  This area is one of the slowest areas, essentially the same vert can have the weights queried several times.
+//Storing all weights to a matrix[vert][infVals] could speed this up, however, since you have to initialize the size of the matrix it would
+//create limits on vertex count... leaving it this way keeps it simple, although slower.  Also a large matrix can take up a decent chunk of ram.
+		$nTime = `timerX`;
+		float $bInfVals[] = {};
+		for($y = 0; $y < size($bVerts); $y++){
+			$bq++;
+			float $infVals[] = `returnInfVals $bVerts[$y] $skin`;
+			if($y == 0)
+				$bInfVals = $infVals;
+			else
+				$bInfVals = `addFloatArrays $bInfVals $infVals 1 1`;
+		}
+		$xTime += `timerX` - $nTime;
+
+//Combines current vert weighting with the bordering weighting.  Applies pruning and max influence settings.
+		$nTime = `timerX`;
+		float $newInfVals[] = {};
+		if(size($bVerts) > 0)
+			$newInfVals = `addFloatArrays $vInfVals $bInfVals $vOpacity $bOpacity`;
+		else
+			$newInfVals = $vInfVals;
+		if($maxInfs > 0)
+			$newInfVals = `limitFloatArray $newInfVals $maxInfs`;
+		$newInfVals = `normalizeFloatArray $newInfVals 1`;
+
+		if($fastMode && $pruneBelow > 0){
+			$newInfVals = `pruneFloatArray $newInfVals $pruneBelow`;
+			$newInfVals = `normalizeFloatArray $newInfVals 1`;
+		}
+
+//IGNORE 0s?/!?!?
+		for($y = 0; $y < size($newInfVals); $y++)
+			$allInfVals[$x] = $allInfVals[$x]+string($newInfVals[$y])+",";
+		$aTime += `timerX` - $nTime;
+	}
+
+//applies all smoothed weighting to the verts
+	float $setTime = `timerX`;
+	if($fastMode)
+		skinPercent -prw 100 -nrm 0 $skin $verts;
+	for($x = 0; $x < $vertCount; $x++){
+		string $vert = $verts[$x];
+		string $infVals[] = {};
+		tokenize($allInfVals[$x], ",", $infVals);
+
+//probably should verify skinned verts matches current verts, otherwise skinPercent should be used
+		if($fastMode){
+			for($y = 0; $y < size($infVals);$y++){
+				int $listNum = `stripBracket $vert`;
+				float $infVal = float($infVals[$y]);
+				if($infVal > 0)
+					setAttr ($skin+".weightList["+$listNum+"].weights["+$infIndices[$y]+"]") $infVal;
+			}
+		}
+		else{
+			string $cmd = "";
+			if($pruneBelow > 0)
+				$cmd += " -prw "+$pruneBelow;
+			for($y = 0; $y < size($infVals);$y++)
+				if(float($infVals[$y]) > 0)
+					$cmd += " -tv \""+$infs[$y]+"\" "+$infVals[$y];
+			if($cmd != "")
+				eval("skinPercent"+$cmd+" \""+$skin+"\" \""+$vert+"\";");
+		}
+
+	}
+//restores lock state
+	applyLockStates $infs $lockStates;
+
+    /*
+	print ("Border Query Count: "+$bq+"\n");
+	print ("Border Query Time: "+$bTime+"\n");
+	print ("Border Influence Query Time: "+$xTime+"\n");
+	print ("Prune/Normalize Time: "+$aTime+"\n");
+	print ("Query Time: "+($setTime - $sTime)+"\n");
+	print ("Apply Time: "+(`timerX` - $setTime)+"\n");
+	*/
+
+	print "Autosmooth complete!\n";
+}
+//TT_AutoSmoothRun `ls -sl` 1.0 .003 4 1 0;
+//TT_Equalizer `ls -sl` .003 4;
+//TT_AutoSmooth 1;
