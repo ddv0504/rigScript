@@ -433,3 +433,33 @@ class checkMaxSkinInfluences(object):
             self.check_influences(node, self.maxInfluences, self.pruneValue)  # mesh, maxInfluences, pruneValue
 
 
+#Follicle Constraint
+def follicleConstraint(vertex,object,*args):
+    #Convert to uv from selected vertex
+    cmds.select(cmds.ls(vertex)[0],r=True)
+    cmds.ConvertSelectionToUVs() 
+    #Get UV value   
+    uv = cmds.ls(sl=True)[0]
+    uvValue = cmds.polyEditUV(uv,q=True)
+    #Create follicle node and connect transform node
+    follicle= cmds.createNode('follicle',name='%s_follicle' % object)
+    transName = cmds.listRelatives(follicle,p=True)[0]    
+    transName = cmds.rename(transName,'%sfollicle' % object )
+    follicleGrp = cmds.group(name='%s_grp' % follicle,empty=True)
+    cmds.parent(transName,follicleGrp)
+    cmds.connectAttr('%s.outRotate' % follicle,'%s.rotate' % follicleGrp)
+    cmds.connectAttr('%s.outTranslate' % follicle,'%s.translate' % follicleGrp)
+
+    #Set follicle parameter value
+    cmds.setAttr('%s.parameterU' % follicle,uvValue[0])
+    cmds.setAttr('%s.parameterV' % follicle,uvValue[1])
+
+    #Get shape from vertex
+    vertexMesh = cmds.ls(vertex,o=True)[0]
+    #Connect follicle world matrix,world mesh from vertex mesh
+    cmds.connectAttr('%s.worldMatrix' % vertexMesh,'%s.inputWorldMatrix' % follicle,f=True)
+    cmds.connectAttr('%s.worldMesh' % vertexMesh,'%s.inputMesh' % follicle,f=True)
+
+    #Parent constraint follicleGrp to object
+    cmds.parent(object,follicleGrp)
+
