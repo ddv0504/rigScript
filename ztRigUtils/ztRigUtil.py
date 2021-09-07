@@ -180,7 +180,26 @@ def unlockInf(mesh,jnt):
         print('%s is not infuluence joint in %s' % (jnt,mesh))
         return
     cmds.skinCluster(mesh,e=True,lw=False,inf=jnt)
-    
+
+###### Joint ######
+def setOrientKeyable(jnt,axis,*args):
+    if not cmds.objectType(jnt) == 'joint':
+        print('%s is not joint object.' % jnt)
+    cmds.setAttr('%s.jointOrient%s' % (jnt,axis),keyable=True,e=True)
+
+def setJointsOrientKeyable(jnts,*args):
+    attrs = ['jointOrientX','jointOrientY','jointOrientZ']
+    for jnt in jnts:
+        for attr in attrs:
+            print(attr)
+            cmds.setAttr('%s.%s' % (jnt,attr),e=True,keyable=True)
+
+def setJointsOrientUnkeyable(jnts,*args):
+    attrs = ['jointOrientX','jointOrientY','jointOrientZ']
+    for jnt in jnts:
+        for attr in attrs:
+            cmds.setAttr('%s.%s' % (jnt,attr),e=True,keyable=False)
+
 ###### blenShape #######
 '''
 Get connected blendshape node 
