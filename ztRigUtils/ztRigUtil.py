@@ -127,6 +127,19 @@ def constraint(src,trg,translate=False,rotate=False,scale=False,mo=False):
     else:
         cmds.select(src,r=True)
 
+###### Group ########
+def addOffsetGroup(obj,name=None):
+    parent = cmds.listRelatives(obj,p=True)[0] if cmds.listRelatives(obj,p=True) else None
+    if name:
+        grp = cmds.group(empty=True,name=name)
+    else:
+        grp = cmds.group(empty=True,name='%s_offset' % obj)
+    cmds.matchTransform(grp,obj)
+    cmds.parent(obj,grp)
+    if parent:
+        cmds.parent(grp,parent)
+
+
 ###### skin weight ######
 #Get skinning joint list
 
