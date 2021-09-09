@@ -6,7 +6,6 @@ global proc ztRigBuild () {
 
     shelfButton
         -enableCommandRepeat 1
-        
         -enable 1
         -width 32
         -height 32
@@ -25,19 +24,18 @@ global proc ztRigBuild () {
         -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
-        -image "N:/b1Env/maya/scripts/b1_Rigging/AdvancedSkeleton5.560/AdvancedSkeleton5/AdvancedSkeleton5Files/icons/AS5.png" 
-        -image1 "N:/b1Env/maya/scripts/b1_Rigging/AdvancedSkeleton5.560/AdvancedSkeleton5/AdvancedSkeleton5Files/icons/AS5.png" 
+        -image "N:/sccEnv/rigScript/icons/AS5.png" 
+        -image1 "N:/sccEnv/rigScript/icons/AS5.png" 
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "source \"N:/b1Env/maya/scripts/b1_Rigging/AdvancedSkeleton5.560/AdvancedSkeleton5/AdvancedSkeleton5.mel\";\nAdvancedSkeleton5;" 
-        -sourceType "mel" 
+        -command "mel.eval(\"AdvancedSkeleton5;\")" 
+        -sourceType "python" 
         -commandRepeatable 1
         -flat 1
     ;
     shelfButton
         -enableCommandRepeat 1
-        
         -enable 1
         -width 32
         -height 32
@@ -71,7 +69,6 @@ global proc ztRigBuild () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
         -enable 1
         -width 32
         -height 32
@@ -105,8 +102,6 @@ global proc ztRigBuild () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 38
         -enable 1
         -width 32
         -height 32

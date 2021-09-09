@@ -22,6 +22,7 @@ except:
 
 SHELF_PATH = '%s/shelves' % os.path.dirname(__file__).replace('\\','/')
 ICON_PATH  = '%s/icons' % os.path.dirname(__file__).replace('\\','/')
+
 def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()        
     try:

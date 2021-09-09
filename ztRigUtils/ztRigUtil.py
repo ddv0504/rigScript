@@ -7,8 +7,37 @@ import pprint
 from collections import OrderedDict
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaAnim as OpenMayaAnim
+######## attribute operation #######
 
-######## joint operateion ########
+def addAttr(object,longName,type,default=0,min=0,max=1,parent=None):
+    '''
+    parameter:
+            longName:  Attribute long name
+            type:   vector=> "double3"
+                    proxy=> "object.attribute"
+                    float=> "double"
+                    matrix=> "matrix"
+                    string=> "message"
+                    attribute frame=>  "compound"  ex: use to parent
+                    
+            default: Default value
+            min: Minimize value
+            max: Maximize value
+            parent : "parent" ex: parent to compound attribute
+            usedAsColor : Color slideing value ex: cmds.addAttr( longName='rainbow', usedAsColor=True, attributeType='float3' )
+                                                   cmds.addAttr( longName='redBow', attributeType='float', parent='rainbow' )
+                                                   cmds.addAttr( longName='greenBow', attributeType='float', parent='rainbow' )
+                                                   cmds.addAttr( longName='blueBow', attributeType='float', parent='rainbow' )
+    '''
+    
+    if type=='float3':
+        cmds.addAttr(object,longName=longName,attributeType=type,usedAsColor=True)
+    elif parent:
+        cmds.addAttr(object,longName=longName,attributeType=type,parent=parent)
+    else:
+        cmds.addAttr(object,longName=longName,attributeType=type,dv=default,min=min,max=max)
+
+######## joint operation ########
 def rotToOrient(joint):
     orientX = cmds.getAttr('%s.jointOrientX' % joint)
     orientY = cmds.getAttr('%s.jointOrientY' % joint)

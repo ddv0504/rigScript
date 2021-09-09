@@ -6,7 +6,6 @@ global proc ztRigEditModel () {
 
     shelfButton
         -enableCommandRepeat 1
-        
         -enable 1
         -width 32
         -height 32
@@ -40,7 +39,6 @@ global proc ztRigEditModel () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
         -enable 1
         -width 32
         -height 32
@@ -74,7 +72,6 @@ global proc ztRigEditModel () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
         -enable 1
         -width 32
         -height 32
@@ -108,7 +105,6 @@ global proc ztRigEditModel () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
         -enable 1
         -width 32
         -height 32
@@ -142,7 +138,6 @@ global proc ztRigEditModel () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
         -enable 1
         -width 32
         -height 32
@@ -173,7 +168,6 @@ global proc ztRigEditModel () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
         -enable 1
         -width 32
         -height 32
@@ -207,7 +201,6 @@ global proc ztRigEditModel () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
         -enable 1
         -width 32
         -height 32
