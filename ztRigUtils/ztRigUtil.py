@@ -8,6 +8,26 @@ from collections import OrderedDict
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaAnim as OpenMayaAnim
 
+######## joint operateion ########
+def rotToOrient(joint):
+    orientX = cmds.getAttr('%s.jointOrientX' % joint)
+    orientY = cmds.getAttr('%s.jointOrientY' % joint)
+    orientZ = cmds.getAttr('%s.jointOrientZ' % joint)
+    
+    rotX = cmds.getAttr('%s.rx' % joint)
+    rotY = cmds.getAttr('%s.ry' % joint)
+    rotZ = cmds.getAttr('%s.rz' % joint)
+    
+    valX = orientX + rotX
+    valY = orientY + rotY
+    valZ = orientZ + rotZ
+    
+    cmds.setAttr('%s.rotate' % joint,0,0,0)
+    
+    cmds.setAttr('%s.jointOrientX' % joint, valX)
+    cmds.setAttr('%s.jointOrientY' % joint, valY)
+    cmds.setAttr('%s.jointOrientZ' % joint, valZ)
+
 
 def jointDrawUI(*args):
     '''
