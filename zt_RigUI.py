@@ -8,6 +8,7 @@ import maya.OpenMayaUI as omui
 import maya.cmds as cmds
 import pymel.core as pm
 import maya.mel as mel
+from ztRigUtils import ztRigUtil
 import os
 
 currentPath = os.path.dirname(__file__).replace('\\','/')
