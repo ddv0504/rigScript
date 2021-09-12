@@ -544,3 +544,6 @@ def follicleConstraint(vertex,object,*args):
     #Parent constraint follicleGrp to object
     cmds.parent(object,follicleGrp)
 
+######## misc #########
+def printObjectType(*args):
+    print(cmds.objectType(cmds.ls(sl=True)[0]))
