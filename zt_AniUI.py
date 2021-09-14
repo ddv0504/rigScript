@@ -205,7 +205,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
             return
         if  self.playBlastInfo:            
             cam = self.playBlastInfo['cam']
-
+        print(cam)
         movFile = self.setMovFileName(fileName)
         widthHeight = [cmds.getAttr('defaultResolution.%s' % i) for i in ["width","height"]]
 
@@ -222,10 +222,11 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
             cmds.deleteUI('zt_pbWin')
         win = cmds.window('zt_pbWin')
         cmds.paneLayout()
-        panel = cmds.modelPanel(cam=cam)
-        cmds.modelEditor(mp=panel,pm=True,dtx=True,displayAppearance='smoothShaded',th=True,alo=False)
+        panel = cmds.modelPanel()
+        modelEditor = cmds.modelEditor(mp=panel,camera=cam,pm=True,dtx=True,displayAppearance='smoothShaded',th=True,alo=False)
         cmds.window(win,e=True,wh=widthHeight)
         cmds.showWindow(win)
+        
         try:
             cmds.playblast(epn=panel,startTime=startFrame,endTime=endFrame,sound=sound,format='qt',filename=movFile, forceOverwrite=True,clearCache=True,viewer=True,percent=100,compression="H.264", quality=100, widthHeight=widthHeight)
         except Exception as e:

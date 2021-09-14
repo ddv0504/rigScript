@@ -44,6 +44,16 @@ def addAttr(object,longName,type,default=0,min=0,max=1,parent=None):
         cmds.addAttr(object,longName=longName,attributeType=type,dv=default,min=min,max=max)
 
 ######## joint operation ########
+def displayJointOrient(joint):
+    cmds.setAttr('%s.jointOrientX' % joint,e=True,k=True)
+    cmds.setAttr('%s.jointOrientY' % joint,e=True,k=True)
+    cmds.setAttr('%s.jointOrientZ' % joint,e=True,k=True)
+    
+def hideJointOrient(joint):
+    cmds.setAttr('%s.jointOrientX' % joint,e=True,k=False)
+    cmds.setAttr('%s.jointOrientY' % joint,e=True,k=False)
+    cmds.setAttr('%s.jointOrientZ' % joint,e=True,k=False)
+    
 def rotToOrient(joint):
     orientX = cmds.getAttr('%s.jointOrientX' % joint)
     orientY = cmds.getAttr('%s.jointOrientY' % joint)
