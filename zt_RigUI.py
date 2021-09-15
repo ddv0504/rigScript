@@ -92,9 +92,47 @@ class rigWindow(MayaQWidgetDockableMixin, QMainWindow):
         
         #### Group operation ####
         addOffsetBtn = QPushButton('Add offset group')
-        addOffsetBtn.clicked.connect(lambda:[ztRigUtil.addOffsetGroup(i) for i in cmds.ls(sl=True)])
+        
         self.grpOperationLayout.addWidget(addOffsetBtn)
         
+        addOffsetWidget = QWidget()
+        radioBtnGrp = QButtonGroup(addOffsetWidget)
+        defaultCheckBox = QRadioButton('Default')
+        defaultCheckBox.setChecked(True)
+        customCheckBox = QRadioButton('Custom')
+        suffixLabel = QLabel('Suffix:')
+        suffixLineEdit = QLineEdit('_')
+        suffixLineEdit.setEnabled(False)
+        
+        radioBtnGrp.addButton(defaultCheckBox)
+        radioBtnGrp.addButton(customCheckBox)
+        self.grpOperationLayout.addWidget(addOffsetWidget)
+        self.grpOperationLayout.addWidget(defaultCheckBox)
+        self.grpOperationLayout.addWidget(customCheckBox)
+        
+        self.grpOperationLayout.addWidget(suffixLabel)
+        self.grpOperationLayout.addWidget(suffixLineEdit)
+        radioBtnGrp.buttonClicked.connect(lambda:self.offsetGroupSwitch(defaultCheckBox,suffixLineEdit))
+        addOffsetBtn.clicked.connect(lambda:self.addOffsetGroup(radioBtnGrp,suffixLineEdit))        
+    def addOffsetGroup(self,btnGroup,lineEdit=None):
+        objs = cmds.ls(sl=True)
+        btn = [i for i in btnGroup.buttons() if i.isChecked()][0]
+        cmds.undoInfo(ock=True)
+        if btn.text() == 'Default':
+            for obj in objs:
+                ztRigUtil.addOffsetGroup(obj)
+        elif btn.text() == 'Custom':
+            suffix = lineEdit.text()
+            for obj in objs:
+                ztRigUtil.addOffsetGroup(obj,'%s%s' % (obj,suffix))
+        cmds.undoInfo(cck=True)
+    def offsetGroupSwitch(self,checkBox,lineEdit):
+        
+        if checkBox.text() == 'Default':
+            if checkBox.isChecked():
+                lineEdit.setEnabled(False)
+            else:
+                lineEdit.setEnabled(True)   
 class listItem(QStandardItem):
     def __init__(self,name=None,image=None,cmd=None):
         QStandardItem.__init__(self)
