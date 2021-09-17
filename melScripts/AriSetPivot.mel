@@ -1,0 +1,1379 @@
+//--------------------------------------------------------------------------
+//
+// ScriptName : AriSetPivot
+// Contents   : フリーズしたトランスフォームを戻します。(トランスフォームの数値を原点からの距離にします)
+//            : ピボットの位置を制御します。
+// Author     : Ari
+// Since      : 2015/06
+// LastUpdate : 2021/06/27 回転値を親に転送する機能追加
+//              2021/03/28 マニピュレータ回転方向の転送機能追加
+//              2020/03/29 ローカル座標に対応
+//                         疑似マニピュレーター機能追加
+//              2018/08/19 座標情報と選択リスト表示機能追加
+//              2018/03/29 CenterPivotの挙動を修正
+//              2017/11/15 ボタンの表記間違えを修正
+//              2017/11/11 MEL名変更
+//                         ReFreeze実行時子を除外
+//                         ボタン(機能)追加
+//                         ボタン色調整
+//              2016/08/28 ピボット座標設定をコンポーネントも対象に
+//                         閉じたUIを記録
+//              2016/03/13 UI整理。細かい機能追加。
+//              2016/01/07 ReFreezeとFreezeをアニメーションキーに対応
+//              2015/06/26 UI修正
+//              2015/06/28 cm以外の単位に対応
+//
+//--------------------------------------------------------------------------
+
+
+
+proc string[] getSelectToTransformList(){
+	string $transformList[] = `ls -sl -tr`;
+	string $selects[] = `ls -sl`;
+	string $delTf[] = stringArrayRemove($transformList, $selects);
+	string $vertexList[] = `polyListComponentConversion -tv $delTf`;
+	string $shapes[]     = `polyListComponentConversion $vertexList`;	
+	string $shapeToTf[] = `listRelatives -p -pa -type "transform" $shapes`;
+	string $targetTransformList[] = stringArrayCatenate($transformList, $shapeToTf);
+	return $targetTransformList;
+}
+proc int AriUnparentOne_ListNum (string $obj){
+	int $num;
+	string $parent[]=`listRelatives -p -pa $obj`;
+	string $children[];
+	if($parent[0]=="")	$children=`ls -as `;
+	else $children=	`listRelatives -c -pa $parent[0]`;
+	int $i=0;
+	for($child in $children){
+		if($child == $obj){
+			$num=$i;
+			break;
+		}
+		$i++;
+	}
+	return $num;
+}
+global proc AriSetPivot_PivotRotate(int $mode,int $parentFreeze){
+	string $selectList[] = getSelectToTransformList();
+	string $targetObj = $selectList[size($selectList)-1];
+	string $baseObjList[] = $selectList;
+	stringArrayRemoveAtIndex(size($selectList)-1, $baseObjList);
+	vector $targetScale = `getAttr ($targetObj+".scale")`;
+	setAttr ($targetObj+".scale") 1 1 1 ;
+	int $manipTrue = `manipPivot -q -ov`;
+	string $rotGroup;
+	if($manipTrue){
+		float $manipRot[] = `manipPivot -q -o`;
+		$rotGroup = `group -em -name "AriReFreezeParent"`;
+		setAttr ($rotGroup+".rotate") $manipRot[0] $manipRot[1] $manipRot[2];
+		clear $baseObjList;
+		$baseObjList[0] = $selectList[size($selectList)-1];
+	}
+	for($object in $baseObjList){
+		string $childList[] = `listRelatives -pa -c -type "transform" $object`;
+		int $listNum = AriUnparentOne_ListNum($object);
+		string $baseName = $object;
+		string $parentObj[] = `listRelatives -p -pa $object`;
+		if($parentObj[0] != ""){
+			string $unParent[] = `parent -w $object`;
+			$object = $unParent[0];
+		}
+		string $parentGroup;
+		string $childListWorld[];
+		if(size($childList)){
+			$parentGroup    = `group -em -name "AriReFreezeParent"`;
+			$childListWorld = `parent $childList $parentGroup`;
+		}
+		string $objectIn[];
+		if($manipTrue)	$objectIn = `parent $object $rotGroup`;
+		else			$objectIn = `parent $object $targetObj`;
+		$object = $objectIn[0];
+		if($mode==0)makeIdentity -apply true -t 0 -r 1 -s 0 -n 0 $object;
+		if($mode==1)setAttr ($object+".rotate") 0 0 0;
+		string $outObj[];
+		if($parentObj[0] != ""){
+			string $parentGet[] = `listRelatives -p -pa $object`;
+			if($parentObj[0] != $parentGet[0]){
+				$outObj = `parent $object $parentObj[0]`;
+				$object = $outObj[0];
+			}
+		}
+		else{
+			$outObj = `parent -w $object`;
+			$object = $outObj[0];
+		}
+		reorder -relative ($listNum+1) $object;
+		if($baseName != $object){
+			rename $object $baseName;
+		}
+		string $parentList[];
+		if(size($childList)){
+			$parentList = `parent $childListWorld $object`;
+			delete $parentGroup;
+		}
+		if($manipTrue) delete $rotGroup;
+	}
+	setAttr ($targetObj+".scale") ($targetScale.x) ($targetScale.y) ($targetScale.z);
+	select $selectList;
+}
+global proc AriSetPivot_SetParentPivot(int $mode){
+	string $selectList[] = getSelectToTransformList();
+	string $parentList[];
+	for($object in $selectList){
+		string $parents[] = `listRelatives -p -pa $object`;	
+		if(size($parents)==0) continue;
+		select $parents;
+		select -add $object;
+		AriSetPivot_PivotRotate($mode,true);
+		$parentList[size($parentList)] = $parents[0];
+	}
+	select $parentList;
+}
+proc int AriReFreezeT_AriListNum (string $obj){
+	int $num;
+	string $parent[]=`listRelatives -p -pa $obj`;
+	string $children[];
+	if($parent[0]=="")	$children=`ls -as`;
+	else $children=		`listRelatives -c -pa $parent[0]`;
+	int $i=0;
+	for($child in $children){
+		if($child == $obj){
+			$num=$i;
+			break;
+		}
+		$i++;
+	}
+	return $num;
+}
+proc string[] AriDisconnectAni(string $object){
+	string $discone[3];
+	string $transX[]=`listConnections -plugs true -d 0 -s 1  -type "animCurveTL" ($object+".translateX")`;
+	string $transY[]=`listConnections -plugs true -d 0 -s 1  -type "animCurveTL" ($object+".translateY")`;
+	string $transZ[]=`listConnections -plugs true -d 0 -s 1  -type "animCurveTL" ($object+".translateZ")`;
+	if($transX[0]!="")disconnectAttr ($transX[0]) ($object+".translateX");
+	if($transY[0]!="")disconnectAttr ($transY[0]) ($object+".translateY");
+	if($transZ[0]!="")disconnectAttr ($transZ[0]) ($object+".translateZ");
+	$discone[0]=$transX[0];
+	$discone[1]=$transY[0];
+	$discone[2]=$transZ[0];
+	return $discone;
+}
+proc AriConnectAni(string $object,string $coneAttr[]){
+	if($coneAttr[0]!="")connectAttr ($coneAttr[0]) ($object+".translateX");
+	if($coneAttr[1]!="")connectAttr ($coneAttr[1]) ($object+".translateY");
+	if($coneAttr[2]!="")connectAttr ($coneAttr[2]) ($object+".translateZ");
+}
+proc AriKeyFrameOfset(string $object, float $x ,float $y, float $z){
+	string $transX[]=`listConnections   -d 0 -s 1  -type "animCurveTL" ($object+".translateX")`;
+	string $transY[]=`listConnections   -d 0 -s 1  -type "animCurveTL" ($object+".translateY")`;
+	string $transZ[]=`listConnections   -d 0 -s 1  -type "animCurveTL" ($object+".translateZ")`;
+	if($transX[0]!="")keyframe -e -iub true -r -o over -vc $x $transX[0];
+	if($transY[0]!="")keyframe -e -iub true -r -o over -vc $y $transY[0];
+	if($transZ[0]!="")keyframe -e -iub true -r -o over -vc $z $transZ[0];
+}
+global proc  AriSetPivot_Save(){
+	global string $AriSetPivot_UI_worldRB[];
+	int $worldTrue = `radioButton -q -sl $AriSetPivot_UI_worldRB[0]`;
+	optionVar -intValue  "AriSetPivot_world" $worldTrue;
+}
+global proc  AriSetPivot_Load(){
+	global string $AriSetPivot_UI_worldRB[];
+	int $worldTrue = true;
+	if(`optionVar -exists "AriSetPivot_world"`)   $worldTrue   = `optionVar -q "AriSetPivot_world"`;
+	if($worldTrue)	radioButton -e -sl $AriSetPivot_UI_worldRB[0];
+	else			radioButton -e -sl $AriSetPivot_UI_worldRB[1];
+}
+global proc  AriSetPivot_Reload(){
+	string $groupName = "AriSetPivot_Manip";
+	if(`objExists $groupName`){
+		delete $groupName;
+		AriSetPivot_GO(1000);
+	}
+	AriSetPivot_Save();
+}
+proc string[] getSelectToVertexList(){
+	string $selectList[]    = `ls -sl`;
+	string $checkVerList[];
+	$checkVerList = `filterExpand -selectionMask 31 $selectList`;
+	string $works[];
+	string $selectEdgeList[]=`filterExpand -selectionMask 32 $selectList`;
+	if(size($selectEdgeList)>0 || size($checkVerList)==0){
+		$works=`polyListComponentConversion -tv $selectEdgeList`;
+		$works=`filterExpand -selectionMask 31 $works`;
+		$checkVerList=$works;
+	}
+	string $selectFaceList[]=`filterExpand -selectionMask 34 $selectList`;
+	if(size($selectFaceList)>0 || size($checkVerList)==0){
+		$works=`polyListComponentConversion -tv $selectFaceList`;
+		$works=`filterExpand -selectionMask 31 $works`;
+		$checkVerList=$works;
+	}
+	return $checkVerList;
+}
+proc vector getParentWorldPos(string $obj){
+	vector $parentWorldPos;
+	string $parents[] = `listRelatives -p -pa $obj`;	
+	if($parents[0] != ""){
+		float $getW[] = `xform -q -ws -piv  $parents[0]`;
+		$parentWorldPos = <<$getW[0], $getW[1], $getW[2]>>;
+	}
+	else{
+		$parentWorldPos = <<0, 0, 0>>;
+	}
+	return $parentWorldPos;
+}
+global proc AriSetPivot_AriReFreezeTranslate_GO(int $mode){
+	string $selectObj[]=`ls -sl -tr`;
+	string $processedObjList[];
+	int $i=0;
+	for($obj in $selectObj){
+		int $num=AriReFreezeT_AriListNum($obj);
+		float $pos[3] = `xform -q -ws -rp $obj`;			
+		string $parents[]=`listRelatives -p -pa $obj`;	
+		string $childList[]=`listRelatives -c -type "transform" -pa $obj`;	
+		string $childUnParentName[];
+		int $j = 0;
+		for($child in $childList){
+			string $work[]=`parent -w $child`;
+			$childUnParentName[$j] = $work[0];
+			$j++;
+		}
+		string $wObj = $obj;
+		float $beforeTr[3];
+		float $afterTr[3];
+		$beforeTr[0] = `getAttr ($wObj+".translateX")`;
+		$beforeTr[1] = `getAttr ($wObj+".translateY")`;
+		$beforeTr[2] = `getAttr ($wObj+".translateZ")`;
+		string $discone[3]=AriDisconnectAni($wObj);
+		if($mode==1){
+			if($parents[0]!=""){
+				string $work[]=`parent -w $obj`;
+				$wObj = $work[0];
+			}
+			move -rpr 0 0 0 $wObj;		
+		}
+		makeIdentity -apply true -t 1 -r 0 -s 0 -n 0  $wObj;	
+		if($mode==1){
+			move -rpr ($pos[0]) ($pos[1]) ($pos[2]) $wObj;				
+			if($parents[0]!=""){
+				string $wObjParent[]=`parent  $wObj $parents[0]`;
+				$wObj = $wObjParent[0];
+				reorder -relative ($num+1) $wObj;
+				if($wObj != $obj){
+					string $sepa[];
+					tokenize $obj "|" $sepa;
+					string $baseName = $sepa[size($sepa)-1];
+					$wObj =`rename $wObjParent[0] $baseName`;
+				}
+			}
+			setAttr ($wObj+".rotatePivot") 0 0 0;
+			setAttr ($wObj+".scalePivot")  0 0 0;
+			setAttr ($wObj+".rotatePivotTranslate") 0 0 0;
+			setAttr ($wObj+".scalePivotTranslate")  0 0 0;
+		}
+		$afterTr[0] = `getAttr ($wObj+".translateX")`;
+		$afterTr[1] = `getAttr ($wObj+".translateY")`;
+		$afterTr[2] = `getAttr ($wObj+".translateZ")`;
+		AriConnectAni($wObj,$discone);
+		float $dis[3];
+		$dis[0] = $afterTr[0]-$beforeTr[0];
+		$dis[1] = $afterTr[1]-$beforeTr[1];
+		$dis[2] = $afterTr[2]-$beforeTr[2];
+		AriKeyFrameOfset($wObj, $dis[0] , $dis[1], $dis[2]);
+		for($j=0; $j<size($childUnParentName); $j++){
+			string $work[] = `parent $childUnParentName[$j] $wObj`;
+			string $nowChildName = $work[0];
+			if($nowChildName != $childList[$j]){
+				string $sepa[];
+				tokenize $childList[$j] "|" $sepa;
+				string $baseName = $sepa[size($sepa)-1];
+				rename $nowChildName $baseName;
+			}
+		}
+		if($mode==0){
+			setAttr ($wObj+".translate") 0 0 0;
+		}
+		$processedObjList[$i] = $wObj;
+		$i++;
+	}
+	select $processedObjList;
+}
+proc float[] AriSetPivot_ManipulatorPosition(){
+	string $linear=`currentUnit -q -linear`;
+	float $multiply = 1.0;
+	if($linear=="mm")$multiply=0.1;
+	if($linear=="cm")$multiply=1;
+	if($linear=="m" )$multiply=100;
+	if($linear=="in")$multiply=2.54;
+	if($linear=="ft")$multiply=30.48;
+	if($linear=="yd")$multiply=91.44;
+	$multiply=1.0/($multiply);
+	float $maniPosition[3];
+	string $currentTool=`currentCtx`;
+	if($currentTool=="moveSuperContext"){
+		$maniPosition = `manipMoveContext -q -p Move`;
+	}
+	if($currentTool=="RotateSuperContext"){
+		$maniPosition = `manipRotateContext -q -p Rotate`;
+	}
+	if($currentTool=="scaleSuperContext"){
+		$maniPosition = `manipScaleContext -q -p Scale`;
+	}
+	$maniPosition[0] = $maniPosition[0] * $multiply;
+	$maniPosition[1] = $maniPosition[1] * $multiply;
+	$maniPosition[2] = $maniPosition[2] * $multiply;
+	return $maniPosition;
+}
+global proc AriReFrTrPv_transformAttrZero(int $mode){
+	string $selectObj[]=`ls -sl -tr`;
+	for($obj in $selectObj){
+		if($mode == 0) setAttr ($obj+".translate")  0 0 0;
+		if($mode == 1) setAttr ($obj+".translateX") 0;
+		if($mode == 2) setAttr ($obj+".translateY") 0;
+		if($mode == 3) setAttr ($obj+".translateZ") 0;
+		if($mode == 10) setAttr ($obj+".rotate")  0 0 0;
+		if($mode == 11) setAttr ($obj+".rotateX") 0;
+		if($mode == 12) setAttr ($obj+".rotateY") 0;
+		if($mode == 13) setAttr ($obj+".rotateZ") 0;
+	}
+}
+global proc AriSetPivot_getObjectPos(){
+	global string $AriSetPivot_UI_attr[];
+	global string $AriSetPivot_UI_position[];
+	global string $AriSetPivot_UI_objectListSF;
+	global string $AriSetPivot_UI_objectName;
+	global int $AriSetPivot_JobNum;
+	string $transformList[] = getSelectToTransformList();
+	int $size = size($transformList)-1;
+	if($size<0)$size=0;
+	string $obj = $transformList[$size];
+	string $selectText[] = `textScrollList -q -si $AriSetPivot_UI_objectListSF`;
+	if($selectText[0] != ""){
+		$obj = $selectText[0];
+	}
+	global int $AriSetPivot_CreateCone;
+	string $transform[] =`ls -sl -tr`;
+	textField -e -text $obj $AriSetPivot_UI_objectName;
+	if($obj != ""){
+		if(stringArrayContains($obj,$transform)){
+			if($transform[size($transform)-1] != $obj){
+				$AriSetPivot_CreateCone = true;
+				select -d $obj;
+				$AriSetPivot_CreateCone = true;
+				select -add $obj;
+			}
+		}
+	}
+	if($obj != ""){
+		attrFieldGrp -e -en 1 -attribute ($obj+".translate") $AriSetPivot_UI_attr[0];
+		attrFieldGrp -e -en 1 -attribute ($obj+".rotatePivot") $AriSetPivot_UI_attr[1];
+	}
+	else{
+		attrFieldGrp -e -en 0 $AriSetPivot_UI_attr[0];
+		attrFieldGrp -e -en 0 $AriSetPivot_UI_attr[1];
+	}
+	if($obj != ""){
+		vector $attrPos   = `getAttr ($obj+".translate")`;
+		vector $pivRoPos    = `getAttr ($obj+".rotatePivot")`;
+		vector $pivRoPosTr  = `getAttr ($obj+".rotatePivotTranslate")`;
+		vector $pivScPos    = `getAttr ($obj+".scalePivot")`;
+		vector $pivScPosTr  = `getAttr ($obj+".scalePivotTranslate")`;
+		float $worldPos[] = `xform  -q -ws -piv  $obj`;
+		floatField -e -en true -v ($attrPos.x) $AriSetPivot_UI_position[0];
+		floatField -e -en true -v ($attrPos.y) $AriSetPivot_UI_position[1];
+		floatField -e -en true -v ($attrPos.z) $AriSetPivot_UI_position[2];
+		floatField -e -en true -v ($pivRoPos.x) $AriSetPivot_UI_position[3];
+		floatField -e -en true -v ($pivRoPos.y) $AriSetPivot_UI_position[4];
+		floatField -e -en true -v ($pivRoPos.z) $AriSetPivot_UI_position[5];
+		floatField -e -en true -v ($pivRoPosTr.x) $AriSetPivot_UI_position[9];
+		floatField -e -en true -v ($pivRoPosTr.x) $AriSetPivot_UI_position[10];
+		floatField -e -en true -v ($pivRoPosTr.x) $AriSetPivot_UI_position[11];
+		floatField -e -en true -v ($pivScPos.x) $AriSetPivot_UI_position[12];
+		floatField -e -en true -v ($pivScPos.y) $AriSetPivot_UI_position[13];
+		floatField -e -en true -v ($pivScPos.z) $AriSetPivot_UI_position[14];
+		floatField -e -en true -v ($pivScPosTr.x) $AriSetPivot_UI_position[15];
+		floatField -e -en true -v ($pivScPosTr.x) $AriSetPivot_UI_position[16];
+		floatField -e -en true -v ($pivScPosTr.x) $AriSetPivot_UI_position[17];
+		floatField -e -en true -v ($worldPos[3]) $AriSetPivot_UI_position[6];
+		floatField -e -en true -v ($worldPos[4]) $AriSetPivot_UI_position[7];
+		floatField -e -en true -v ($worldPos[5]) $AriSetPivot_UI_position[8];
+	}
+	else{
+		attrFieldGrp -e -en 0 $AriSetPivot_UI_attr[0];
+		attrFieldGrp -e -en 0 $AriSetPivot_UI_attr[1];
+		floatField -e -en false $AriSetPivot_UI_position[0];
+		floatField -e -en false $AriSetPivot_UI_position[1];
+		floatField -e -en false $AriSetPivot_UI_position[2];
+		floatField -e -en false $AriSetPivot_UI_position[3];
+		floatField -e -en false $AriSetPivot_UI_position[4];
+		floatField -e -en false $AriSetPivot_UI_position[5];
+		floatField -e -en false $AriSetPivot_UI_position[6];
+		floatField -e -en false $AriSetPivot_UI_position[7];
+		floatField -e -en false $AriSetPivot_UI_position[8];
+		floatField -e -en false $AriSetPivot_UI_position[9];
+		floatField -e -en false $AriSetPivot_UI_position[10];
+		floatField -e -en false $AriSetPivot_UI_position[11];
+		floatField -e -en false $AriSetPivot_UI_position[12];
+		floatField -e -en false $AriSetPivot_UI_position[13];
+		floatField -e -en false $AriSetPivot_UI_position[14];
+		floatField -e -en false $AriSetPivot_UI_position[15];
+		floatField -e -en false $AriSetPivot_UI_position[16];
+		floatField -e -en false $AriSetPivot_UI_position[17];
+	}
+}
+global proc AriSetPivot_Manipulator(int $mode){
+	string $transformObj[]=`ls -sl -tr`;
+	string $objects[]=$transformObj;
+	if(size($objects)==0){
+		string $selectObj[]=`ls -sl`;
+		string $vertexs[] = `polyListComponentConversion -tv $selectObj`;	
+		if($vertexs[0]!=""){
+			$objects = `polyListComponentConversion $vertexs`;	
+			$objects = `listRelatives -p -pa -type "transform" $objects`;
+		}
+	}
+	float $manuPos[] = AriSetPivot_ManipulatorPosition();
+	string $currentTool=`currentCtx`;
+	if($currentTool=="moveSuperContext" || $currentTool=="RotateSuperContext" || $currentTool=="scaleSuperContext"){
+		if($mode==3){
+			xform  -ws -piv $manuPos[0] $manuPos[1] $manuPos[2] $objects;
+		}
+		else{
+			for($obj in $objects){
+				float $pivPos[]=`xform -q -ws -piv $obj`;
+				float $movePos[]=$pivPos;
+				$movePos[$mode]=$manuPos[$mode];
+				xform  -ws -piv $movePos[0] $movePos[1] $movePos[2] $obj;
+			}
+		}
+	}
+	AriSetPivot_getObjectPos();
+}
+global proc AriSetPivot_ManipulatorMove(int $mode){
+	string $transformObj[]=`ls -sl -tr`;
+	float $maniPos[3]=AriSetPivot_ManipulatorPosition();
+	for($obj in $transformObj){
+	if($mode==3)move -rpr ($maniPos[0]) ($maniPos[1]) ($maniPos[2]) $obj;
+		else{
+			float $movePos[] = `xform  -q -ws -piv  $obj`;
+			$movePos[$mode]=$maniPos[$mode];
+			move -rpr ($movePos[0]) ($movePos[1]) ($movePos[2]) $obj;
+		}
+	}
+	AriSetPivot_getObjectPos();
+}
+proc float[] AriSetPivot_MimMax(string $verList[],int $worldTrue){
+	global string $AriSetPivot_UI_worldRB[];
+	float $minmax[];
+	int $i=0;
+	for($ver in $verList){
+		float $verPos[] = `pointPosition -l $ver`;
+		if($worldTrue){
+			$verPos = `pointPosition -w $ver`;
+		}
+		if($i==0){
+			$minmax[0] = $verPos[0];
+			$minmax[1] = $verPos[1];
+			$minmax[2] = $verPos[2];
+			$minmax[3] = $verPos[0];
+			$minmax[4] = $verPos[1];
+			$minmax[5] = $verPos[2];
+		}
+		if($minmax[0] > $verPos[0]) $minmax[0] = $verPos[0];
+		if($minmax[1] > $verPos[1]) $minmax[1] = $verPos[1];
+		if($minmax[2] > $verPos[2]) $minmax[2] = $verPos[2];
+		if($minmax[3] < $verPos[0]) $minmax[3] = $verPos[0];
+		if($minmax[4] < $verPos[1]) $minmax[4] = $verPos[1];
+		if($minmax[5] < $verPos[2]) $minmax[5] = $verPos[2];
+		$i++;
+	}
+	return $minmax;
+}
+proc vector[] getSevenPosition(string $obj, string $transformList[], string $checkVerList[],int $worldTrue){
+	vector $positionList[];
+	int $groupTrue = false;
+	string $verList[];
+	if(stringArrayContains($obj, $transformList)){
+		$verList = `polyListComponentConversion -tv $obj`;
+		$verList = `filterExpand -selectionMask 31 $verList`;
+		string $shapeList[] = `listRelatives  -c -s  $obj`;
+		if(size($shapeList)==0)$groupTrue = true;
+	}
+	else{
+		int $counter = 0;
+		for($ver in $checkVerList){
+			if(startsWith($ver,$obj)){
+				$verList[$counter] = $ver;
+				$counter++;
+			}
+		}
+	}
+	float $boundPos[] = AriSetPivot_MimMax($verList,$worldTrue);
+	vector $pivPos;
+	if($worldTrue){
+		float $pos[] = `xform -q -ws -piv  $obj`;
+		$pivPos = <<$pos[0], $pos[1], $pos[2]>>;
+	}
+	else{
+		float $pos[] = `xform -q     -piv  $obj`;
+		$pivPos = <<$pos[0], $pos[1], $pos[2]>>;
+		if($groupTrue==true){
+			string $parents[] = `listRelatives -p -pa $obj`;	
+			int $num = AriReFreezeT_AriListNum($obj);
+			string $wObj = $obj;
+			if($parents[0] != ""){
+				string $work[] = `parent -w $obj`;
+				$wObj = $work[0];
+			}
+			vector $beforeTranslate = `getAttr ($wObj+".translate")`;
+			vector $beforeRotate    = `getAttr ($wObj+".rotate")`;
+			vector $beforeScale     = `getAttr ($wObj+".scale")`;
+			vector $beforeShear     = `getAttr ($wObj+".shear")`;
+			setAttr ($wObj+".translate") 0 0 0;
+			setAttr ($wObj+".rotate") 0 0 0;
+			setAttr ($wObj+".scale") 1 1 1;
+			setAttr ($wObj+".shearXY") 0;
+			setAttr ($wObj+".shearXZ") 0;
+			setAttr ($wObj+".shearYZ") 0;
+			float $pos[] = `xform -q     -piv  $wObj`;
+			$pivPos = <<$pos[0], $pos[1], $pos[2]>>;
+			float $beforePivot[]  = `xform -q -os -piv $wObj`;
+			xform -os -piv 0 0 0 $wObj;
+			float $getW[] = `xform -q -ws -piv  $wObj`;
+			vector $worldPos = <<$getW[0], $getW[1], $getW[2]>>;
+			$verList = `polyListComponentConversion -tv $wObj`;
+			$verList = `filterExpand -selectionMask 31 $verList`;
+			$boundPos = AriSetPivot_MimMax($verList,true);
+			xform -sp $pos[0] $pos[1] $pos[2] $wObj;
+			xform -rp $pos[3] $pos[4] $pos[5] $wObj;
+			setAttr ($wObj+".shearXY") ($beforeShear.x);
+			setAttr ($wObj+".shearXZ") ($beforeShear.y);
+			setAttr ($wObj+".shearYZ") ($beforeShear.z);
+			setAttr ($wObj+".scale")     ($beforeScale.x)  ($beforeScale.y)  ($beforeScale.z);
+			setAttr ($wObj+".rotate")    ($beforeRotate.x) ($beforeRotate.y) ($beforeRotate.z);
+			setAttr ($wObj+".translate") ($beforeTranslate.x) ($beforeTranslate.y) ($beforeTranslate.z);
+			if($parents[0] != ""){
+				string $wObjParent[]=`parent  $wObj $parents[0]`;
+				$wObj = $wObjParent[0];
+				reorder -relative ($num+1) $wObj;
+				if($wObj != $obj){
+					string $sepa[];
+					tokenize $obj "|" $sepa;
+					string $baseName = $sepa[size($sepa)-1];
+					$wObj =`rename $wObjParent[0] $baseName`;
+				}
+			}
+			$boundPos[0] = $boundPos[0] - ($worldPos.x);
+			$boundPos[1] = $boundPos[1] - ($worldPos.y);
+			$boundPos[2] = $boundPos[2] - ($worldPos.z);
+			$boundPos[3] = $boundPos[3] - ($worldPos.x);
+			$boundPos[4] = $boundPos[4] - ($worldPos.y);
+			$boundPos[5] = $boundPos[5] - ($worldPos.z);
+		}
+	}
+	vector $center = << (($boundPos[0] + $boundPos[3]) * 0.5), (($boundPos[1] + $boundPos[4]) * 0.5), (($boundPos[2] + $boundPos[5]) * 0.5)   >>;
+	$positionList[0] = <<$boundPos[0], ($pivPos.y),  ($pivPos.z) >>;
+	$positionList[1] = <<($pivPos.x),  $boundPos[1], ($pivPos.z) >>;
+	$positionList[2] = <<($pivPos.x),  ($pivPos.y),  $boundPos[2]>>;
+	$positionList[3] = <<$boundPos[3], ($pivPos.y),  ($pivPos.z) >>;
+	$positionList[4] = <<($pivPos.x),  $boundPos[4], ($pivPos.z) >>;
+	$positionList[5] = <<($pivPos.x),  ($pivPos.y),  $boundPos[5]>>;	
+	$positionList[6] = $center; 
+	$positionList[7] = $pivPos; 
+	$positionList[8]  = <<$center.x, $pivPos.y, $pivPos.z>>;
+	$positionList[9]  = <<$pivPos.x, $center.y, $pivPos.z>>;
+	$positionList[10] = <<$pivPos.x, $pivPos.y, $center.z>>;
+	return $positionList;
+}
+global proc AriSetPivot_ViewPiv(){
+	string $checkObjectList[] = getSelectToTransformList();
+	int $asisTrue = false;
+	for($obj in $checkObjectList){
+		if(`getAttr ($obj+".displayLocalAxis")`){
+			$asisTrue = true;
+			break;
+		}
+	}
+	int $viewTrue = !$asisTrue;
+	for($obj in $checkObjectList){
+		int $handleTrue = `setAttr ($obj+".displayScalePivot")`;
+		setAttr ($obj+".displayScalePivot") $viewTrue;
+		setAttr ($obj+".displayLocalAxis") $viewTrue;
+		refresh;
+		setAttr ($obj+".displayScalePivot") $handleTrue;
+	}
+}
+global proc AriSetPivot_GO(int $mode){
+	global string $AriReFreezeHighCB;
+	global string $AriSetPivot_UI_worldRB[];
+	global int $AriSetPivot_JobConeSelectNum;
+	global int $AriSetPivot_CreateCone;
+	global string $AriSetPivot_currentTool;
+	global string $AriSetPivot_beforeSelectList[];
+	string $groupName = "AriSetPivot_Manip";
+	int $worldTrue = `radioButton -q -sl $AriSetPivot_UI_worldRB[0]`;
+	if($mode==30 || $mode==31 || $mode==32 || $mode==33){
+		$worldTrue = true;
+	}
+	string $transformList[] = `ls -sl -tr`;
+	string $checkObjectList[] = getSelectToTransformList();
+	string $checkVerList[]    = getSelectToVertexList();
+	if(size($checkObjectList)==0)return;
+	string $warningObj[];
+	clear $warningObj;
+	if($mode!=1000){
+		for($obj in $checkObjectList){
+			vector $sevenPosition[] = getSevenPosition($obj, $transformList, $checkVerList, $worldTrue);
+			if($mode==0) $movePivPos = $sevenPosition[0];
+			if($mode==1) $movePivPos = $sevenPosition[1];
+			if($mode==2) $movePivPos = $sevenPosition[2];
+			if($mode==3) $movePivPos = $sevenPosition[3];
+			if($mode==4) $movePivPos = $sevenPosition[4];
+			if($mode==5) $movePivPos = $sevenPosition[5];
+			if($mode==50)$movePivPos = $sevenPosition[6];
+			if($mode==8) $movePivPos = $sevenPosition[8];
+			if($mode==9) $movePivPos = $sevenPosition[9];
+			if($mode==10)$movePivPos = $sevenPosition[10];
+			if($mode==30 || $mode==31 || $mode==32 || $mode==33){
+				vector $nowPivPos = $sevenPosition[7];
+				if($mode==30) $movePivPos = <<0,0,0>>;
+				if($mode==31) $movePivPos = <<0, ($nowPivPos.y), ($nowPivPos.z)>>;
+				if($mode==32) $movePivPos = <<($nowPivPos.x), 0, ($nowPivPos.z)>>;
+				if($mode==33) $movePivPos = <<($nowPivPos.x), ($nowPivPos.y), 0>>;
+			}
+			if($mode==20 || $mode==21 || $mode==22 || $mode==23){
+				vector $nowPivPos = `xform -q -piv $obj`;
+				if($mode==20) $movePivPos = <<0,0,0>>;
+				if($mode==21) $movePivPos = <<0, ($nowPivPos.y), ($nowPivPos.z)>>;
+				if($mode==22) $movePivPos = <<($nowPivPos.x), 0, ($nowPivPos.z)>>;
+				if($mode==23) $movePivPos = <<($nowPivPos.x), ($nowPivPos.y), 0>>;
+			}
+			if($mode==20 || $mode==21 || $mode==22 || $mode==23){
+				xform      -piv ($movePivPos.x) ($movePivPos.y) ($movePivPos.z) $obj;
+			}
+			else{
+				if($worldTrue)	xform -ws -piv ($movePivPos.x) ($movePivPos.y) ($movePivPos.z) $obj;
+				else			xform -os -piv ($movePivPos.x) ($movePivPos.y) ($movePivPos.z) $obj;
+			}
+		}
+		AriSetPivot_getObjectPos();
+		string $warningLabel = "";
+		if(size($warningObj)){
+			for($war in $warningObj){
+				$warningLabel = $warningLabel + $war +", ";
+			}
+			$warningLabel = $warningLabel + "はグループのためLocalでは機能しません";
+			warning ($warningLabel);
+		}
+		if(`objExists $groupName`){
+			setToolTo $AriSetPivot_currentTool;
+		}
+	}
+	else{
+		$AriSetPivot_CreateCone = true;
+		if(`objExists $groupName`){
+			delete $groupName;
+			setToolTo $AriSetPivot_currentTool;
+			return;
+		}
+		$AriSetPivot_beforeSelectList = `ls -sl`;
+		string $obj = $checkObjectList[size($checkObjectList)-1];
+		vector $sevenPosition[] = getSevenPosition($obj, $transformList, $checkVerList, $worldTrue);
+		undoInfo -swf 0;
+		$AriSetPivot_currentTool = `currentCtx`;
+		setToolTo "selectSuperContext";
+		string $nameList[] = {	"AriSetPivot_X_m","AriSetPivot_Y_m","AriSetPivot_Z_m",
+								"AriSetPivot_X_p","AriSetPivot_Y_p","AriSetPivot_Z_p"};
+		vector $axList[];
+		$axList[0] = <<  1,  0,  0>>;
+		$axList[1] = <<  0,  1,  0>>;
+		$axList[2] = <<  0,  0,  1>>;
+		$axList[3] = << -1,  0,  0>>;
+		$axList[4] = <<  0, -1,  0>>;
+		$axList[5] = <<  0,  0, -1>>;
+		vector $colorList[];
+		$colorList[0] = <<0.5, 0.0, 0.0>>;
+		$colorList[1] = <<0.0, 0.5, 0.0>>;
+		$colorList[2] = <<0.0, 0.0, 0.5>>;
+		$colorList[3] = <<1.0, 0.0, 0.0>>;
+		$colorList[4] = <<0.0, 1.0, 0.0>>;
+		$colorList[5] = <<0.0, 0.0, 1.0>>;
+		float $height = 0.5;
+		float $scale  = 5;
+		float $bounding[] = `exactWorldBoundingBox $obj`;
+		float $maxDistance = `abs ($bounding[3]-$bounding[0])`;
+		if($maxDistance < `abs($bounding[3]-$bounding[0])` ) $maxDistance = `abs($bounding[3]-$bounding[0])`;
+		if($maxDistance < `abs($bounding[4]-$bounding[1])` ) $maxDistance = `abs($bounding[4]-$bounding[1])`;
+		if($maxDistance < `abs($bounding[5]-$bounding[2])` ) $maxDistance = `abs($bounding[5]-$bounding[2])`;
+		$scale  = $maxDistance * 0.5;
+		string $coneList[];
+		int $jj = 0;
+		for($ii=0; $ii < 6; $ii++){
+			vector $ax = $axList[$ii];
+			string $cone[] = `polyCone -r 0.5 -h $height -sx 4 -sy 1 -sz 0 -ax ($ax.x) ($ax.y) ($ax.z) -rcp 0 -cuv 3 -ch 1 -n $nameList[$ii]`;
+			vector $col = $colorList[$ii];
+			move ($ax.x * $height * -0.5) ($ax.y * $height * -0.5) ($ax.z * $height * -0.5) $cone[0];
+			xform -ws -piv 0 0 0 $cone[0];
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1 $cone[0];
+			polyColorPerVertex -r ($col.x) -g ($col.y) -b ($col.z) -a 1 -cdo $cone[0];
+			setAttr ($cone[0] + ".overrideEnabled") 1;
+			setAttr ($cone[0] + ".overrideColorRGB") ($col.x) ($col.y) ($col.z);
+			setAttr ($cone[0] + ".overrideRGBColors") 1;
+			vector $pos = $sevenPosition[$ii];
+			if($worldTrue){
+				move -rpr ($pos.x) ($pos.y) ($pos.z) $cone[0];
+			}
+			else{
+				move -os ($pos.x) ($pos.y) ($pos.z) $cone[0];
+			}
+			$coneList[$jj] = $cone[0];
+			$jj++;
+		}
+		string $group =`group -n $groupName $coneList[0] $coneList[1] $coneList[2] $coneList[3] $coneList[4] $coneList[5]`;
+		if(!$worldTrue){
+			string $parent[] = `parent $group $obj`;
+			$group = $parent[0];
+			setAttr ($group+".rotate")    0 0 0;
+			setAttr ($group+".scale")     1 1 1;
+			setAttr ($group+".shear")     0 0 0;
+			setAttr ($group+".translate") 0 0 0;
+			setAttr ($group+".rotatePivotTranslate") 0 0 0;
+			setAttr ($group+".scalePivotTranslate")  0 0 0;
+			parent -w $group; 
+			for($ii=0; $ii < size($coneList); $ii++){
+				string $work[] = `parent -w $coneList[$ii]`;
+				$coneList[$ii] = $work[0];
+			}
+			delete $group;
+			$group =`group -n "AriSetPivot_Manip" $coneList[0] $coneList[1] $coneList[2] $coneList[3] $coneList[4] $coneList[5]`;
+		}
+		for($ii=0; $ii < size($coneList); $ii++){
+			setAttr ($coneList[$ii]+".scale")  $scale $scale $scale  ;
+		}
+		string $sourcePanelList[] = `getPanel-type modelPanel`;
+		for($sourcePanel in $sourcePanelList){
+			if(`modelEditor -ex $sourcePanel`)isolateSelect -ado $group $sourcePanel ;
+		}
+		select $AriSetPivot_beforeSelectList;
+		undoInfo -swf 1;
+	}
+}
+/*
+global proc AriReFreezeTr_keySet(){
+	string $transformObj[]=`ls -sl -tr`;
+	vector $afterPos[];
+	int $i=0;
+	for($obj in $transformObj){
+		float $pos[] = `xform  -q -ws -piv  $obj`;
+		$afterPos[$i] = <<$pos[0],$pos[1],$pos[2]>>;
+		$i++;
+	}
+	int $time=`currentTime -q`;
+	currentTime ($time+1);
+	currentTime ($time);
+	$i=0;
+	for($obj in $transformObj){
+		float $beforePos[] = `xform  -q -ws -piv  $obj`;
+		string $movePos[3];
+		vector $afterPosVec = $afterPos[$i];
+		$movePos[0] = $afterPosVec.x-$beforePos[0];
+		$movePos[1] = $afterPosVec.y-$beforePos[1];
+		$movePos[2] = $afterPosVec.z-$beforePos[2];
+		AriKeyFrameOfset($obj, $movePos[0],$movePos[1],$movePos[2]);
+		$i++;
+	}	
+}
+*/
+global proc AriSetPivot_moveLocalZero(int $mode, int $moveTrue){
+	string $transformList[] = getSelectToTransformList();
+	for($obj in $transformList){
+		vector $parentPos = getParentWorldPos($obj);
+		if(!$moveTrue){
+			xform -ws -piv ($parentPos.x) ($parentPos.y) ($parentPos.z) $obj;
+		}
+		else{
+			move -rpr ($parentPos.x) ($parentPos.y) ($parentPos.z) $obj;
+		}
+	}
+	AriSetPivot_getObjectPos();
+}
+global proc AriSetPivot_moveLocalZeroOld(int $mode){
+	string $transformObj[]=`ls -sl -tr`;
+	float $movePos[3];
+	float $worldPivPos[];
+	float $LocalPivPos[];
+	$movePos[0]=0;
+	$movePos[1]=0;
+	$movePos[2]=0;
+	for($obj in $transformObj){
+		if($mode==0){
+			setAttr ($obj+".translate") 0 0 0;
+			float $pivPos[3]=`xform -q -piv $obj`;
+			move -r ($pivPos[0]*-1) ($pivPos[1]*-1) ($pivPos[2]*-1) $obj;
+		}
+		if($mode==1){
+			setAttr ($obj+".translateX") 0;
+			float $pivPos[3]=`xform -q -piv $obj`;
+			move -r ($pivPos[0]*-1) 0 0 $obj;
+		}
+		if($mode==2){
+			setAttr ($obj+".translateY") 0;
+			float $pivPos[3]=`xform -q -piv $obj`;
+			move -r 0 ($pivPos[1]*-1) 0 $obj;
+		}
+		if($mode==3){
+			setAttr ($obj+".translateZ") 0;
+			float $pivPos[3]=`xform -q -piv $obj`;
+			move -r 0 0 ($pivPos[2]*-1) $obj;
+		}
+	}
+	AriSetPivot_getObjectPos();
+}
+proc int AriNumber2to10(int $boolList[]){
+	int $number;
+	int $baisu=1;
+	for($i=0;$i<size($boolList);$i++){
+		$number += $baisu*$boolList[$i];
+		$baisu = $baisu*2;
+	}
+	return $number;	
+}
+proc int[] AriNumber10to2(int $number){
+	int $boolList[];
+	int $baisu=pow(2,20);
+	$amari=$number;
+	for($i=20;$i>=0;$i--){
+		if($amari-$baisu>=0){
+			$amari=$amari-$baisu;
+			$boolList[$i]=1;
+		}
+		else $boolList[$i]=0;
+		$baisu=$baisu/2;
+	}
+	return $boolList;
+}
+global proc AriSetPivot_save(){
+	global string $AriReFreezeTrFrame[8];
+	global string $AriReFreezeHighCB;
+	int $frame[5];
+	$frame[0] = `frameLayout -q -cl $AriReFreezeTrFrame[0]`;
+	$frame[1] = `frameLayout -q -cl $AriReFreezeTrFrame[1]`;
+	$frame[2] = `frameLayout -q -cl $AriReFreezeTrFrame[2]`;
+	$frame[3] = 0;
+	$frame[4] = `frameLayout -q -cl $AriReFreezeTrFrame[4]`;
+	$frame[5] =	`frameLayout -q -cl $AriReFreezeTrFrame[5]`;
+	$frame[6] =	`frameLayout -q -cl $AriReFreezeTrFrame[6]`;
+	int $saveVal = AriNumber2to10($frame);
+	optionVar -intValue "AriReFreezeTr_frameCollapse" $saveVal;
+}
+global proc AriSetPivot_JudgeCone(){
+	global int    $AriSetPivot_JobConeSelectNum;
+	global string $AriSetPivot_beforeSelectList[];
+	global string $AriSetPivot_currentTool;
+	string $groupName = "AriSetPivot_Manip";
+	if(!`objExists $groupName`)return;
+	string $nameList[] = {	"AriSetPivot_X_m","AriSetPivot_Y_m","AriSetPivot_Z_m",
+							"AriSetPivot_X_p","AriSetPivot_Y_p","AriSetPivot_Z_p"};
+	string $selectObjs[] = `ls -sl -tr`;
+	string $selectObj = $selectObjs[0];
+	/*
+	if(!stringArrayContains($selectObj,$nameList)){
+		if($selectObj != $groupName){
+			undoInfo -swf 0;
+			delete "AriSetPivot_Manip";
+			undoInfo -swf 1;
+		}
+		return;
+	}
+	*/
+	if(stringArrayContains($selectObj,$nameList)){
+		select $AriSetPivot_beforeSelectList;
+		if($selectObj == $nameList[0]) AriSetPivot_GO(0);
+		if($selectObj == $nameList[1]) AriSetPivot_GO(1);
+		if($selectObj == $nameList[2]) AriSetPivot_GO(2);
+		if($selectObj == $nameList[3]) AriSetPivot_GO(3);
+		if($selectObj == $nameList[4]) AriSetPivot_GO(4);
+		if($selectObj == $nameList[5]) AriSetPivot_GO(5);
+	}
+	undoInfo -swf 0;
+	delete "AriSetPivot_Manip";
+	undoInfo -swf 1;
+	setToolTo $AriSetPivot_currentTool;
+}
+global proc AriSetPivot_getObjectList(){
+	global string $AriSetPivot_UI_objectListSF;
+	string $transformList[] = getSelectToTransformList();
+	string $nameList[] = {	"AriSetPivot_X_m","AriSetPivot_Y_m","AriSetPivot_Z_m",
+							"AriSetPivot_X_p","AriSetPivot_Y_p","AriSetPivot_Z_p","AriSetPivot_Manip"};
+	string $allList[] = `textScrollList -q -ai $AriSetPivot_UI_objectListSF`;
+	int $listTrue = false;
+	if(size($allList) != size($transformList))$listTrue = true;
+	for($list in $allList){	
+		if(!stringArrayContains($list,$transformList)){
+			$listTrue = true;
+			break;
+		}
+	}
+	if(size($transformList)==0)$listTrue = true;
+	if(size($allList)==0)$listTrue = true;
+	if($listTrue){
+		textScrollList -e -ra  $AriSetPivot_UI_objectListSF;
+		for($obj in $transformList){
+			if(stringArrayContains($obj,$nameList))continue;
+			textScrollList -e -a $obj $AriSetPivot_UI_objectListSF;
+		}
+		int $total = `textScrollList -q -ni $AriSetPivot_UI_objectListSF`;
+		int $index = size($transformList);
+		if($index<=$total){
+			if($index != 0)textScrollList -e -sii $index $AriSetPivot_UI_objectListSF;
+		}
+	}
+}
+global proc AriSetPivot_changeSelect_GO(){
+	global int $AriSetPivot_CreateCone;
+	if($AriSetPivot_CreateCone==true){
+		$AriSetPivot_CreateCone = false;
+		return;
+	}
+	AriSetPivot_getObjectList(); 
+	AriSetPivot_getObjectPos(); 
+	AriSetPivot_JudgeCone(); 
+}
+global proc AriSetPivot_setObject(int $mode){
+	global string $AriSetPivot_UI_attr[];
+	global string $AriSetPivot_UI_position[];
+	string $transformList[] = getSelectToTransformList();
+	int $size = size($transformList)-1;
+	if($size<0)$size=0;
+	string $parentObj = $transformList[$size];
+	if($parentObj != ""){
+		float $val = `floatField -q -v $AriSetPivot_UI_position[$mode]`;
+		for($obj in $transformList){
+			if($mode==0) setAttr ($obj+".translateX") $val;
+			if($mode==1) setAttr ($obj+".translateY") $val;
+			if($mode==2) setAttr ($obj+".translateZ") $val;
+			if($mode==3 || $mode==4 || $mode==5){
+				float $movePivPos[] = `xform -q -rp $obj`;
+				if($mode==3) $movePivPos[0] = $val;
+				if($mode==4) $movePivPos[1] = $val;
+				if($mode==5) $movePivPos[2] = $val;
+				xform -rp $movePivPos[0] $movePivPos[1] $movePivPos[2] $obj;
+			}
+			if($mode==12 || $mode==13 || $mode==14){
+				float $movePivPos[] = `xform -q -sp $obj`;
+				if($mode==12) $movePivPos[0] = $val;
+				if($mode==13) $movePivPos[1] = $val;
+				if($mode==14) $movePivPos[2] = $val;
+				xform -sp $movePivPos[0] $movePivPos[1] $movePivPos[2] $obj;
+			}	
+			if($mode==6 || $mode==7 || $mode==8){
+				float $movePivPos[] = `xform -q -ws -piv $obj`;
+				if($mode==6)move -rpr -x $val 0 0 $obj;
+				if($mode==7)move -rpr -y $val 0 0 $obj;
+				if($mode==8)move -rpr -z $val 0 0 $obj;
+			}
+			float $gosa = 0.0001;
+			vector $rpt = `getAttr ($obj+".rotatePivotTranslate")`;
+			if(($rpt.x) < $gosa && ($rpt.x) > ($gosa*-1))	setAttr ($obj+".rotatePivotTranslateX") 0;
+			if(($rpt.y) < $gosa && ($rpt.y) > ($gosa*-1))	setAttr ($obj+".rotatePivotTranslateY") 0;
+			if(($rpt.z) < $gosa && ($rpt.z) > ($gosa*-1))	setAttr ($obj+".rotatePivotTranslateZ") 0;
+			vector $spt = `getAttr ($obj+".scalePivotTranslate")`;
+			if(($rpt.x) < $gosa && ($rpt.x) > ($gosa*-1))	setAttr ($obj+".scalePivotTranslateX") 0;
+			if(($rpt.y) < $gosa && ($rpt.y) > ($gosa*-1))	setAttr ($obj+".scalePivotTranslateY") 0;
+			if(($rpt.z) < $gosa && ($rpt.z) > ($gosa*-1))	setAttr ($obj+".scalePivotTranslateZ") 0;
+			/*
+			if($mode==6 || $mode==7 || $mode==8){
+				float $movePivPos[] = `xform -q -ws -piv $obj`;
+				if($mode==6)$movePivPos[0]=$val;
+				if($mode==7)$movePivPos[1]=$val;
+				if($mode==8)$movePivPos[2]=$val;
+				xform -ws -piv $movePivPos[0] $movePivPos[1] $movePivPos[2] $obj;
+			}
+			*/
+		}
+	}
+	AriSetPivot_getObjectPos();
+}
+global proc AriSetPivot_ValueZero(int $mode){
+	global string $AriSetPivot_UI_position[];
+		floatField -e -v 0 $AriSetPivot_UI_position[$mode];
+		AriSetPivot_setObject($mode);
+		floatField -e -v 0 $AriSetPivot_UI_position[$mode+1];
+		AriSetPivot_setObject($mode+1);
+		floatField -e -v 0 $AriSetPivot_UI_position[$mode+2];
+		AriSetPivot_setObject($mode+2);
+}
+global proc AriSetPivot_windowSize(){
+	global string $AriReFreezeTrFrame[8];
+	AriSetPivot_save();
+	if(`frameLayout -q -cl $AriReFreezeTrFrame[4]`){
+		window -e -h 50  AriSetPivot;
+	}
+}
+global proc AriSetPivot(){
+	global string $AriReFreezeTrFrame[5];
+	global string $AriReFreezeHighCB;
+	global int    $AriSetPivot_JobNum;
+	global string $AriSetPivot_UI_attr[];
+	global string $AriSetPivot_UI_position[];
+	global string $AriSetPivot_UI_objectListSF;
+	global string $AriSetPivot_UI_objectName;
+	global string $AriSetPivot_UI_worldRB[];
+	global int $AriSetPivot_CreateCone;
+	global string $AriSetPivot_currentTool;
+	$AriSetPivot_CreateCone = false;
+	string $JPTrue;
+	if(`about -uil`=="ja_JP")$JPTrue = true;
+	else $JPTrue = false;
+	string $label_ManipPiv  = "マニピュレータ位置(Pivot)";
+	string $label_ManipMove = "マニピュレータ位置(Move)";
+	string $label_wOriginPiv = "W原点(pivot)";
+	string $label_lOriginPiv = "L原点(pivot)";
+	string $label_wOriginMove = "W原点(Move)";
+	string $label_lOriginMove = "L原点(Move)";
+	string $label_transAttrZero  = "移動アトリビュート値 0";
+	string $label_rotateAttrZero = "回転アトリビュート値 0";
+	string $label_rightOption = "右クリックで X Y Z 軸選択";
+	string $label_manuOrient = "マニピュレーター回転方向";
+	string $label_SetParentPivot = "回転値を親に転送";
+	if($JPTrue==false){
+		$label_ManipPiv  = "Manipulator Pos (Pivot)";
+		$label_ManipMove = "Manipulator Pos (Move)";
+		$label_wOriginPiv = "World Origin";
+		$label_lOriginPiv = "Local Origin";
+		$label_wOriginMove = "World Origin";
+		$label_lOriginMove = "Local Origin";
+		$label_transAttrZero    = "Translate Attribute 0";
+		$label_rotateAttrZero    = "Rotate Attribute 0";
+		$label_rightOption = "Right click to select axis X Y Z";
+		$label_manuOrient  = "Manipulator Orient";
+		$label_SetParentPivot = "Set Parent Pivot";
+	}
+	float $valA=0.8;
+	float $valB=0.4;
+	float $valC=0.5;
+	float $valD=0;
+	float $rgb_r1[3]={$valA,$valB,$valB};
+	float $rgb_g1[3]={$valB,$valA,$valB};
+	float $rgb_b1[3]={$valB,$valB,$valA};
+	float $rgb_r2[3]={$valC,$valD,$valD};
+	float $rgb_g2[3]={$valD,$valC,$valD};
+	float $rgb_b2[3]={$valD,$valD,$valC};
+	$AriSetPivot_currentTool = `currentCtx`;
+	int $frameCl[8];
+	if(`optionVar -exists "AriReFreezeTr_frameCollapse"`){
+		int $loadVal = `optionVar -q "AriReFreezeTr_frameCollapse"`;
+		$frameCl = AriNumber10to2($loadVal);
+	}
+	string $button[10];
+	string $form;
+	string $formChild;
+	string $buttonChild[];
+	if((`window -ex AriSetPivot`)==true)deleteUI AriSetPivot;
+	window -tlb 1 -title "AriSetPivot"  -w 200 -h 100 -mxb 0  AriSetPivot;
+	string $mainForm = `formLayout `;
+	$AriReFreezeTrFrame[4] = `frameLayout -cll 1 -cl $frameCl[4] -bgc 0.2 0.2 0.2 -l "Select List" -cc "AriSetPivot_windowSize();" -ec "AriSetPivot_windowSize();"`;
+	string $formList = `formLayout`;
+	$AriSetPivot_UI_objectListSF = `textScrollList -w 10 -h 50 -sc "AriSetPivot_getObjectPos();"`;
+	setParent..;
+	formLayout -e
+	-af $AriSetPivot_UI_objectListSF "top"    0
+	-af $AriSetPivot_UI_objectListSF "right"  0
+	-af $AriSetPivot_UI_objectListSF "left"   0
+	-af $AriSetPivot_UI_objectListSF "bottom" 0
+	$formList;
+	setParent..;
+	string $mainForm_child2 = `columnLayout -adj true `;
+	$AriReFreezeTrFrame[5] = `frameLayout -cll 1 -cl $frameCl[5] -bgc 0.2 0.2 0.2 -l "Position" -cc "AriSetPivot_windowSize();" -ec "AriSetPivot_windowSize();"`;
+	columnLayout -adj true;
+	$AriSetPivot_UI_objectName = `textField -ed false -bgc 0.1 0.1 0.1`;
+	string $form3;
+	columnLayout -adj true ;
+	rowLayout -nc 2 -adj 1;
+	text -l "Translate Attribute" -align "left";;
+	button -l "0" -w 24 -h 16 -c "AriSetPivot_ValueZero(0)";
+	setParent..;
+	$form3 = `formLayout`;
+	$AriSetPivot_UI_position[0] = `floatField -cc "AriSetPivot_setObject(0);"`;
+	$AriSetPivot_UI_position[1] = `floatField -cc "AriSetPivot_setObject(1);"`;
+	$AriSetPivot_UI_position[2] = `floatField -cc "AriSetPivot_setObject(2);"`;
+	setParent..;
+	formLayout -e
+	-af $AriSetPivot_UI_position[0] "left"  0
+	-ap $AriSetPivot_UI_position[0] "right" 0 33 
+	-ac $AriSetPivot_UI_position[1] "left"  0 $AriSetPivot_UI_position[0]
+	-ap $AriSetPivot_UI_position[1] "right" 0 67
+	-ac $AriSetPivot_UI_position[2] "left"  0 $AriSetPivot_UI_position[1]
+	-af $AriSetPivot_UI_position[2] "right" 0
+	$form3;
+	rowLayout -nc 2 -adj 1;
+	text -l "Rotate Pivot" -align "left";
+	button -l "0" -w 24 -h 16  -c "AriSetPivot_ValueZero(3)";
+	setParent..;
+	$form3 = `formLayout`;
+	$AriSetPivot_UI_position[3] = `floatField -cc "AriSetPivot_setObject(3);"`;
+	$AriSetPivot_UI_position[4] = `floatField -cc "AriSetPivot_setObject(4);"`;
+	$AriSetPivot_UI_position[5] = `floatField -cc "AriSetPivot_setObject(5);"`;
+	setParent..;
+	formLayout -e
+	-af $AriSetPivot_UI_position[3] "left"  0
+	-ap $AriSetPivot_UI_position[3] "right" 0 33 
+	-ac $AriSetPivot_UI_position[4] "left"  0 $AriSetPivot_UI_position[3]
+	-ap $AriSetPivot_UI_position[4] "right" 0 67
+	-ac $AriSetPivot_UI_position[5] "left"  0 $AriSetPivot_UI_position[4]
+	-af $AriSetPivot_UI_position[5] "right" 0
+	$form3;
+	$form3 = `formLayout`;
+	$AriSetPivot_UI_position[ 9] = `floatField -cc "AriSetPivot_setObject( 9);"`;
+	$AriSetPivot_UI_position[10] = `floatField -cc "AriSetPivot_setObject(10);"`;
+	$AriSetPivot_UI_position[11] = `floatField -cc "AriSetPivot_setObject(11);"`;
+	setParent..;
+	formLayout -e
+	-af $AriSetPivot_UI_position[ 9] "left"  0
+	-ap $AriSetPivot_UI_position[ 9] "right" 0 33 
+	-ac $AriSetPivot_UI_position[10] "left"  0 $AriSetPivot_UI_position[ 9]
+	-ap $AriSetPivot_UI_position[10] "right" 0 67
+	-ac $AriSetPivot_UI_position[11] "left"  0 $AriSetPivot_UI_position[10]
+	-af $AriSetPivot_UI_position[11] "right" 0
+	$form3;
+	rowLayout -nc 2 -adj 1;
+	text -l "Scale Pivot" -align "left";
+	button -l "0" -w 24 -h 16  -c "AriSetPivot_ValueZero(12)";
+	setParent..;
+	$form3 = `formLayout`;
+	$AriSetPivot_UI_position[12] = `floatField -cc "AriSetPivot_setObject(12);"`;
+	$AriSetPivot_UI_position[13] = `floatField -cc "AriSetPivot_setObject(13);"`;
+	$AriSetPivot_UI_position[14] = `floatField -cc "AriSetPivot_setObject(14);"`;
+	setParent..;
+	formLayout -e
+	-af $AriSetPivot_UI_position[12] "left"  0
+	-ap $AriSetPivot_UI_position[12] "right" 0 33 
+	-ac $AriSetPivot_UI_position[13] "left"  0 $AriSetPivot_UI_position[12]
+	-ap $AriSetPivot_UI_position[13] "right" 0 67
+	-ac $AriSetPivot_UI_position[14] "left"  0 $AriSetPivot_UI_position[13]
+	-af $AriSetPivot_UI_position[14] "right" 0
+	$form3;
+	$form3 = `formLayout`;
+	$AriSetPivot_UI_position[15] = `floatField -cc "AriSetPivot_setObject(15);"`;
+	$AriSetPivot_UI_position[16] = `floatField -cc "AriSetPivot_setObject(16);"`;
+	$AriSetPivot_UI_position[17] = `floatField -cc "AriSetPivot_setObject(17);"`;
+	setParent..;
+	formLayout -e
+	-af $AriSetPivot_UI_position[15] "left"  0
+	-ap $AriSetPivot_UI_position[15] "right" 0 33 
+	-ac $AriSetPivot_UI_position[16] "left"  0 $AriSetPivot_UI_position[15]
+	-ap $AriSetPivot_UI_position[16] "right" 0 67
+	-ac $AriSetPivot_UI_position[17] "left"  0 $AriSetPivot_UI_position[16]
+	-af $AriSetPivot_UI_position[17] "right" 0
+	$form3;
+	rowLayout -nc 2 -adj 1;
+	text -l "World Position" -align "left";
+	button -l "0" -w 24 -h 16  -c "AriSetPivot_ValueZero(6)";
+	setParent..;
+	$form3 = `formLayout`;
+	$AriSetPivot_UI_position[6] = `floatField -cc "AriSetPivot_setObject(6);"`;
+	$AriSetPivot_UI_position[7] = `floatField -cc "AriSetPivot_setObject(7);"`;
+	$AriSetPivot_UI_position[8] = `floatField -cc "AriSetPivot_setObject(8);"`;
+	setParent..;
+	formLayout -e
+	-af $AriSetPivot_UI_position[6] "left"  0
+	-ap $AriSetPivot_UI_position[6] "right" 0 33 
+	-ac $AriSetPivot_UI_position[7] "left"  0 $AriSetPivot_UI_position[6]
+	-ap $AriSetPivot_UI_position[7] "right" 0 67
+	-ac $AriSetPivot_UI_position[8] "left"  0 $AriSetPivot_UI_position[7]
+	-af $AriSetPivot_UI_position[8] "right" 0
+	$form3;
+	button -bgc 0.6 0.6 0.6 -l "Reload" -c "AriSetPivot_getObjectPos();";
+	setParent..;
+	setParent..;
+	setParent..;
+	separator -h 4;
+	frameLayout -vis false -cll 1 -cl 1 -l "Attr" -cc "AriSetPivot_windowSize();" -ec "AriSetPivot_windowSize();" -bgc 0.5 0.1 0.1;
+	scrollLayout -h 70;
+	columnLayout -adj true;
+	$AriSetPivot_UI_attr[0] = `attrFieldGrp -pre 3 -cw4 0 80 80 80   -l "" `;
+	$AriSetPivot_UI_attr[1] = `attrFieldGrp -pre 3 -cw4 0 80 80 80   -l "" `;
+	setParent..;
+	setParent..;
+	setParent..;
+	$AriReFreezeTrFrame[0] = `frameLayout -cll 1 -cl $frameCl[0] -bgc 0.2 0.2 0.2 -l "Freeze" -cc "AriSetPivot_windowSize()" -ec "AriSetPivot_windowSize()"`;
+	$form = `formLayout`;
+		$button[0] = `button -h 28 -bgc 0.45 0.45 0.45 -l "Freeze"    -c "AriSetPivot_AriReFreezeTranslate_GO(0)"`;
+		$button[1] = `button -h 28 -bgc 0.7  0.7  0.7  -l "ReFreeze"  -c "AriSetPivot_AriReFreezeTranslate_GO(1)"`;
+	setParent..;
+	formLayout -e
+		-af $button[0] "left"  0             -ap $button[0] "right" 0 50
+		-ac $button[1] "left"  0 $button[0]  -ap $button[1] "right" 0 100
+	$form;
+	setParent..;
+	$AriReFreezeTrFrame[1] = `frameLayout -bgc 0.2 0.2 0.2 -cll 1 -cl $frameCl[1] -l "Pivot" -cc "AriSetPivot_windowSize()" -ec "AriSetPivot_windowSize()"`;
+	columnLayout -adj true -co both 4;
+	iconTextButton -h 28  -bgc $valA $valA $valB -st "iconAndTextHorizontal" -l $label_ManipPiv -i "out_holder.png" -c "AriSetPivot_Manipulator(3)" -ann $label_rightOption;
+	popupMenu;
+	menuItem -label "X" -c "AriSetPivot_Manipulator(0)";
+	menuItem -label "Y" -c "AriSetPivot_Manipulator(1)";
+	menuItem -label "Z" -c "AriSetPivot_Manipulator(2)";
+	separator -h 4 ;
+	rowLayout -nc 2;
+	radioCollection;
+	$AriSetPivot_UI_worldRB[0] = `radioButton -l "World" -onc "AriSetPivot_Reload()"`;
+	$AriSetPivot_UI_worldRB[1] = `radioButton -l "Local" -onc "AriSetPivot_Reload()"`;
+	setParent..;
+	columnLayout -adj true;
+	$form=`formLayout -h 22 `;
+		$button[0]=`button -bgc $rgb_r1[0] $rgb_r1[1] $rgb_r1[2] -w 30 -h 10  -l "X Max" -c "AriSetPivot_GO(3);AriSetPivot_Reload();"`;
+		$button[1]=`button -bgc $rgb_g1[0] $rgb_g1[1] $rgb_g1[2] -w 30 -h 10 -l "Y Max" -c "AriSetPivot_GO(4);AriSetPivot_Reload();"`;
+		$button[2]=`button -bgc $rgb_b1[0] $rgb_b1[1] $rgb_b1[2] -w 30 -h 10 -l "Z Max" -c "AriSetPivot_GO(5);AriSetPivot_Reload();"`;
+	setParent..;
+	formLayout -e
+	-af $button[0] "left"  0             -ap $button[0] "right" 0 33
+	-af $button[0] "top"   0             -af $button[0] "bottom"  0
+	-ac $button[1] "left"  0 $button[0]  -ap $button[1] "right" 0 67
+	-af $button[1] "top"   0             -af $button[1] "bottom"  0
+	-ac $button[2] "left"  0 $button[1]  -ap $button[2] "right" 0 100
+	-af $button[2] "top"   0             -af $button[2] "bottom"  0
+	$form;
+	$form = `formLayout -h 30  -vis true`;
+	$button[0] = `text -l ""`;
+	$button[1] = `button -h 30 -bgc 0.8 0.8 0.8 -l "CenterPivot" -c "AriSetPivot_GO(50);AriSetPivot_Reload();" -ann $label_rightOption`;
+	popupMenu;
+	menuItem -label "X" -c "AriSetPivot_GO(8); AriSetPivot_Reload();";
+	menuItem -label "Y" -c "AriSetPivot_GO(9); AriSetPivot_Reload();";
+	menuItem -label "Z" -c "AriSetPivot_GO(10);AriSetPivot_Reload();";
+	$button[2] = `iconTextButton -w 14  -h 30 -i "polyPyramid" -c "AriSetPivot_GO(1000)"`;
+	setParent..;
+	formLayout -e
+	-af $button[0] "left"  0             -ap $button[0] "right" 0 20
+	-ac $button[1] "left"  0 $button[0]  -ap $button[1] "right" 0 80
+	-ac $button[2] "left"  0 $button[1]  -ap $button[2] "right" 0 100
+	$form;
+	$form = `formLayout  -vis false`;
+		$button[0]=`button -h 16 -l "X Center" -bgc $rgb_r1[0] $rgb_r1[1] $rgb_r1[2] -c "AriSetPivot_GO(8); AriSetPivot_Reload();"`;
+		$button[1]=`button -h 16 -l "Y Center" -bgc $rgb_g1[0] $rgb_g1[1] $rgb_g1[2] -c "AriSetPivot_GO(9); AriSetPivot_Reload();"`;
+		$button[2]=`button -h 16 -l "Z Center" -bgc $rgb_b1[0] $rgb_b1[1] $rgb_b1[2] -c "AriSetPivot_GO(10);AriSetPivot_Reload();"`;
+	setParent..;
+	formLayout -e
+	-af $button[0] "left"  0             -ap $button[0] "right" 0 33
+	-ac $button[1] "left"  0 $button[0]  -ap $button[1] "right" 0 67
+	-ac $button[2] "left"  0 $button[1]  -ap $button[2] "right" 0 100
+	$form;
+	$form=`formLayout -h 22`;
+		$button[0]=`button -bgc $rgb_r1[0] $rgb_r1[1] $rgb_r1[2] -w 30 -h 10 -l "X Min" -c "AriSetPivot_GO(0);AriSetPivot_Reload();"`;
+		$button[1]=`button -bgc $rgb_g1[0] $rgb_g1[1] $rgb_g1[2] -w 30 -h 10 -l "Y Min" -c "AriSetPivot_GO(1);AriSetPivot_Reload();"`;
+		$button[2]=`button -bgc $rgb_b1[0] $rgb_b1[1] $rgb_b1[2] -w 30 -h 10 -l "Z Min" -c "AriSetPivot_GO(2);AriSetPivot_Reload();"`;
+	setParent..;
+	formLayout -e
+	-af $button[0] "left"  0             -ap $button[0] "right" 0 33
+	-af $button[0] "top"   0             -af $button[0] "bottom"  0
+	-ac $button[1] "left"  0 $button[0]  -ap $button[1] "right" 0 67
+	-af $button[1] "top"   0             -af $button[1] "bottom"  0
+	-ac $button[2] "left"  0 $button[1]  -ap $button[2] "right" 0 100
+	-af $button[2] "top"   0             -af $button[2] "bottom"  0
+	$form;
+	setParent..;
+	$form = `formLayout -h 16 -vis false`;
+		$button[0]=`button -h 16 -l "X" -bgc $rgb_r1[0] $rgb_r1[1] $rgb_r1[2] -c "AriSetPivot_Manipulator(0)"`;
+		$button[1]=`button -h 16 -l "Y" -bgc $rgb_g1[0] $rgb_g1[1] $rgb_g1[2] -c "AriSetPivot_Manipulator(1)"`;
+		$button[2]=`button -h 16 -l "Z" -bgc $rgb_b1[0] $rgb_b1[1] $rgb_b1[2] -c "AriSetPivot_Manipulator(2)"`;
+	setParent..;
+	formLayout -e
+	-af $button[0] "left"  0             -ap $button[0] "right" 0 33
+	-ac $button[1] "left"  0 $button[0]  -ap $button[1] "right" 0 67
+	-ac $button[2] "left"  0 $button[1]  -ap $button[2] "right" 0 100
+	$form;
+	separator -h 4 ;
+	$form=`formLayout`;
+		$button[0] = `button -bgc 0.6 0.6 0.6 -l $label_wOriginPiv -c "AriSetPivot_GO(30)" -ann $label_rightOption`;
+		popupMenu;
+		menuItem -label "X" -c "AriSetPivot_GO(31)";
+		menuItem -label "Y" -c "AriSetPivot_GO(32)";
+		menuItem -label "Z" -c "AriSetPivot_GO(33)";
+		$button[1] = `button -bgc 0.6 0.6 0.6 -l $label_lOriginPiv -c "AriSetPivot_moveLocalZero(0,0)" -ann $label_rightOption`;
+	setParent..;
+	formLayout -e
+	-af $button[0] "left"  0             -ap $button[0] "right" 0 50
+	-ac $button[1] "left"  0 $button[0]  -ap $button[1] "right" 0 100
+	$form;
+	separator -h 4 ;
+	setParent..;
+	setParent..;
+	$AriReFreezeTrFrame[2] = `frameLayout -bgc 0.2 0.2 0.2 -cll 1 -cl $frameCl[2] -l "Move" -cc "AriSetPivot_windowSize()" -ec "AriSetPivot_windowSize()"`;
+	columnLayout -adj true -co both 4;
+	iconTextButton -h 28  -bgc  $valA $valA $valB -st "iconAndTextHorizontal" -l $label_ManipMove -i "channelBoxUseManips.png" -c "AriSetPivot_ManipulatorMove(3)" -ann $label_rightOption;
+	popupMenu;
+	menuItem -label "X" -c "AriSetPivot_ManipulatorMove(0)";
+	menuItem -label "Y" -c "AriSetPivot_ManipulatorMove(1)";
+	menuItem -label "Z" -c "AriSetPivot_ManipulatorMove(2)";
+	$form=`formLayout -h 16 -vis false`;
+		$button[0] = `button -h 16 -l "X" -bgc $rgb_r2[0] $rgb_r2[1] $rgb_r2[2] -c "AriSetPivot_ManipulatorMove(0)"`;
+		$button[1] = `button -h 16 -l "Y" -bgc $rgb_g2[0] $rgb_g2[1] $rgb_g2[2] -c "AriSetPivot_ManipulatorMove(1)"`;
+		$button[2] = `button -h 16 -l "Z" -bgc $rgb_b2[0] $rgb_b2[1] $rgb_b2[2] -c "AriSetPivot_ManipulatorMove(2)"`;
+	setParent..;
+	separator -h 4 ;
+	formLayout -e
+	-af $button[0] "left"  0             -ap $button[0] "right" 0 33
+	-ac $button[1] "left"  0 $button[0]  -ap $button[1] "right" 0 67
+	-ac $button[2] "left"  0 $button[1]  -ap $button[2] "right" 0 100
+	$form;
+	$form = `formLayout`;
+		$button[0] = `button -bgc 0.6 0.6 0.6 -l $label_wOriginMove -c "move -rpr 0 0 0; AriSetPivot_getObjectPos();" -ann $label_rightOption`;
+		popupMenu;
+		menuItem -label "X" -c "move -rpr -x 0; AriSetPivot_getObjectPos();";
+		menuItem -label "Y" -c "move -rpr -y 0; AriSetPivot_getObjectPos();";
+		menuItem -label "Z" -c "move -rpr -z 0; AriSetPivot_getObjectPos();";
+		$button[1] = `button -bgc 0.6 0.6 0.6 -l $label_lOriginMove -c "AriSetPivot_moveLocalZero(0,1); AriSetPivot_getObjectPos();" -ann $label_rightOption`;
+	setParent..;
+	formLayout -e
+	-af $button[0] "left"  0 
+	-ap $button[0] "right" 0 50
+	-ac $button[1] "left"  0 $button[0]
+	-ap $button[1] "right" 0 100
+	$form;
+	separator -h 4 ;
+	button -h 20 -l $label_transAttrZero -c "AriReFrTrPv_transformAttrZero(0); AriSetPivot_getObjectPos();" -ann $label_rightOption;
+	popupMenu;
+		menuItem -label "X" -c "AriReFrTrPv_transformAttrZero(1)";
+		menuItem -label "Y" -c "AriReFrTrPv_transformAttrZero(2)";
+		menuItem -label "Z" -c "AriReFrTrPv_transformAttrZero(3)";
+	separator -h 4 ;
+	setParent..;
+	formLayout -e
+	-af $mainForm_child2 "left"  0
+	-af $mainForm_child2 "right" 0
+	-af $mainForm_child2 "bottom"   0
+	-af $AriReFreezeTrFrame[4] "left"   0
+	-af $AriReFreezeTrFrame[4] "right"  0
+	-af $AriReFreezeTrFrame[4] "top"    0
+	-ac $AriReFreezeTrFrame[4] "bottom" 0 $mainForm_child2
+	$mainForm;
+	setParent..;
+	$AriReFreezeTrFrame[6] = `frameLayout -bgc 0.2 0.2 0.2 -cll 1 -cl $frameCl[6] -l "Orient" -cc "AriSetPivot_windowSize()" -ec "AriSetPivot_windowSize()"`;
+	columnLayout -adj true -co both 4;
+	text -l $label_manuOrient -align "left";
+	$form = `formLayout`;
+		$button[0] = `button -l "Pivot"  -bgc  $valA $valA $valB -c "AriSetPivot_PivotRotate(0,0)"`;
+		popupMenu;
+		menuItem -label $label_SetParentPivot -c "AriSetPivot_SetParentPivot(0)";
+		$button[1] = `button -l "Rotate" -bgc  $valA $valA $valB -c "AriSetPivot_PivotRotate(1,0)"`;
+	setParent..;
+	formLayout -e
+	-af $button[0] "left"  0 
+	-ap $button[0] "right" 0 50
+	-ac $button[1] "left"  0 $button[0]
+	-ap $button[1] "right" 0 100
+	$form;
+	separator -h 4 ;
+	button -h 20 -l $label_rotateAttrZero -c "AriReFrTrPv_transformAttrZero(10); AriSetPivot_getObjectPos();" -ann $label_rightOption;
+	popupMenu;
+		menuItem -label "X" -c "AriReFrTrPv_transformAttrZero(11)";
+		menuItem -label "Y" -c "AriReFrTrPv_transformAttrZero(12)";
+		menuItem -label "Z" -c "AriReFrTrPv_transformAttrZero(13)";
+	separator -h 4 ;
+	setParent..;
+	setParent..;
+	showWindow;
+	AriSetPivot_windowSize();
+	$AriSetPivot_JobNum = `scriptJob -p "AriSetPivot" -event "SelectionChanged" "AriSetPivot_changeSelect_GO();"`;
+	AriSetPivot_changeSelect_GO();
+	AriSetPivot_Load();
+}

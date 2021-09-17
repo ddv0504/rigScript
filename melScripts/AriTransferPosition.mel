@@ -1,0 +1,1016 @@
+//--------------------------------------------------------------------------
+//
+// ScriptName : AriTransferPosition
+// Contents   : オブジェクトの頂点位置を転送。
+// Author     : Ari
+// URL        : http://cgjishu.net
+// Help       : http://cgjishu.net/blog-entry-277.html
+// Since      : 2017/04
+// LastUpdate : 2020/09/13 UVに対応他
+//            ; 2017/08/27 Worldモード追加
+//
+//--------------------------------------------------------------------------
+
+
+proc AriPolygonCounterIsCancelled(int $mode){
+	global string $AriPCounter_progressBar;
+	global string $gMainProgressBar;
+	global string $AriPCounterCountStartBtn;
+	global string $AriPCounterInfo;
+	int $jpTrue = false;
+	if(`about -uil`=="ja_JP")$jpTrue = true;
+	string $label_Suspended    = "Suspended";
+	if($jpTrue){
+		$label_Suspended    = "中断";
+	}
+	progressBar -edit -endProgress $gMainProgressBar;
+	textField -e -text $label_Suspended -bgc 1 0 0 $AriPCounterInfo;
+	confirmDialog -title "Confirm" -message $label_Suspended
+		 -button "Yes" -defaultButton "Yes"
+		 -cancelButton "No" -dismissString "No";
+	waitCursor -state off;
+	progressBar -edit -endProgress $gMainProgressBar;
+	progressBar -e -pr 0 $gMainProgressBar;
+	progressBar -e -pr 0 $AriPCounter_progressBar;	
+	button  -en true -e  $AriPCounterCountStartBtn;
+}
+proc string[] getSelectToTransformList(){
+	string $transformList[] = `ls -sl -tr`;
+	string $selects[] = `ls -sl`;
+	string $delTf[] = stringArrayRemove($transformList, $selects);
+	string $vertexList[] = `polyListComponentConversion -tv $delTf`;
+	string $shapes[] = `polyListComponentConversion $vertexList`;	
+	string $shapeToTf[] = `listRelatives -p -pa -type "transform" $shapes`;
+	string $targetTransformList[] = stringArrayCatenate($transformList, $shapeToTf);
+	return $targetTransformList;
+}
+proc string[] AriTransferPosition_CircumferenceVer(string $verList[],int $mode){
+	string $circumferenceList[];
+	clear $circumferenceList;
+	string $extendEdges[];
+	if($mode==0)$extendEdges = `polyListComponentConversion -te $verList`;
+	if($mode==1)$extendEdges = `polyListComponentConversion -tf $verList`;	
+	string $extendVers[] = `polyListComponentConversion -tv $extendEdges`;
+	$extendVers = `filterExpand -selectionMask 31 $extendVers`;
+	$circumferenceList = stringArrayRemoveExact($verList, $extendVers);
+	return $circumferenceList;
+}
+proc string[] AriTransferPosition_CircumferenceUV(string $verList[],int $mode){
+	string $circumferenceList[];
+	clear $circumferenceList;
+	string $extendEdges[];
+	if($mode==0)$extendEdges = `polyListComponentConversion -te $verList`;
+	if($mode==1)$extendEdges = `polyListComponentConversion -tf $verList`;
+	string $extendVers[] = `polyListComponentConversion -tuv $extendEdges`;
+	$extendVers = `filterExpand -selectionMask 35 $extendVers`;
+	$circumferenceList = stringArrayRemoveExact($verList, $extendVers);
+	return $circumferenceList;
+}
+proc string[] AriTransferPosition_ArrayContainsArray(string $verListA[],string $verListB[]){
+	string $ContainsList[];
+	int $i=0;
+	for($ver in $verListA){
+		if(stringArrayContains($ver,$verListB)){
+			$ContainsList[$i]=$ver;
+			$i++;
+		}
+	}
+	return $ContainsList;
+}
+proc AriDebugPrint_float (string $text,float $val){
+}
+proc int valMuch(vector $valA, vector $valB,float $gosa){
+	int $muchTrue=0;
+	if(    $valA.x <= $valB.x+$gosa && $valA.x >= $valB.x-$gosa
+		&& $valA.y <= $valB.y+$gosa && $valA.y >= $valB.y-$gosa
+		&& $valA.z <= $valB.z+$gosa && $valA.z >= $valB.z-$gosa){
+		$muchTrue=1;
+	}
+	return $muchTrue;
+}
+global proc AriTransferPosition_Save(int $mode){
+	global string $AriTransferPositionRadio[2];
+	global string $AriTransferPositionSlider[5];
+	global string $AriTransferPositionOptionMenu[2];
+	global string $AriTransferPositionSlider[8];
+	global string $AriTransferPositionWorldCheckBox;
+	global string $AriTransferPosition_UI_minperFF;
+	int $UVmode = 1;
+	float $toleranceVal = 0.001;
+	float $toleranceUV  = 0.0001;
+	int $selectModeVal  = 1;
+	int $iterationsVal  = 50;
+	int $worldVal       = 0;
+	float $thresholdVal = 0.010;
+	float $thresholdUV  = 0.010;
+	float $minPer       = 10.0;
+	if($mode==1){
+		$UVmode         = `radioButtonGrp -q -select $AriTransferPositionRadio[2]`;
+		$toleranceVal   = `floatSliderGrp -q -value $AriTransferPositionSlider[0]`;
+		$toleranceUV    = `floatSliderGrp -q -value $AriTransferPositionSlider[6]`;
+		$selectModeVal  = `optionMenu -q -select $AriTransferPositionOptionMenu[0]`;
+		$iterationsVal  = `intField -q -v $AriTransferPositionSlider[3]`;
+		$worldVal       = `checkBox -q -v $AriTransferPositionWorldCheckBox`;
+		$thresholdVal   = `floatSliderGrp -q -value $AriTransferPositionSlider[1]`;
+		$thresholdUV    = `floatSliderGrp -q -value $AriTransferPositionSlider[5]`;
+		$minPer         = `floatField     -q -v $AriTransferPosition_UI_minperFF`;
+	}
+	optionVar -intValue   "AriTransferPosition_UVmode"      $UVmode;
+	optionVar -floatValue "AriTransferPosition_tolerance"   $toleranceVal;
+	optionVar -floatValue "AriTransferPosition_toleranceUV" $toleranceUV;
+	optionVar -intValue   "AriTransferPosition_selectMode"  $selectModeVal;
+	optionVar -intValue   "AriTransferPosition_iterations"  $iterationsVal;
+	optionVar -intValue   "AriTransferPosition_world"       $worldVal;
+	optionVar -floatValue "AriTransferPosition_threshold"   $thresholdVal;
+	optionVar -floatValue "AriTransferPosition_thresholdUV" $thresholdUV;
+	optionVar -floatValue "AriTransferPosition_minPer"      $minPer;
+	if($mode==0){
+		AriTransferPosition();
+	}
+}
+proc string [] AriTransferPosition_GoSymmetryTP(string $UnSymmetry_plus[], string $UnSymmetry_minus[], vector $plus_pivPos, vector $minus_pivPos, int $UVMode, float $gosa){
+	global string $AriTransferPositionSlider[8];
+	global string $AriTransferPosition_message;
+	global string $AriTransferPositionPC; 
+	global string $gMainProgressBar;     
+	global string $AriTransferPositionWorldCheckBox;
+	int $jpTrue = false;
+	if(`about -uil`=="ja_JP")$jpTrue = true;
+	string $label_SearchTopology = "Search Topology";
+	string $lable_Suspension     = "Suspension";
+	string $lable_Move           = "Move";
+	if($jpTrue){
+		$label_SearchTopology = "トポロジ確認中";
+		$lable_Suspension     = "中断";
+		$lable_Move           = "頂点を移動";
+	}
+	int $UnSymmeBeforeTotal = size($UnSymmetry_plus);
+	int $loop=`intField -q -v $AriTransferPositionSlider[3]`;
+	$loop = $loop * 2;
+	int $worldTrue = `checkBox -q -v $AriTransferPositionWorldCheckBox`;
+	text -e -label ($label_SearchTopology) -bgc 0.3 0.3 0.3 $AriTransferPosition_message;
+	progressBar -edit -beginProgress -isInterruptable true -status "..." -maxValue 100 $gMainProgressBar;
+	progressBar -e -maxValue ($UnSymmeBeforeTotal) -pr 0 $AriTransferPositionPC ;
+	progressBar -e -maxValue ($UnSymmeBeforeTotal) -pr 0 $gMainProgressBar;
+	AriDebugPrint_float ("$UVMode",$UVMode);
+	AriDebugPrint_float ("$gosa",$gosa);
+	int $moveCounter=0;
+	int $breakTrue = false; 
+	int $loopVerTotal[2];
+	int $ii;
+	for($ii=0; $ii < $loop; $ii++){
+		if($breakTrue == true)break;
+		int $circumMode=($ii)%2;
+		if(size($UnSymmetry_plus)==0)break;
+		if($loopVerTotal[0]==$loopVerTotal[1] && $loopVerTotal[0]==size($UnSymmetry_plus))break;
+		$loopVerTotal[$circumMode] = size($UnSymmetry_plus);
+		string $extendVers_plus_num[]; 
+		string $extendVers_minus_num[];
+		if($UVMode==0){
+			$extendVers_plus_num  = AriTransferPosition_CircumferenceVer($UnSymmetry_plus, $circumMode);
+			$extendVers_minus_num = AriTransferPosition_CircumferenceVer($UnSymmetry_minus,$circumMode);
+		}
+		if($UVMode==1){
+			$extendVers_plus_num  = AriTransferPosition_CircumferenceUV($UnSymmetry_plus, $circumMode);
+			$extendVers_minus_num = AriTransferPosition_CircumferenceUV($UnSymmetry_minus,$circumMode);
+		}
+		vector $extendVers_plus_pos[];
+		vector $extendVers_minus_pos[];
+		clear $extendVers_plus_pos;
+		clear $extendVers_minus_pos;
+		for($i=0; $i<size($extendVers_plus_num); $i++){
+			if($UVMode==0){
+				if($worldTrue)	$extendVers_plus_pos[$i] = `pointPosition -w $extendVers_plus_num[$i]`;
+				else			$extendVers_plus_pos[$i] = `pointPosition -l $extendVers_plus_num[$i]`;
+			}
+			if($UVMode==1){
+				float $uvPosWork[2] = `polyEditUV    -q $extendVers_plus_num[$i]`;
+				$extendVers_plus_pos[$i] = <<$uvPosWork[0],$uvPosWork[1],0>>;
+			}
+		}
+		for($i=0; $i<size($extendVers_minus_num); $i++){
+			if($UVMode==0){
+				if($worldTrue)	$extendVers_minus_pos[$i]=`pointPosition -w $extendVers_minus_num[$i]`;
+				else			$extendVers_minus_pos[$i]=`pointPosition -l $extendVers_minus_num[$i]`;
+			}
+			if($UVMode==1){
+				float $uvPosWork[2] = `polyEditUV    -q $extendVers_minus_num[$i]`;
+				$extendVers_minus_pos[$i] = <<$uvPosWork[0],$uvPosWork[1],0>>;
+			}
+		}
+		string $extendVers_plus_sym[];
+		string $extendVers_minus_sym[];
+		clear $extendVers_plus_sym;
+		clear $extendVers_minus_sym;
+		int $symCount=0;
+		for($i=0; $i<size($extendVers_plus_num); $i++){
+			float $plus_pos[] = $extendVers_plus_pos[$i] - $plus_pivPos;
+			for($j=0; $j<size($extendVers_minus_num); $j++){
+				float $minus_pos[] = $extendVers_minus_pos[$j] - $minus_pivPos;
+				if(AriTransferPosition_valMuch($plus_pos, $minus_pos, $gosa)){
+					$extendVers_plus_sym[$symCount]  = $extendVers_plus_num[$i];
+					$extendVers_minus_sym[$symCount] = $extendVers_minus_num[$j];
+					$symCount++;
+					break;
+				}
+			}
+		}
+		string $extendVers_main_sym[];
+		string $extendVers_sub_sym[];
+		$extendVers_main_sym = $extendVers_plus_sym;
+		$extendVers_sub_sym  = $extendVers_minus_sym;
+		string $UnSymmetry_main[];
+		string $UnSymmetry_sub[];
+		$UnSymmetry_main = $UnSymmetry_plus;
+		$UnSymmetry_sub  = $UnSymmetry_minus;
+		string $newSym_main[];
+		string $newSym_sub[];
+		clear $newSym_main;
+		clear $newSym_sub;
+		int $k=0;
+		for($i=0; $i<size($extendVers_sub_sym);$i++){
+			if(`progressBar -q -ic $gMainProgressBar`){
+				text -e -label ($lable_Suspension + " " + $moveCounter + "/" + ($UnSymmeBeforeTotal) ) -bgc 1 0.5 0.5 $AriTransferPosition_message;
+				$breakTrue = true;
+				break;
+			}
+			string $extendVers_sub_sym_Array[1]={$extendVers_sub_sym[$i]};
+			if($UVMode==0)$subOne_extendVers = AriTransferPosition_CircumferenceVer($extendVers_sub_sym_Array,$circumMode);
+			if($UVMode==1)$subOne_extendVers = AriTransferPosition_CircumferenceUV ($extendVers_sub_sym_Array,$circumMode);
+			string $exUnSymList[];
+			$exUnSymList=AriTransferPosition_ArrayContainsArray($subOne_extendVers,$UnSymmetry_sub);
+			if(size($exUnSymList)==1){
+				progressBar -e -pr $moveCounter $AriTransferPositionPC ;
+				progressBar -e -pr $moveCounter $gMainProgressBar;
+				text -e -label ($label_SearchTopology + " " + $moveCounter + "/" + ($UnSymmeBeforeTotal)) -bgc 0.3 0.3 0.3 $AriTransferPosition_message;
+				$moveCounter++;
+				string $subVer=$exUnSymList[0];
+				string $extendVers_main_sym_Array[1];
+				$extendVers_main_sym_Array[0]=$extendVers_main_sym[$i];
+				string $mainOne_ExtendVers[];
+				if($UVMode==0)$mainOne_ExtendVers = AriTransferPosition_CircumferenceVer($extendVers_main_sym_Array,$circumMode);
+				if($UVMode==1)$mainOne_ExtendVers = AriTransferPosition_CircumferenceUV ($extendVers_main_sym_Array,$circumMode);
+				string $exUnSymList[] = AriTransferPosition_ArrayContainsArray($mainOne_ExtendVers,$UnSymmetry_main);
+				string $mainVer = $exUnSymList[0];
+				float $pos[];
+				if($UVMode==0){
+					if($worldTrue)	$pos = `pointPosition -w $mainVer`;
+					else			$pos = `pointPosition -l $mainVer`;
+				}
+				if($UVMode==1){
+					$pos = `polyEditUV -q $mainVer`;
+				}
+				if($UVMode==0){
+					if($worldTrue)	move     ($pos[0]+$minus_pivPos.x-$plus_pivPos.x) ($pos[1]+$minus_pivPos.y-$plus_pivPos.y) ($pos[2]+$minus_pivPos.z-$plus_pivPos.z) $subVer;
+					else			move -ls ($pos[0]+$minus_pivPos.x-$plus_pivPos.x) ($pos[1]+$minus_pivPos.y-$plus_pivPos.y) ($pos[2]+$minus_pivPos.z-$plus_pivPos.z) $subVer;
+				}
+				if($UVMode==1){
+					polyEditUV -r false -u $pos[0] -v $pos[1] $subVer;
+				}
+				$newSym_main[$k]=$mainVer;
+				$newSym_sub[$k]=$subVer;
+				$k++;
+			}
+		}
+		$UnSymmetry_main = stringArrayRemoveExact($newSym_main, $UnSymmetry_main);
+		$UnSymmetry_sub  = stringArrayRemoveExact($newSym_sub, $UnSymmetry_sub);
+		$UnSymmetry_plus  = $UnSymmetry_main;
+		$UnSymmetry_minus = $UnSymmetry_sub;
+		select $UnSymmetry_minus;
+		progressBar -e -pr ($loop*100+($ii+1)*100) $AriTransferPositionPC ;
+		progressBar -e -pr ($loop*100+($ii+1)*100) $gMainProgressBar;
+		refresh;
+	}
+	if(!$breakTrue){
+		int $UnSymmeTotal = $UnSymmeBeforeTotal-size($UnSymmetry_plus);
+		text -e -label ($UnSymmeTotal + " " + $lable_Move) $AriTransferPosition_message;
+	}
+	progressBar -e -endProgress $AriTransferPositionPC;
+	progressBar -e -endProgress $gMainProgressBar;
+	select -cl;
+	return $UnSymmetry_minus;
+}
+global proc int AriTransferPosition_valMuch(float $valA[], float $valB[],float $gosa){
+	int $muchTrue=0;
+	if(    $valA[0] <= $valB[0]+$gosa && $valA[0] >= $valB[0]-$gosa
+		&& $valA[1] <= $valB[1]+$gosa && $valA[1] >= $valB[1]-$gosa
+		&& $valA[2] <= $valB[2]+$gosa && $valA[2] >= $valB[2]-$gosa){
+		$muchTrue=1;
+	}
+	return $muchTrue;
+}
+proc vector getPivotPosition(string $selects[]){
+	vector $pivPos = <<0,0,0>> ;
+	string $object[] = $selects;
+	if(objectType($selects[0])!="transform"){
+		$object = `polyListComponentConversion $selects`;		
+		$object = `listRelatives -p -pa -type "transform" $object[0]`;
+	}
+	float $scalePiv[]=`getAttr ($object[0]+".scalePivot")`;
+	$pivPos = <<$scalePiv[0],$scalePiv[1],$scalePiv[2]>>;
+	return $pivPos;
+}
+proc vector[] getVerPosition(string $verList[], vector $pivPos){
+	global string $AriTransferPositionRadio[5];
+	global string $AriTransferPositionWorldCheckBox;
+	int $UV_Radio  = `radioButtonGrp -q -select $AriTransferPositionRadio[2]`;
+	int $UVMode = 0;
+	if($UV_Radio==2) $UVMode = 1;
+	int $worldTrue = `checkBox -q -v $AriTransferPositionWorldCheckBox`;
+	vector $posList[];
+	int $i=0;
+	for($ii=0; $ii<size($verList); $ii++){
+		vector $posXYZ;
+		if($UVMode==0){
+			if($worldTrue){
+				$posXYZ = `pointPosition -w $verList[$ii]`;	
+			}
+			else{
+				$posXYZ = `pointPosition -l $verList[$ii]`;
+				$posXYZ -= $pivPos;
+			}
+		}
+		if($UVMode==1){
+			$posXYZ = `polyEditUV -q $verList[$ii]`;	
+		}
+		$posList[$ii] = $posXYZ;
+	}
+	return $posList;
+}
+proc string[] GetVerList(string $selects[]){
+	global string $AriTransferPositionRadio[5];
+	int $UV_Radio  = `radioButtonGrp -q -select $AriTransferPositionRadio[2]`;
+	int $UVMode = 0;
+	if($UV_Radio==2) $UVMode = 1;
+	string $selectVerList[];
+	if($UVMode==0){
+		$selectVerList = `polyListComponentConversion -tv $selects`;	
+		$selectVerList = `filterExpand -selectionMask 31 $selectVerList`;
+	}
+	if($UVMode==1){
+		$selectVerList = `polyListComponentConversion -tuv $selects`;		
+		$selectVerList = `filterExpand -selectionMask 35 $selectVerList`;
+	}
+	return $selectVerList;
+}
+global proc AriTransferPosition_GetVertex(){
+	global string $AriTraVer_sourceVer_num[];
+	global vector $AriTraVer_sourceVer_pos[];
+	string $selects[] = `ls -sl`;
+	string $selectVerList[] = GetVerList($selects);
+	if(size($selectVerList)<=0){
+		return;
+	}
+	vector $pivPos = getPivotPosition($selects);
+	vector $posXYZ[] = getVerPosition($selectVerList, $pivPos);
+	$AriTraVer_sourceVer_num = $selectVerList;
+	$AriTraVer_sourceVer_pos = $posXYZ;
+}
+global proc AriTransferPosition_GetVer(int $mode){
+	global string $AriTraVer_sourceVer_num[]; 
+	global vector $AriTraVer_sourceVer_pos[]; 
+	global vector $AriTraVer_sourcePivPos;    
+	global string $AriTraVer_targetVer_num[]; 
+	global vector $AriTraVer_targetVer_pos[]; 
+	global vector $AriTraVer_targetPivPos;    
+	global string $AriTransferPositionWorldCheckBox;
+	global string $AriTransferPositionRadio[];
+	global string $AriTransferPositionTextField[];
+	AriTransferPosition_Save(1);
+	int $UV_Radio  = `radioButtonGrp -q -select $AriTransferPositionRadio[2]`;
+	int $UVMode = 0;
+	if($UV_Radio==2) $UVMode = 1;
+	int $worldTrue = `checkBox -q -v $AriTransferPositionWorldCheckBox`;
+	string $selects[] = `ls -sl`;
+	string $selectVerList[];
+	if($UVMode==0){
+		$selectVerList = `polyListComponentConversion -tv $selects`;		
+		$selectVerList = `filterExpand -selectionMask 31 $selectVerList`;
+	}
+	if($UVMode==1){
+		$selectVerList = `polyListComponentConversion -tuv $selects`;		
+		$selectVerList = `filterExpand -selectionMask 35 $selectVerList`;
+	}
+	if(size($selectVerList)<=0){
+		print("選択なし\n");
+		return;
+	}
+	vector $pivPos = <<0,0,0>> ;
+	if($UVMode==0){
+		if(!$worldTrue){
+			$pivPos = getPivotPosition($selects);
+		}
+	}
+	if($mode==0) $AriTraVer_sourcePivPos = $pivPos;
+	if($mode==1) $AriTraVer_targetPivPos = $pivPos;
+	if($mode==0){
+		clear $AriTraVer_sourceVer_num;
+		clear $AriTraVer_sourceVer_pos;
+	}
+	if($mode==1){
+		clear $AriTraVer_targetVer_num;
+		clear $AriTraVer_targetVer_pos;
+	}
+	string $workVerList[] = $selectVerList;
+	int $i=0;
+	for($ver in $workVerList){
+		vector $posXYZ;
+		if($UVMode==0){
+			if($worldTrue)	$posXYZ = `pointPosition -w $ver`;	
+			else			$posXYZ = `pointPosition -l $ver`;
+			$posXYZ -= $pivPos;
+		}
+		if($UVMode==1){
+			$posXYZ = `polyEditUV -q $ver`;	
+		}
+		if($mode==0){
+			$AriTraVer_sourceVer_num[$i] = $ver;
+			$AriTraVer_sourceVer_pos[$i] = $posXYZ;
+		}
+		if($mode==1){
+			$AriTraVer_targetVer_num[$i] = $ver; 
+			$AriTraVer_targetVer_pos[$i] = $posXYZ; 
+		}
+		$i++;
+	}
+	if($mode==0){
+	}
+}
+global proc AriTransferPosition_SearchVer(){
+	global string $AriTraVer_sourceVer_num[]; 
+	global vector $AriTraVer_sourceVer_pos[]; 
+	global vector $AriTraVer_sourcePivPos;    
+	global string $AriTraVer_targetVer_num[]; 
+	global vector $AriTraVer_targetVer_pos[]; 
+	global vector $AriTraVer_targetPivPos;    
+}
+global proc AriTransferPosition_MoveVerPos(int $mode)
+{
+	global string $AriTransferPosition_message;
+	global string $AriTransferPositionPC;
+	global string $gMainProgressBar;
+	global string $AriTransferPositionSlider[];
+	global string $AriTransferPositionRadio[5];
+	global string $AriTransferPositionOptionMenu[2];
+	global string $AriTransferPositionTextField[2];
+	global string $AriTraVer_sourceVer_num[]; 
+	global vector $AriTraVer_sourceVer_pos[]; 
+	global vector $AriTraVer_sourcePivPos;
+	global string $AriTraVer_targetVer_num[]; 
+	global vector $AriTraVer_targetVer_pos[]; 
+	global vector $AriTraVer_targetPivPos;
+	int $jpTrue = false;
+	if(`about -uil`=="ja_JP")$jpTrue = true;
+	string $label_SelectObject = "Please select an object or component.";
+	string $label_Searching    = "Searching";
+	string $label_Suspended    = "Suspended";
+	string $label_DifferentPos = "Different Positions";
+	if($jpTrue){
+		$label_SelectObject = "オブジェクトまたはコンポーネントをを選択してください";
+		$label_Searching    = "探索中";
+		$label_Suspended    = "中断";
+		$label_DifferentPos = "非同一座標";
+	}
+	global string $AriTransferPositionWorldCheckBox;
+	AriTransferPosition_Save(1);
+	int $UV_Radio  = `radioButtonGrp -q -select $AriTransferPositionRadio[2]`;
+	int $UVMode = 0;
+	if($UV_Radio==2) $UVMode = 1;
+	float $gosa;
+	float $range;
+	int $moveMode = `optionMenu -q -select $AriTransferPositionOptionMenu[0]`;
+	if($UVMode==0)	$range = `floatSliderGrp -q -v $AriTransferPositionSlider[1]`;
+	if($UVMode==1)	$range = `floatSliderGrp -q -v $AriTransferPositionSlider[5]`;
+	if($UVMode==0)	$gosa = `floatSliderGrp -q -v $AriTransferPositionSlider[0]`;
+	if($UVMode==1)	$gosa = `floatSliderGrp -q -v $AriTransferPositionSlider[6]`;
+	int $worldTrue = `checkBox -q -v $AriTransferPositionWorldCheckBox`;
+	string $transformList[] = getSelectToTransformList();
+	string $selects[] = `ls -sl`;
+	string $selectVerList[];
+	if($UVMode==0){
+		$selectVerList = `polyListComponentConversion -tv $selects`;		
+		$selectVerList = `filterExpand -selectionMask 31 $selectVerList`;
+	}
+	if($UVMode==1){
+		$selectVerList = `polyListComponentConversion -tuv $selects`;		
+		$selectVerList = `filterExpand -selectionMask 35 $selectVerList`;
+	}
+	if(size($selectVerList)<=0){
+		print($label_SelectObject+"\n");
+		return;
+	}
+	string $resultSelects[];
+	int $resultCount=0;
+	string $sourceVer_num[];
+	vector $sourceVer_pos[];
+	$sourceVer_num = $AriTraVer_sourceVer_num;
+	$sourceVer_pos = $AriTraVer_sourceVer_pos;
+	for($transformObj in $transformList){
+		string $resultComponentSelects[];
+		clear $resultComponentSelects;
+		string $unMoveTopoList[];
+		clear $unMoveTopoList;
+		vector $pivPos = <<0,0,0>> ;
+		if($UVMode==0){
+			if(!$worldTrue){
+				$pivPos = getPivotPosition($selects);
+			}
+		}
+		string $objToComponent[];
+		if($UVMode==0){
+			$objToComponent = `polyListComponentConversion -tv $transformObj`;		
+			$objToComponent = `filterExpand -selectionMask 31 $objToComponent`;
+		}
+		if($UVMode==1){
+			$objToComponent = `polyListComponentConversion -tuv $transformObj`;		
+			$objToComponent = `filterExpand -selectionMask 35 $objToComponent`;
+		}
+		string $subVer[] = stringArrayRemove($selectVerList, $objToComponent);
+		string $objSelVerList[] = stringArrayRemove($subVer, $objToComponent);
+		string $workVerList[] = $objSelVerList;
+		string $AllVertex[];
+		string $processingList[] = $objSelVerList;
+		while(size($processingList)>0){
+			if($mode==2){
+				if($moveMode==1 || $moveMode==2){
+					select $processingList[0];
+					if($UVMode==0)	ConvertSelectionToShell;
+					if($UVMode==1)	polySelectBorderShell 0;
+					string $workSel[] =`ls -sl`;
+					if($UVMode==0){
+						$workVerList = `polyListComponentConversion -tv $workSel`;		
+						$workVerList = `filterExpand -selectionMask 31 $workVerList`;
+					}
+					else{
+						$workVerList = `polyListComponentConversion -tuv $workSel`;		
+						$workVerList = `filterExpand -selectionMask 35 $workVerList`;
+					}
+					$processingList = stringArrayRemove($workVerList , $processingList);
+				}
+				else clear $processingList;
+				$AllVertex = $workVerList;
+			}
+			else{
+				clear $processingList;
+			}
+			string $targetVer_num[];
+			vector $targetVer_pos[];
+			clear $targetVer_num;
+			clear $targetVer_pos;
+			int $i=0;
+			for($ver in $workVerList){
+				vector $posXYZ;
+				if($UVMode==0){
+					if($worldTrue)	$posXYZ = `pointPosition -w $ver`;	
+					else			$posXYZ = `pointPosition -l $ver`;
+					$posXYZ -= $pivPos;
+				}
+				if($UVMode==1){
+					$posXYZ = `polyEditUV -q $ver`;	
+				}
+				$targetVer_num[$i] = $ver;
+				$targetVer_pos[$i] = $posXYZ;
+				$i++;
+			}
+			text -e -label ( 0 +"/"+(size($targetVer_num)) ) -bgc 0.3 0.3 0.3 $AriTransferPosition_message;
+			int $progressMaxVal=(size($targetVer_pos));
+			if(size($targetVer_pos)>0)progressBar -e -maxValue $progressMaxVal $AriTransferPositionPC;
+			progressBar -e
+				-beginProgress
+				-isInterruptable true
+				$gMainProgressBar ;
+			int $esc=1;
+			string $sameTargetNum[];
+			string $sameSourceNum[];
+			string $diffeTarget_Num[];
+			vector $diffeTarget_Pos[];
+			string $diffeSource_Num[];
+			vector $diffeSource_Pos[];
+			int $samCounter=0;
+			int $diffCounter=0;
+			int $breakTrue=false;
+			string $distanceMoveList[];
+			clear $distanceMoveList;
+			string $differVerList[];
+			if($mode==1 || $moveMode==1 || $moveMode==2){
+				clear $sameTargetNum;
+				clear $sameSourceNum;
+				clear $diffeTarget_Num;
+				clear $diffeTarget_Pos;
+				clear $diffeSource_Num;
+				clear $diffeSource_Pos;
+				for($targetCounter=0; $targetCounter<size($targetVer_num); $targetCounter++){	
+					text -e -label ($label_Searching + " " + $targetCounter+"/"+(size($targetVer_pos)) ) $AriTransferPosition_message;
+					progressBar -e -step 1 $AriTransferPositionPC ;
+					if(`progressBar -query -isCancelled $gMainProgressBar`){
+						$breakTrue = true;
+						text -e -label ($label_Suspended+" "+$targetCounter+"/"+(size($targetVer_pos))) -bgc 1 0.5 0.5 $AriTransferPosition_message;
+						break;
+					}
+					vector $targetPos = $targetVer_pos[$targetCounter];
+					for($sourceCounter=0; $sourceCounter < size($sourceVer_num); $sourceCounter++){	
+						vector $sourcePos = $sourceVer_pos[$sourceCounter];
+						if(valMuch($targetPos, $sourcePos, $gosa )){
+							$sameTargetNum[$samCounter] = $targetVer_num[$targetCounter];
+							$sameSourceNum[$samCounter] = $sourceVer_num[$sourceCounter];
+							$samCounter++;
+							break;
+						}
+					}
+				}
+				$diffCounter=0;
+				for($i=0; $i<size($targetVer_num); $i++){		
+					if(!stringArrayContains($targetVer_num[$i],$sameTargetNum)){
+						$diffeTarget_Num[$diffCounter] = $targetVer_num[$i];
+						$diffeTarget_Pos[$diffCounter] = $targetVer_pos[$i];
+						$diffCounter++;
+						if(stringArrayContains($targetVer_num[$i],$objSelVerList)){
+							$resultComponentSelects[size($resultComponentSelects)] = $targetVer_num[$i];
+						}
+					}
+				}
+				$diffCounter=0;
+				for($i=0; $i<size($sourceVer_num); $i++){		
+					if(!stringArrayContains($sourceVer_num[$i],$sameSourceNum)){
+						$diffeSource_Num[$diffCounter] = $sourceVer_num[$i];
+						$diffeSource_Pos[$diffCounter] = $sourceVer_pos[$i];
+						$diffCounter++;
+					}
+				}
+				text -e -label ( (size($diffeSource_Num)) +" "+$label_DifferentPos) $AriTransferPosition_message;
+			}
+			if($mode==2 && $moveMode==1){
+				for($targetCounter=0; $targetCounter<size($diffeTarget_Num); $targetCounter++){	
+					vector $targetPos = $diffeTarget_Pos[$targetCounter];
+					for($sourceCounter=0; $sourceCounter < size($diffeSource_Num); $sourceCounter++){	
+					vector $sourcePos = $diffeSource_Pos[$sourceCounter];
+						if(valMuch($targetPos, $sourcePos, $range )){
+							if(stringArrayContains($diffeTarget_Num[$targetCounter],$objSelVerList)){
+								$distanceMoveList[size($distanceMoveList)] = $diffeTarget_Num[$targetCounter];
+								if($UVMode==0){
+									if($worldTrue)	move     ($sourcePos.x+$pivPos.x) ($sourcePos.y+$pivPos.y) ($sourcePos.z+$pivPos.z) $diffeTarget_Num[$targetCounter];
+									else 			move -ls ($sourcePos.x+$pivPos.x) ($sourcePos.y+$pivPos.y) ($sourcePos.z+$pivPos.z) $diffeTarget_Num[$targetCounter];
+								}
+								if($UVMode==1){
+									polyEditUV -r false -u ($sourcePos.x) -v ($sourcePos.y) $diffeTarget_Num[$targetCounter];
+								}
+							}
+						}
+					}
+				}
+				$resultComponentSelects = stringArrayRemove($distanceMoveList, $resultComponentSelects);
+			}
+			if($mode==2 && $moveMode==3){
+				string $targetVer_onlyNum[];
+				string $sourceVer_onlyNum[];
+				for($i=0; $i<size($targetVer_num); $i++){		
+					string $sepa[];
+					tokenize $targetVer_num[$i] "." $sepa;
+					$targetVer_onlyNum[$i] = $sepa[1];
+				}
+				for($i=0; $i<size($sourceVer_num); $i++){		
+					string $sepa[];
+					tokenize $sourceVer_num[$i] "." $sepa;
+					$sourceVer_onlyNum[$i] = $sepa[1];
+				}
+				for($targetCounter=0; $targetCounter<size($targetVer_num); $targetCounter++){		
+					vector $targetPos = $targetVer_pos[$targetCounter];
+					for($sourceCounter=0; $sourceCounter<size($sourceVer_num); $sourceCounter++){	
+						if($targetVer_onlyNum[$targetCounter] == $sourceVer_onlyNum[$sourceCounter]){
+							vector $sourcePos = $sourceVer_pos[$sourceCounter];
+							if($UVMode==0){
+								if($worldTrue)	move     ($sourcePos.x+$pivPos.x) ($sourcePos.y+$pivPos.y) ($sourcePos.z+$pivPos.z) $targetVer_num[$targetCounter];
+								else			move -ls ($sourcePos.x+$pivPos.x) ($sourcePos.y+$pivPos.y) ($sourcePos.z+$pivPos.z) $targetVer_num[$targetCounter];
+							}
+							if($UVMode==1){
+								polyEditUV -r false -u ($sourcePos.x) -v ($sourcePos.y) $targetVer_num[$targetCounter];
+							}
+							break;
+						}
+					}
+				}
+			}
+			progressBar -e -endProgress $AriTransferPositionPC;
+			progressBar -e -endProgress $gMainProgressBar;
+			if($mode==2 && $moveMode==2){
+				if(size($diffeSource_Num)!=0){
+					$ii=0;
+					string $diffTargetNumAll[];     
+					string $diffTargetNumSelects[]; 
+					vector $diffTargetPosSelects[]; 
+					for($diffetar in $diffeTarget_Num){
+						string $workList[] = $objSelVerList;
+						if(stringArrayContains($diffetar,$workList)){
+							$diffTargetNumAll[size($diffTargetNumAll)] = $diffetar;
+						}
+						if(!stringArrayContains($diffetar,$objSelVerList)){
+							$diffTargetNumSelects[$ii] = $diffetar;
+							if($UVMode==0){
+								if($worldTrue)	$diffTargetPosSelects[$ii] = `pointPosition -w $diffetar`;
+								else			$diffTargetPosSelects[$ii] = `pointPosition -l $diffetar`;
+							}
+							if($UVMode==1){
+								float $uvPosWork[2] = `polyEditUV -q $diffetar`;
+								$diffTargetPosSelects[$ii] = <<$uvPosWork[0],$uvPosWork[1],0>>;
+							}
+							$ii++;
+						}
+					}
+					string $umMoveList[] = AriTransferPosition_GoSymmetryTP($diffeSource_Num, $diffTargetNumAll, $AriTraVer_sourcePivPos, $pivPos, $UVMode, $gosa);
+					for($jj=0; $jj<size($diffTargetNumSelects); $jj++){
+						vector $pos = $diffTargetPosSelects[$jj];
+						if($UVMode==0){
+							if($worldTrue)	move     ($pos.x) ($pos.y) ($pos.z) $diffTargetNumSelects[$jj];
+							else			move -ls ($pos.x) ($pos.y) ($pos.z) $diffTargetNumSelects[$jj];
+						}
+						if($UVMode==1){
+							polyEditUV -r false -u ($pos.x) -v ($pos.y) $diffTargetNumSelects[$jj];
+						}
+					}
+					for($ver in $umMoveList){
+						if(stringArrayContains($ver,$objSelVerList)){
+							$unMoveTopoList[size($unMoveTopoList)] = $ver;
+						}
+					}
+				}
+			}
+		}
+		if($mode==2 && $moveMode==2){
+			$resultComponentSelects = $unMoveTopoList;
+		}
+		if(size($resultComponentSelects) > 0){
+			$resultSelects = stringArrayCatenate($resultSelects, $resultComponentSelects);
+		}
+		else{
+			$resultSelects[size($resultSelects)] = $transformObj;
+		}
+	}
+	select $resultSelects;
+}
+proc float VectorDistance(vector $pos1,vector $pos2){
+	float $distance;
+	float $distanceA = sqrt(($pos1.x-$pos2.x)*($pos1.x-$pos2.x) + ($pos1.y-$pos2.y)*($pos1.y-$pos2.y));
+	$distance = sqrt($distanceA*$distanceA + ($pos1.z-$pos2.z)*($pos1.z-$pos2.z));
+	return $distance;
+}
+global proc AriTransferPosition_GetMinDistance(){
+	global string $AriTraVer_sourceVer_num[]; 
+	global vector $AriTraVer_sourceVer_pos[]; 
+	global string $AriTransferPositionSlider[8];
+	global string $AriTransferPositionRadio[2];
+	global string $AriTransferPositionWorldCheckBox;
+	global string $AriTransferPosition_UI_minperFF;
+	int $UVMode = 0;
+	int $worldTrue = `checkBox -q -v $AriTransferPositionWorldCheckBox`;
+	float $minPer  = `floatField -q -v $AriTransferPosition_UI_minperFF`;
+	int $verOrUV   = `radioButtonGrp -q -select $AriTransferPositionRadio[2]`;
+	if($verOrUV==2)$UVMode = 1;
+	string $selects[] =`ls -sl`;
+	string $selectVerList[];
+	if($UVMode==0){
+		$selectVerList = `polyListComponentConversion -tv $selects`;		
+		$selectVerList = `filterExpand -selectionMask 31 $selectVerList`;
+	}
+	if($UVMode==1){
+		$selectVerList = `polyListComponentConversion -tuv $selects`;		
+		$selectVerList = `filterExpand -selectionMask 35 $selectVerList`;
+	}
+	string $object[] = $selects;
+	if(objectType($selects[0])!="transform"){
+		$object = `polyListComponentConversion $selects`;		
+		$object = `listRelatives -p -pa -type "transform" $object[0]`;
+	}
+	vector $pivPos = <<0,0,0>> ;
+	if($UVMode==0){
+		if(!$worldTrue){
+			float $scalePiv[]=`getAttr ($object[0]+".scalePivot")`;
+			$pivPos = <<$scalePiv[0],$scalePiv[1],$scalePiv[2]>>;
+		}
+	}
+	string $targetNum[];
+	vector $targetPos[];
+	int $i=0;
+	for($i=0; $i<size($selectVerList); $i++){
+		string $ver = $selectVerList[$i];
+		vector $posXYZ;
+		if($UVMode==0){
+			if($worldTrue)	$posXYZ = `pointPosition -w $ver`;	
+			else			$posXYZ = `pointPosition -l $ver`;
+			$posXYZ -= $pivPos; 
+		}
+		if($UVMode==1){
+			$posXYZ = `polyEditUV -q $ver`;	
+		}
+		$targetNum[$i] = $ver;
+		$targetPos[$i] = $posXYZ;
+	}
+	float $minDistance=0;
+	for($i=0; $i<size($AriTraVer_sourceVer_pos); $i++){
+			for($j=0; $j<size($targetPos); $j++){
+			float $distance = VectorDistance($AriTraVer_sourceVer_pos[$i],$targetPos[$j]);
+			if($i==0)$minDistance = $distance;
+			if($minDistance > $distance)	$minDistance = $distance;
+		}
+	}
+	$minDistance = $minDistance*(1.0+($minPer/100));
+	if($UVMode==0)floatSliderGrp -e -value $minDistance $AriTransferPositionSlider[1];
+	if($UVMode==1)floatSliderGrp -e -value $minDistance $AriTransferPositionSlider[5];
+}
+global proc AriTransferPosition_UIChange(){
+	global string $AriTransferPositionRadio[5];
+	global string $AriTransferPositionGroups[4];
+	global string $AriTransferPositionSlider[8];
+	global string $AriTransferPositionOptionMenu[2];
+	global string $AriTransferPosition_UI_VerOrUvTF;
+	global string $AriTransferPositionWorldCheckBox;
+	int $jpTrue = false;
+	if(`about -uil`=="ja_JP")$jpTrue = true;
+	string $label_Vertex    = "Vertex";
+	if($jpTrue){
+		$label_Vertex    = "頂点";
+	}
+	int $UVVer        = `radioButtonGrp -q -select $AriTransferPositionRadio[2]`;
+	int $selectValMode = `optionMenu -q -select $AriTransferPositionOptionMenu[0]`;
+	if($UVVer==1){
+		textField -e -bgc 1 1 0 -text $label_Vertex $AriTransferPosition_UI_VerOrUvTF;
+		checkBox -e -en true $AriTransferPositionWorldCheckBox;
+		floatSliderGrp -e -vis 0 $AriTransferPositionSlider[6];
+		floatSliderGrp -e -vis 1 $AriTransferPositionSlider[0];
+		floatSliderGrp -e -vis 0 $AriTransferPositionSlider[5];
+		floatSliderGrp -e -vis 1 $AriTransferPositionSlider[1];
+	}
+	if($UVVer==2){
+		textField -e -bgc 0 1 0 -text "UV" $AriTransferPosition_UI_VerOrUvTF;
+		checkBox -e -en false $AriTransferPositionWorldCheckBox;
+		floatSliderGrp -e -vis 0 $AriTransferPositionSlider[0];
+		floatSliderGrp -e -vis 1 $AriTransferPositionSlider[6];
+		floatSliderGrp -e -vis 0 $AriTransferPositionSlider[1];
+		floatSliderGrp -e -vis 1 $AriTransferPositionSlider[5];
+	}	
+	int $mode[3];
+	if($selectValMode==2){
+		$mode[0]=1;
+		$mode[1]=1;
+		$mode[2]=0;
+	}
+	if($selectValMode==3){
+		$mode[0]=0;
+		$mode[1]=1;
+		$mode[2]=1;
+	}
+	rowLayout -e -en $mode[0] $AriTransferPositionGroups[0];
+	if($selectValMode==1){
+		columnLayout -e -en true $AriTransferPositionGroups[2];
+	}
+	else{
+		columnLayout -e -en false $AriTransferPositionGroups[2];
+	}
+}
+global proc AriTransferPosition(){
+	global string $AriTransferPosition_message;
+	global string $AriTransferPositionPC;
+	global string $AriTransferPositionSlider[8];
+	global string $AriTransferPositionRadio[5];
+	global string $AriTransferPositionGroups[4];
+	global string $AriTransferPositionFloat[2];
+	global string $AriTransferPositionOptionMenu[2];
+	global string $AriTransferPositionTextField[2];
+	global string $AriTransferPositionWorldCheckBox;
+	global string $AriTransferPosition_UI_minperFF;
+	global string $AriTransferPosition_UI_VerOrUvTF;
+	int   $UVmode           = 1;
+	float $toleranceVal     = 0.001;
+	float $toleranceUV      = 0.001;
+	int   $selectValModeVal = 1;
+	int   $iterationsVal    = 50;
+	int   $worldVal         = 0;
+	float $thresholdVal     = 0.010;
+	float $thresholdUV      = 0.010;
+	int   $minPer           = 10;
+	if(`optionVar -exists "AriTransferPosition_UVmode"`)		$UVmode = `optionVar -q "AriTransferPosition_UVmode"`;
+	if(`optionVar -exists "AriTransferPosition_tolerance"`)		$toleranceVal = `optionVar -q "AriTransferPosition_tolerance"`;
+	if(`optionVar -exists "AriTransferPosition_toleranceUV"`)	$toleranceUV  = `optionVar -q "AriTransferPosition_toleranceUV"`;
+	if(`optionVar -exists "AriTransferPosition_selectMode"`)	$selectValModeVal = `optionVar -q "AriTransferPosition_selectMode"`;
+	if(`optionVar -exists "AriTransferPosition_iterations"`)	$iterationsVal = `optionVar -q "AriTransferPosition_iterations"`;
+	if(`optionVar -exists "AriTransferPosition_world"`)			$worldVal = `optionVar -q "AriTransferPosition_world"`;
+	if(`optionVar -exists "AriTransferPosition_threshold"`)		$thresholdVal = `optionVar -q "AriTransferPosition_threshold"`;
+	if(`optionVar -exists "AriTransferPosition_thresholdUV"`)	$thresholdUV  = `optionVar -q "AriTransferPosition_thresholdUV"`;
+	if(`optionVar -exists "AriTransferPosition_minPer"`)		$minPer  = `optionVar -q "AriTransferPosition_minPer"`;
+	int $jpTrue = false;
+	if(`about -uil`=="ja_JP")$jpTrue = true;
+	string $label_Component = "Component";
+	string $label_Vertex    = "Vertex";
+	string $label_Search    = "Search";
+	string $label_Tolerance = "Search Tolerance";
+	string $label_Move     = "Move";
+	string $label_Topology = "Topology";
+	string $label_VertexID = "VertexID";
+	string $label_Distance = "Distance";
+	string $label_MoveMode = "MoveMode";
+	string $label_Range    = "Range";
+	string $label_Min      = "Min";
+	string $label_Loop     = "Loop";
+	if($jpTrue){
+		$label_Component = "コンポーネント";
+		$label_Vertex    = "頂点";
+		$label_Search    = "探索";
+		$label_Move      = "移動";
+		$label_Tolerance = "探索許容値";
+		$label_Topology = "トポロジ";
+		$label_VertexID = "頂点番号";
+		$label_Distance = "距離";
+		$label_MoveMode = "移動方法";   
+		$label_Range    = "移動範囲";
+		$label_Min      = "最短";
+		$label_Loop     = "反復回数";
+	}
+	if((`window -ex AriTransferPositionW`)==true)deleteUI AriTransferPositionW;
+	window -title "AriTransferPosition" -tlb true  -w 300 -h 200 -mxb 0  AriTransferPositionW;
+	string $formMain = `formLayout`;
+	string $UIset_A = `columnLayout -adj 1`;
+	rowLayout -h 30 -nc 2 -cw2 75 120 -vis true ;
+		$AriTransferPosition_UI_VerOrUvTF = `textField -ed false -w 60 -bgc 1 1 0 -text $label_Vertex`;
+		$AriTransferPositionRadio[2] = `radioButtonGrp -l "  "  -nrb 2  -labelArray2 $label_Vertex "UV" -cw 2 80 -select $UVmode -cw 1 0 -cc "AriTransferPosition_UIChange()"`;
+	setParent..;
+	separator -h 5 -w 240 -style "in";
+	rowLayout -nc 3 -ad3 2;
+	text -al "left" -label ($label_Tolerance+":");
+	text -l "";
+	button -l "Reset" -c "AriTransferPosition_Save(0)";
+	setParent..;
+	$AriTransferPositionSlider[0] = `floatSliderGrp -l "" -w 20 -vis true -field true -cw 1 0 -min 0.0000 -max 0.01 -fmx 100 -value $toleranceVal -step 0.00001`;
+	$AriTransferPositionSlider[6] = `floatSliderGrp -l "" -w 20 -vis true -field true -cw 1 0 -min 0.0000 -max 0.01 -fmx 10  -value $toleranceUV  -step 0.00001`;
+	separator -h 5 -w 240 -style "in";
+	rowLayout -nc 3 -ad3 2   ;
+	text -label ($label_MoveMode+":");
+		text -label "";
+		$AriTransferPositionOptionMenu[0] = `optionMenu -w 120 -cc AriTransferPosition_UIChange -label "" `;
+			menuItem -label $label_Distance;
+			menuItem -label $label_Topology;
+			menuItem -label $label_VertexID;
+	setParent..;
+	rowLayout -nc 3 -ad3 2;
+		$AriTransferPositionGroups[0] = `rowLayout -nc 2 -cw2 70 130 `;
+		text -l ($label_Loop+":");
+		$AriTransferPositionSlider[3] = `intField -w 30 -v $iterationsVal -min 1 -max 100`;
+		setParent..;
+	text -l "";
+	$AriTransferPositionWorldCheckBox = `checkBox -l "World" -v $worldVal`;
+	setParent..;
+	$AriTransferPositionGroups[2] = `columnLayout -adj 1`;
+		rowLayout -nc 3 -ad3 2;
+		text -al "left" -label ($label_Range+":");
+		text -l "";
+		setParent..;
+		$AriTransferPositionSlider[1] = `floatSliderGrp -field true -l "" -w 20 -pre 4 -cw 1 0 -min 0.001  -max 1 -value $thresholdVal -step 0.001 -fmx 1000`;
+		$AriTransferPositionSlider[5] = `floatSliderGrp -field true -l "" -w 20 -pre 4 -cw 1 0 -min 0.0001 -max 1 -value $thresholdUV  -step 0.001 -fmx 1000`;
+		rowLayout -nc 4;
+		button -l $label_Min -w 60 -c "AriTransferPosition_GetMinDistance()";
+		text -l " + ";
+		$AriTransferPosition_UI_minperFF = `floatField -v $minPer -pre 1`;
+		text -l "%";
+		setParent..;
+	setParent..;
+	setParent..;
+	string $buttonL,$buttonR;
+	string $UIset_B = `formLayout`;
+	$buttonL1 = `button -label "Get" -h 30 -bgc 0.5 0.5 1  -command ("AriTransferPosition_GetVer(0)")`;
+	$buttonL2 = `button -label $label_Search -h 30         -command ("AriTransferPosition_MoveVerPos(1)")`;
+	$buttonR = `button  -label $label_Move   -h 30 -bgc 0.5 1 0.5  -command ("AriTransferPosition_MoveVerPos(2)")`;
+	setParent..;
+	formLayout -e
+		-af $buttonL1	"top"    0
+		-af $buttonL1	"left"   0
+		-ap $buttonL1	"right"  0 50
+		-ap $buttonL1	"bottom" 0 50
+		-af $buttonL2	"left"   0
+		-ap $buttonL2	"right"  0 50
+		-af $buttonL2	"bottom" 0
+		-ap $buttonL2	"top"    0 50
+		-ap $buttonR	"left"   0 50
+		-af $buttonR	"right"  0
+		-af $buttonR	"bottom" 0
+		-af $buttonR	"top"    0
+	$UIset_B;
+	string $UIset_C = `columnLayout -adj 1 `;
+	$AriTransferPosition_message = `text -al "left" -label ""`;
+	$AriTransferPositionPC = `progressBar -width 240`;
+	setParent..;
+	setParent..;
+	formLayout -e
+		-af $UIset_A	"left"   0
+		-af $UIset_A	"right"  0 
+		-af $UIset_A	"top"    0
+		-af $UIset_C	"left"   0
+		-af $UIset_C	"right"  0 
+		-af $UIset_C	"bottom" 0
+		-af $UIset_B	"left"   0
+		-af $UIset_B	"right"  0 
+		-ac $UIset_B	"top"    0 $UIset_A
+		-ac $UIset_B	"bottom" 0 $UIset_C
+	$formMain;
+	AriTransferPosition_UIChange();
+	showWindow;
+	optionMenu -e -select $selectValModeVal $AriTransferPositionOptionMenu[0];
+	AriTransferPosition_UIChange();
+}

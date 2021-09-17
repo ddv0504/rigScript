@@ -1,0 +1,171 @@
+//--------------------------------------------------------------------------
+//
+// ScriptName : AriAniKeySmooth
+// Contents   : 選択したアニメーションカーブのキーを両端のキーを参考に移動。
+// Author     : Ari
+// URL        : http://cgjishu.net/
+// Since      : 2017/06
+// Update     : 
+//
+//--------------------------------------------------------------------------
+
+
+
+
+
+
+proc saveSettings(){
+	global string $AriAniKeySmoothUI_floatF;
+	global string $AriAniKeySmoothUI_intF;
+	float $strength   = `floatField -q -v $AriAniKeySmoothUI_floatF`;
+	float $iterations = `intField   -q -v $AriAniKeySmoothUI_intF`;
+	optionVar -floatValue  "AriAniKeySmooth_strength"    $strength;
+	optionVar -intValue    "AriAniKeySmooth_Iterations"  $iterations;
+}
+
+
+
+
+
+global proc AriAniKeySmooth_GO(){
+	
+	global string $AriAniKeySmoothUI_floatF;
+	global string $AriAniKeySmoothUI_intF; 
+	float $strength = `floatField -q -v $AriAniKeySmoothUI_floatF`;
+	float $loop     = `intField   -q -v $AriAniKeySmoothUI_intF`;
+	if($loop < 1)		$loop = 1;
+	if($loop > 1000)	$loop = 1000;
+	floatField -e -v $strength $AriAniKeySmoothUI_floatF;
+	intField   -e -v $loop     $AriAniKeySmoothUI_intF;
+	string $aniCurveList[]=`keyframe -q -sl -name`;
+	for($curve in $aniCurveList){	
+		for($i=0;$i<$loop;$i++){
+			int   $select_indexList[]  = `keyframe -sl -q -indexValue  $curve`;
+			float $select_timeList[]   = `keyframe -sl -q -timeChange  $curve`;
+			float $select_valueList[]  = `keyframe -sl -q -valueChange $curve`;
+			int   $all_indexList[]  = `keyframe -q -indexValue  $curve`;
+			float $all_timeList[]   = `keyframe -q -timeChange  $curve` ;
+			float $all_valList[]    = `keyframe -q -valueChange $curve`;
+			for($j=0; $j < (size($select_indexList)); $j++){
+				int $selIndex = $select_indexList[$j];
+				if($selIndex == 0)continue;
+				if($selIndex == $all_indexList[size($all_indexList)-1])continue;
+				float $nowVal    = $all_valList[$selIndex];
+				float $beforeVal = $all_valList[$selIndex-1];
+				float $afterVal  = $all_valList[$selIndex+1];
+				int $nowTime     = $all_timeList[$selIndex];
+				int $beforeTime  = $all_timeList[$selIndex-1];
+				int $afterTime   = $all_timeList[$selIndex+1];
+				float $ratio = ($nowTime-$beforeTime)/(($afterTime-$beforeTime)*1.0);
+				float $aveVal = $beforeVal+(($afterVal-$beforeVal) * $ratio);
+				float $setVal = $nowVal -  (($nowVal - $aveVal) * $strength);
+				keyframe -e -index $selIndex -valueChange $setVal  $curve;
+			}
+		}
+	}
+	saveSettings();
+}
+global proc AriAniKeySmooth_buttonA(float $val){
+	global string $AriAniKeySmoothUI_floatF;
+	floatField -e -v $val $AriAniKeySmoothUI_floatF;
+	saveSettings();
+}
+global proc AriAniKeySmooth_buttonB(int $val){
+	global string $AriAniKeySmoothUI_intF;
+	intField -e -v $val $AriAniKeySmoothUI_intF;
+	saveSettings();
+}
+global proc AriAniKeySmooth(){
+	global string $AriAniKeySmoothUI_floatF;
+	global string $AriAniKeySmoothUI_intF;
+	float $strength   = 0.5;
+	int   $iterations = 1;
+	if(`optionVar -exists "AriAniKeySmooth_strength"`)   $strength   = `optionVar -q "AriAniKeySmooth_strength"`;
+	if(`optionVar -exists "AriAniKeySmooth_Iterations"`) $iterations = `optionVar -q "AriAniKeySmooth_Iterations"`;
+	if((`window -ex  AriAniKeySmooth`)==true)deleteUI AriAniKeySmooth;
+	window -tlb true -title "AriAniKeySmooth"  -w 200 -h 100  AriAniKeySmooth;
+	string $UI_strength   = "Strength :";
+	string $UI_iterations = "Iterations :";
+	string $UI_apply      = "Apply :";
+	if(`about -uil` == "ja_JP"){
+		$UI_strength   = "強さ :";
+		$UI_iterations = "反復回数 :";
+		$UI_apply      = "適用";
+	}
+	string $button[10];
+	string $text[2];
+	string $formA =`formLayout` ;
+	$text[0] = `text -l $UI_strength -w 64`;
+	$AriAniKeySmoothUI_floatF = `floatField -v $strength -pre 2 -h 24`;
+	$button[0] = `button -w 24 -l "0.1" -c "AriAniKeySmooth_buttonA(0.1)"`;
+	$button[1] = `button -w 24 -l "0.3" -c "AriAniKeySmooth_buttonA(0.3)"`;
+	$button[2] = `button -w 24 -l "0.5" -c "AriAniKeySmooth_buttonA(0.5)"`;
+	$button[3] = `button -w 24 -l "0.8" -c "AriAniKeySmooth_buttonA(0.8)"`;
+	$button[4] = `button -w 24 -l "1"   -c "AriAniKeySmooth_buttonA(1)"`;
+	$text[1] = `text -l $UI_iterations -w 64`;
+	$AriAniKeySmoothUI_intF   = `intField -v $iterations -h 24`; 
+	$button[5] = `button -w 24 -l "1"   -c "AriAniKeySmooth_buttonB(1)"`;
+	$button[6] = `button -w 24 -l "2"   -c "AriAniKeySmooth_buttonB(2)"`;
+	$button[7] = `button -w 24 -l "5"   -c "AriAniKeySmooth_buttonB(5)"`;
+	$button[8] = `button -w 24 -l "10"  -c "AriAniKeySmooth_buttonB(10)"`;
+	$button[9] = `button -w 24 -l "100" -c "AriAniKeySmooth_buttonB(100)"`;
+	$button[10] = `button -l $UI_apply -c "AriAniKeySmooth_GO()"`;
+	setParent..;
+	formLayout -e
+	-af $text[0]   "left" 0
+	-af $text[0]   "top"  4
+	-af $button[4] "top" 0
+	-ap $button[4] "bottom" 15 50
+	-af $button[4] "right" 0
+	-ap $button[4] "left" 0 90
+	-af $button[3] "top" 0
+	-ac $button[3] "right" 0 $button[4]
+	-ap $button[3] "left" 0 80
+	-aoc $button[3] "bottom" 0 $button[4]
+	-af $button[2] "top" 0
+	-ac $button[2] "right" 0 $button[3]
+	-ap $button[2] "left" 0 70
+	-aoc $button[2] "bottom" 0 $button[4]
+	-af $button[1] "top" 0
+	-ac $button[1] "right" 0 $button[2]
+	-ap $button[1] "left" 0 60
+	-aoc $button[1] "bottom" 0 $button[4]
+	-af $button[0] "top" 0
+	-ac $button[0] "right" 0 $button[1]
+	-ap $button[0] "left" 0 50
+	-aoc $button[0] "bottom" 0 $button[4]
+	-ac $AriAniKeySmoothUI_floatF "left"  0 $text[0]
+	-ac $AriAniKeySmoothUI_floatF "right" 0 $button[0]
+	-af $AriAniKeySmoothUI_floatF "top" 0
+	-af $text[1]   "left" 0
+	-ac $text[1]   "top"  4 $button[4]
+	-af $button[9] "bottom" 30 
+	-ac $button[9] "top"   0 $button[4]
+	-af $button[9] "right" 0
+	-ap $button[9] "left" 0 90
+	-ac $button[8] "top"   0 $button[4]
+	-ac $button[8] "right" 0 $button[9]
+	-ap $button[8] "left" 0 80
+	-aoc $button[8] "bottom" 0 $button[9] 
+	-ac $button[7] "top"   0 $button[4]
+	-ac $button[7] "right" 0 $button[8]
+	-ap $button[7] "left" 0 70
+	-aoc $button[7] "bottom" 0 $button[9] 
+	-ac $button[6] "top"   0 $button[4]
+	-ac $button[6] "right" 0 $button[7]
+	-ap $button[6] "left" 0 60
+	-aoc $button[6] "bottom" 0 $button[9] 
+	-ac $button[5] "top"   0 $button[4]
+	-ac $button[5] "right" 0 $button[6]
+	-ap $button[5] "left" 0 50
+	-aoc $button[5] "bottom" 0 $button[9] 
+	-ac $AriAniKeySmoothUI_intF "top"   0 $button[4]
+	-ac $AriAniKeySmoothUI_intF "left"  0 $text[1]
+	-ac $AriAniKeySmoothUI_intF "right" 0 $button[5]
+	-af $button[10] "left" 0
+	-af $button[10] "right" 0
+	-af $button[10] "bottom" 0
+	-ac $button[10] "top" 0 $button[9]
+	$formA;
+	showWindow;
+}
