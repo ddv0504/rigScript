@@ -6,7 +6,8 @@ global proc ztRigDisplay () {
 
     shelfButton
         -enableCommandRepeat 1
-        
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -38,7 +39,8 @@ global proc ztRigDisplay () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -70,7 +72,8 @@ global proc ztRigDisplay () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -102,7 +105,8 @@ global proc ztRigDisplay () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -133,7 +137,8 @@ global proc ztRigDisplay () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -164,7 +169,8 @@ global proc ztRigDisplay () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -195,7 +201,8 @@ global proc ztRigDisplay () {
     ;
     shelfButton
         -enableCommandRepeat 1
-        
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -222,7 +229,7 @@ global proc ztRigDisplay () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "ztRigUtil.printObjectType()" 
+        -command "from ztRigUtils import ztRigUtil\nztRigUtil.printObjectType()" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1

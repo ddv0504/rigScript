@@ -92,7 +92,8 @@ def saveWeights( geos, filepath=None ):
 			jointList = skinPercent(skinCluster, vert, ib=1e-4, q=True, transform=None)
 			weightList = skinPercent(skinCluster, vert, ib=1e-4, q=True, value=True)
 			if jointList is None:
-				raise SkinWeightException("I can't find any joints - sorry.  do you have any post skin cluster history???")
+				print(idx,vert)
+				raise SkinWeightException("I can't find any joints - sorry.	 do you have any post skin cluster history???")
 
 			pos = xform(vert, q=True, ws=True, t=True)
 			vertData = VertSkinWeight( pos )
@@ -149,7 +150,8 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 
 	if filepath is None:
 		filepath = getDefaultPath()
-
+	else:
+		filepath = Path(filepath)
 	if not filepath.exists():
 		print 'File does not exist %s' % filepath
 		return
@@ -172,7 +174,7 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 	#then load them one by one and apply them to the appropriate objects
 	objItemsDict = {}
 	for obj in objects:
-		items = []  #this holds the vert list passed in IF any
+		items = []	#this holds the vert list passed in IF any
 		if obj.find('.') != -1:
 			items = [obj]
 			obj = obj.split('.')[0]
@@ -247,8 +249,8 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 		for data in weightData:
 			for n, mult in enumerate(axisMult): data[n] *= mult
 
-		#we need to re-sort the weightData as the multiplication could have potentially reversed things...  i could probably
-		#be a bit smarter about when to re-order, but its not a huge hit...  so, meh
+		#we need to re-sort the weightData as the multiplication could have potentially reversed things...	i could probably
+		#be a bit smarter about when to re-order, but its not a huge hit...	 so, meh
 		weightData = sorted(weightData)
 
 		#using axisMult for mirroring also often means you want to swap parity tokens on joint names - if so, do that now.
@@ -388,7 +390,7 @@ def setSkinWeights( skinCluster, vertJointWeightData ):
 	weightsP = skinFn.findPlug( "weights" )
 
 	tmpIntArray = MIntArray()
-	baseFmtStr = str( skinCluster ) +'.weightList[%d]'  #pre build this string: fewer string ops == faster-ness!
+	baseFmtStr = str( skinCluster ) +'.weightList[%d]'	#pre build this string: fewer string ops == faster-ness!
 
 	for vertIdx, jointsAndWeights in idxJointWeight:
 
@@ -402,7 +404,7 @@ def setSkinWeights( skinCluster, vertJointWeightData ):
 		for n in range( tmpIntArray.length() ):
 			removeMultiInstance( weightFmtStr % tmpIntArray[n] )
 
-		#at this point using the api or mel to set the data is a moot point...  we have the strings already so just use mel
+		#at this point using the api or mel to set the data is a moot point...	we have the strings already so just use mel
 		for joint, weight in jointsAndWeights:
 			if weight:
 				try:
