@@ -8,16 +8,11 @@ from collections import OrderedDict
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaAnim as OpenMayaAnim
 
-def globalProc(*args):
-    path = os.path.dirname(__file__)
-    as5Path = os.path.join(path,'advenced_Skeleton5/AdvancedSkeleton5.mel')
-    #mel.eval('source "%s"' % as5Path)
-    print(as5Path)
 ######## attribute operation #######
 
 def addAttr(object,longName,type,default=0,min=0,max=1,parent=None):
     '''
-    parameter:
+    param:
             longName:  Attribute long name
             type:   vector=> "double3"
                     proxy=> "object.attribute"

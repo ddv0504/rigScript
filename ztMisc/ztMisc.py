@@ -46,9 +46,6 @@ def face_normal(face):
     zes = cmds.polyNormalPerVertex(vtxface, q=True, z =True)
     divisor = 1.0 / len(xes)
     return sum(xes)* divisor, sum(yes)  * divisor, sum(zes) * divisor
-
-def getClosetFace(vtx,polygon,*args):
-    vtxPos = cmds.xform(vtx,t=True,ws=True,q=True)
     
     
 def TransSkinWeights(*args):

@@ -1,51 +1,57 @@
 import sys
 import os
+from imp import reload
 import regUtil
 reload(regUtil)
 path = os.path.dirname(__file__)
+    
 if not path in sys.path:
     sys.path.append(path)
 
-def addEnv(envKey,oldEnvLst,newEnvLst):
+def addEnv(envKey,newEnvLst):
     if not newEnvLst:
         return
     else:
         newEnvLst = [i.replace('/','\\') for i in newEnvLst]
-    for env in newEnvLst:
-        oldEnvLst.append(env)
-        
-    regUtil.setEnv(envKey,';')
-    pass
-def onMayaDroppedPythonFile(*args):
-    scriptPath = regUtil.getEnv('MAYA_SCRIPT_PATH')
-    pythonPath = regUtil.getEnv('PYTHONPATH')
-    iconPath   = regUtil.getEnv('XBMLANGPATH')
-    pluginPath = regUtil.getEnv('MAYA_PLUGIN_PATH')
+            
+    regUtil.setEnv(envKey,';'.join(newEnvLst))
     
-    #Check script path
-    if scriptPath:
-        oldScriptPath = scriptPath.split(';')
-    
-    #Check python path
-    if pythonPath:
-        oldPythonPath = pythonPath.split(';')
-    
-    #Check icon path 
-    if iconPath:
-        oldIconPath = iconPath.split(';')
 
-    #Check plugin path
-    if pluginPath:
-        oldPluginPath = pluginPath.split(';')    
+def onMayaDroppedPythonFile(*args):
     
+    scriptPath = regUtil.getEnv('MAYA_SCRIPT_PATH')
+    pythonPath = regUtil.getPythonPath('PYTHONPATH')
+    scriptPathLst = []    
+    #Add maya script path  
+    if scriptPath: 
+        [scriptPathLst.append(i) for i in scriptPath.split(';')]    
+        if not '%s\\melScripts' % path.replace('/','\\') in scriptPath:            
+            scriptPathLst.append('%s\\melScripts' % path)
+    else:
+        scriptPathLst.append('%s\\melScripts' % path)
     
+    addEnv('MAYA_SCRIPT_PATH',scriptPathLst)
+
+    #Add maya python path.
+    pythonPathLst = []
+    if pythonPath:            
+        if not path.replace('/','\\') in pythonPath:            
+            regUtil.appendPath(path)
+    else:
+        pythonPathLst.append(path)
+    #[regUtil.appendPath(i.replace('/','\\')) for i in pythonPathLst]
     
-    # with open('%s/PYTHONPATH.txt' % path,'r') as f:
-    #     pythonPath = f.readlines()
-    # with open('%s/MAYASCRIPTPATH.txt' % path,'r') as f:
-    #     scriptPath = f.readlines()
+    try:
+        import maya.cmds as cmds
+        import maya.mel as mel
+
+        cmds.evalDeferred("import sys")
+        cmds.evalDeferred('if not "{0}" in sys.path:\n\tsys.path.append("{0}")'.format(path))
+        
+        mel.eval('source "%s/melScripts/userSetup.mel"' % path.replace('\\','/'))
+        
+    except ImportError:
+        pass
     
-    # os.system('setx PYTHONPATH %s' % pythonPath[0])
-    # os.system('setx MAYA_SCRIPT_PATH %s' % scriptPath[0])
 if __name__ == '__main__':
     onMayaDroppedPythonFile()
