@@ -2,10 +2,12 @@
 
 import os, sys
 import os
-import json
 from maya.api import OpenMaya as om2
+import maya.OpenMaya as OpenMaya
 import maya.cmds as cmds
 import maya.mel as mel
+import maya.utils as utils
+from ztMisc import ztSceneCleanup
 #from setuptools import setup, find_namespace_packages
 path = os.path.dirname(__file__)
 mayaVersion = cmds.about(v=True)
@@ -34,7 +36,8 @@ addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/QuadRemesher/Contents/scripts' % path)
 addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/ngskintools2/Contents/scripts' % path)
 # MayaBonusTools script path:
 addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/MayaBonusTools-2017-2020/Contents/scripts-%s'% (path,mayaVersion))
-
+# brSmoothWeight script path:
+addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/brSmoothWeights/scripts' % path)
 
 # Icon path:
 addEnvPath('XBMLANGPATH','%s/icons' % path)
@@ -54,13 +57,12 @@ addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/ngskintools2/Contents/plug-ins/%s' % 
 addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/QuadRemesher/Contents/plug-ins' % path)
 # MayaBonusTools plugin path:
 addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/MayaBonusTools-2017-2020/Contents/plug-ins/win64-%s' % (path,mayaVersion))
-
+# brSmoothWeight plugin path:
+addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/brSmoothWeights/plug-ins/win64/%s' % (path,mayaVersion))
 
 # Module path:
 addEnvPath('MAYA_MODULE_PATH','%s/module' % path)
 
-# Zootools prefs:
-addEnvPath('MAYA_PRESET_PATH','%s/zoo_preferences/prefs/maya' % path)
 # Python script path:
 pythonPathLst = [path,
                 '%s/plugins/ngskintools2/Contents/scripts' % path,
@@ -83,3 +85,14 @@ mel.eval("bonusToolsMenu();")
 # Auto startup ztool
 import zTool_v004
 zTool_v004.main()
+
+# Auto startup brSmoothWeight
+def addMenuItems():
+    if not cmds.about(batch=True):
+        mel.eval("source brSmoothWeightsCreateMenuItems; brSmoothWeightsAddMenuCommand;")
+
+utils.executeDeferred(addMenuItems)
+
+# Before save cleanup unknown node and unknown plugins in this scene.
+_id = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kBeforeSave, ztSceneCleanup.cleanUp )
+print(_id)

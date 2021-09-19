@@ -108,39 +108,6 @@ global proc ztRigBuild () {
         -manage 1
         -visible 1
         -preventOverride 0
-        -annotation "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScript..." 
-        -enableBackground 0
-        -backgroundColor 0 0 0 
-        -highlightColor 0.321569 0.521569 0.65098 
-        -align "center" 
-        -label "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScript..." 
-        -labelOffset 0
-        -rotation 0
-        -flipX 0
-        -flipY 0
-        -useAlpha 1
-        -font "plainLabelFont" 
-        -imageOverlayLabel "renamer" 
-        -overlayLabelColor 0.8 0.8 0.8 
-        -overlayLabelBackColor 0 0 0 0.5 
-        -image "transformation.png" 
-        -image1 "transformation.png" 
-        -style "iconOnly" 
-        -marginWidth 1
-        -marginHeight 1
-        -command "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScripts\n\nmel.eval('source \"%s/renameAdvanced\";' % melScripts.path.replace('\\\\','/'))" 
-        -sourceType "python" 
-        -commandRepeatable 1
-        -flat 1
-    ;
-    shelfButton
-        -enableCommandRepeat 1
-        -enable 1
-        -width 32
-        -height 32
-        -manage 1
-        -visible 1
-        -preventOverride 0
         -annotation "Create Joints" 
         -enableBackground 0
         -backgroundColor 0 0 0 
@@ -173,6 +140,39 @@ global proc ztRigBuild () {
         -manage 1
         -visible 1
         -preventOverride 0
+        -annotation "try:\n    mel.eval('asFitResample;')\nexcept Exception as e:\n    m..." 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "try:\n    mel.eval('asFitResample;')\nexcept Exception as e:\n    m..." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "ReSample" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "orientJoint.png" 
+        -image1 "orientJoint.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "try:\n    mel.eval('asFitResample;')\nexcept Exception as e:\n    mel.eval('AdvancedSkeleton5;')\n    mel.eval('asFitResample;')" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
         -annotation "orientJointOptionItem" 
         -enableBackground 0
         -backgroundColor 0 0 0 
@@ -194,6 +194,39 @@ global proc ztRigBuild () {
         -marginHeight 1
         -command "OrientJointOptions" 
         -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScript..." 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScript..." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "renamer" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "transformation.png" 
+        -image1 "transformation.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScripts\n\nmel.eval('source \"%s/renameAdvanced\";' % melScripts.path.replace('\\\\','/'))" 
+        -sourceType "python" 
         -commandRepeatable 1
         -flat 1
     ;

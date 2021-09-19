@@ -21,7 +21,6 @@ except:
     import shiboken
 
 SHELF_PATH = '%s/shelves' % os.path.dirname(__file__).replace('\\','/')
-ICON_PATH  = '%s/icons' % os.path.dirname(__file__).replace('\\','/')
 
 def maya_main_window():
     mayaMainWindowPtr = omui.MQtUtil.mainWindow()        
@@ -253,15 +252,13 @@ class toolBox(QMainWindow):
 
     def addUtil(self):
         
-        niceNameLst = ['Animation','Rig','Model','Light','FX']
-        toolNameLst = ['zt_AniUI','zt_RigUI','zt_ModelUI','zt_LightUI','zt_FXUI']
+        niceNameLst = ['Animation','Rig','Light','FX']
+        toolNameLst = ['zt_AniUI','zt_RigUI','zt_LightUI','zt_FXUI']
         
         for name,tool in zip(niceNameLst,toolNameLst):     
             toolBtn = utilBtn(name=name,module=tool)                
             toolBtn.setText(name)
             self.utilLayout.addWidget(toolBtn)
-        
-
 
     def parentconstraint(self):
         offset = False
@@ -570,14 +567,14 @@ def selkeyedobjs():
     
     if keyed:
         cmds.select(keyed, replace=True)
-def setEnv():
-    print(os.environ['XBMLANGPATH'])  
-    print(ICON_PATH)  
-    if not ICON_PATH in os.environ['XBMLANGPATH']:
-        os.environ['XBMLANGPATH'] += ';%s' % ICON_PATH
-        print(ICON_PATH,'was add')
+# def setEnv():
+#     print(os.environ['XBMLANGPATH'])  
+#     print(ICON_PATH)  
+#     if not ICON_PATH in os.environ['XBMLANGPATH']:
+#         os.environ['XBMLANGPATH'] += ';%s' % ICON_PATH
+#         print(ICON_PATH,'was add')
 def main():
-    setEnv()
+
     if cmds.window('ZT_Toolbox',ex=True):
         cmds.deleteUI('ZT_Toolbox')    
     win = toolBox() 

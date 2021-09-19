@@ -1,8 +1,8 @@
 
 print "############    RIG SCRIPT ENV SETUP ############\n\n\n";
 global proc startup(){
-    scriptJob -e NewSceneOpened defaultSceneUI;
-    scriptJob -e SceneOpened openSceneUI;
+    //scriptJob -e NewSceneOpened defaultSceneUI;
+    //scriptJob -e SceneOpened openSceneUI;
 
     loadPlugin -qt "AbcImport.mll";
     loadPlugin -qt "AbcExport.mll";
@@ -22,7 +22,7 @@ global proc onModelChange3dc(string $UI){
     return;
 }
 
-evalDeferred(startup);
+evalDeferred("startup");
 // deadline - 배치일 경우 실행 안됩니다.
 /*if (!`about -batch`)
 {
