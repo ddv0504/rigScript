@@ -1,0 +1,14 @@
+{
+    "assetType":"Background",
+    "animation":null,
+    "description":"Square Wooden Plank Base\nColor: black rough, clear coat",
+    "version":"1.0.0",
+    "tags":"base, turntable, cylinder",
+    "creators":"Andrew Silke",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"www.create3dcharacters.com"
+}

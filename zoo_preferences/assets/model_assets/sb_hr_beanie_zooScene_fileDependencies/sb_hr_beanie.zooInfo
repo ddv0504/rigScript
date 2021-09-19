@@ -1,0 +1,14 @@
+{
+    "assetType":"Prop Model",
+    "animation":null,
+    "description":"Base sculptmesh beanie\n\nLicense: Can be used to create new commercial work.  Please do not redistribute this file. ",
+    "version":"1.0.0",
+    "tags":"sculptmesh, hair, beanie, basemesh",
+    "creators":"Andrew Silke",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"www.create3dcharacters.com"
+}

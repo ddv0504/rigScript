@@ -1,0 +1,30 @@
+{
+    "nullObj":{
+        "attributesShaderDict":{
+            "gCoatColor_srgb": [
+                  1.0,
+                  1.0,
+                  1.0
+                ],
+                "gCoatIor": 1.5,
+                "gCoatRoughness": 0.0,
+                "gCoatWeight": 0.0,
+                "gDiffuseColor_srgb": [
+                  0.095,
+                  0.095,
+                  0.068
+                ],
+                "gDiffuseWeight": 1.0,
+                "gSpecColor_srgb": [
+                  0.969,
+                  0.868,
+                  0.740
+                ],
+                "gSpecIor": 7.0,
+                "gSpecRoughness": 0.4,
+                "gSpecWeight": 1.0
+        },
+        "shaderName":"copper",
+        "objectFaces":[]
+    }
+}

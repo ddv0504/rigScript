@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Pure white backlit softbox with very large round key. No HDRI.",
+    "version":"1.0.0",
+    "tags":"pure, studio, fill, soft, backlit, shaderbot, shader bot, pick",
+    "creators":"Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.create3dcharacters.com"
+}

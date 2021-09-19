@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"The Ludovisi Gaul - License: CC0 Public Domain\nThe Ludovisi Gaul Killing Himself and His Wife (sometimes called \"The Galatian Suicide\") is a Roman marble group depicting a man in the act of plunging a sword into his breast, looking backwards defiantly while he supports the dying figure of a woman with his left arm. It is a Roman copy of the early 2nd century AD, of a Hellenistic original, ca 230-20 BC, one of the bronze groups commissioned from Greek sculptors by Attalus I after his recent victories over the Gauls of Galatia. Other Roman marble copies from the same project are the equally famous Dying Gaul, and the less well-known Kneeling Gaul.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, figure, naked, male, nude, woman, female, man, ludovisi, gual, roman, greek, masculine, hero",
+    "creators":"Scuplture: Artist Unknown\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-the-ludovisi-gaul-104930"
+}

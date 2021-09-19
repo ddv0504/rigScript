@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"HDRLabs Desert with large round white key, red ground fills, purple left fill, background yellow fill. \n\nFree Statue Of Discobolus scanned by Statens Museum for Kunst  \nhttps://www.myminifactory.com/object/3d-print-discobolus-the-discus-thrower-25156  ",
+    "version":"1.0.0",
+    "tags":"ibl, desert, fill, red, blue, yellow, soft, HDR Labs, discobolus, statue, discus",
+    "creators":"Skydome: HDR Labs\nLights: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdrlabs.com\nwww.create3dcharacters.com"
+}

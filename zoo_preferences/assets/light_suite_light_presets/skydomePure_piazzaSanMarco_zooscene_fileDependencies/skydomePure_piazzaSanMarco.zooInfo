@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Piazza San Marco, single HDR Skydome IBL by HDRI Haven",
+    "version":"1.0.0",
+    "tags":"skydomePure, iblPure, pick, hdrihaven, city",
+    "creators":"HDRI Haven\nAuthor: Greg Zaal",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"https://hdrihaven.com\nwww.create3dcharacters.com"
+}

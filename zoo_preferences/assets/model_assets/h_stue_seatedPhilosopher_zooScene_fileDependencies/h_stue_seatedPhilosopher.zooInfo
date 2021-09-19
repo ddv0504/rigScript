@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Statue Of A Seated Philosopher - License: CC0 Public Domain\nThe portrait of Zeno and the statue of Chrysippus are the only images of Stoic philosophers of the third century that can be identified with certainty. But there exists other portraits based upon the concepts of thinking as a strenuous and laborious undertaking. For our purposes, it is not so crucial whether these actually represent Stoics, philosophers related to the Stoics, or even scholars of other kinds. Rather, we are concerned with particular paradigms for intellectual activity, as they deceloped at particular periods in time and were then translated into visual imagery.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, scan,  artec, figure, male, clothed, male, man, Philosopher, seated, Stoic, Zeno, Chrysippus, masculine, hero",
+    "creators":"Scuplture: Unknown Artist\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-statue-of-a-seated-philosopher-109625  "
+}

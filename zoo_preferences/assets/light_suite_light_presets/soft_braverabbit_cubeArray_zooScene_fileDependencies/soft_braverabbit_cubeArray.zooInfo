@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Grey soft studio light with braverabbit IBL only,  for neutral greys or chromes/reflective surfaces.  Soft reflections.",
+    "version":"1.0.0",
+    "tags":"grey, ibl, soft, studio, reflective, chrome, product, neutral, shaderbot, shader bot",
+    "creators":"Ingo Clemens",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.braverabbit.com"
+}

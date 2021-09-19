@@ -1,0 +1,55 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+proc polyWedgeToolCtx(){
+	
+	scriptCtx
+		-title "Poly Wedge"
+		-image1 "polyWedgeFace.png"
+		-toolCursorType "tumble"
+		-totalSelectionSets 2
+		
+		-cumulativeLists false
+		-expandSelectionList true
+		-fcs ("WedgePolygon;")
+
+		-setNoSelectionPrompt "Select poly face to wedge"
+		-setSelectionPrompt ("Select additional faces to wedge " +
+			"and press Enter to complete")
+		
+		-setAutoToggleSelection true
+		-setAutoComplete false
+		-setSelectionCount 0
+		-polymeshEdge false
+		-polymeshFace true
+		
+		-setNoSelectionPrompt "Select poly edge to wedge about"
+		-setSelectionPrompt ("Select additional edges to wedge " +
+			"about and press Enter to complete")
+		-setAutoToggleSelection true
+		-setAutoComplete false
+		-setSelectionCount 0
+		-polymeshEdge true
+		-polymeshFace false
+		
+		
+		//-exitUponCompletion true
+		
+		polyWedgeTool;
+	
+}
+
+
+global proc polyWedgeTool(){
+	
+	if (!`contextInfo -exists polyWedgeTool`)
+	{
+		polyWedgeToolCtx;
+	}
+	setToolTo polyWedgeTool;
+	
+}

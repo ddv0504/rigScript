@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage SchemaVersion="1.0"
+	ProductType="Application"
+	AutodeskProduct="Maya"
+	Name="MayaBonusTools"
+	Description="Autodesk Maya 2017-2020 Bonus Tools"
+	AppVersion="20.0.1"
+	Author="Autodesk"
+	AppNameSpace="com.autodesk.exchange.maya.bonustools"
+	HelpFile="./Contents/docs/MayaBonusTools-2019-2020.pdf"
+	OnlineDocumentation="http://www.autodesk.com/maya/"
+
+	ProductCode="*"
+	UpgradeCode="{42BEF01A-459B-21BE-162A-2559D30C9BFF}" >
+	
+	<CompanyDetails Name="Autodesk, Inc."
+		Phone=" "
+		Url="http://www.autodesk,com/"
+		Email="adn.apps@autodesk.com" />
+
+		<!-- Prevent to load in other version than Maya 2016 -->
+		<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2017" SeriesMax="2020" />
+
+		<!-- docs -->
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2017" SeriesMax="2020" />
+			<ComponentEntry ModuleName="./Contents/docs/MayaBonusTools-2017.pdf" />
+			<ComponentEntry ModuleName="./Contents/docs/MayaBonusTools-2018.pdf" />
+			<ComponentEntry ModuleName="./Contents/docs/MayaBonusTools-2019-2020.pdf" />
+			<ComponentEntry ModuleName="./Contents/docs/MayaBonusTools-2019-2020.pdf" />
+		</Components>
+
+		<!-- icons -->
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2017" SeriesMax="2020" />
+			<ComponentEntry ModuleName="./Contents/icons/MayaBonusTools.png" />
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64" Platform="Maya" SeriesMin="2017" SeriesMax="2017" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/win64-2017" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/3dsImport.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/audioWave.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/closestPointOnCurve.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/corrosionTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/crash.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/cvColorShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/denimTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/diffractionShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/drawReduceTool.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/drawSplitTool.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/frecklesTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/gameInputDevice.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/hlslShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/hwColorPerVertexShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/measure.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/nodeCreatedCBCmd.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/pointOnMeshInfo.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/PolyTools.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/polyVariance.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/randomizerDevice.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/ringsTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/scallopTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/skinShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/splatterTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/streaksTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/stringFormatNode.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/sun.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/treeBarkTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/udpDevice.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/veiningTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/weightEditor.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2017/woodGrainTexture.mll"/>
+
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64" Platform="Maya" SeriesMin="2018" SeriesMax="2018" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/win64-2018" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/3dsImport.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/audioWave.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/closestPointOnCurve.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/corrosionTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/crash.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/cvColorShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/denimTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/diffractionShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/drawReduceTool.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/drawSplitTool.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/frecklesTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/gameInputDevice.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/hlslShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/hwColorPerVertexShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/measure.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/nodeCreatedCBCmd.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/pointOnMeshInfo.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/PolyTools.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/randomizerDevice.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/ringsTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/scallopTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/skinShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/splatterTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/streaksTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/stringFormatNode.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/sun.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/treeBarkTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/udpDevice.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/veiningTexture.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/weightEditor.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2018/woodGrainTexture.mll"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64" Platform="Maya" SeriesMin="2019" SeriesMax="2019" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/win64-2019" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/3dsImport.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/audioWave.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/closestPointOnCurve.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/hlslShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/measure.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/nodeCreatedCBCmd.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/pointOnMeshInfo.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/PolyTools.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/stringFormatNode.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/sun.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/weightEditor.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/compiled_devkit_examples/crash.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/compiled_devkit_examples/gameInputDevice.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/compiled_devkit_examples/randomizerDevice.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2019/compiled_devkit_examples/udpDevice.mll"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64" Platform="Maya" SeriesMin="2020" SeriesMax="2020" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/win64-2020" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/3dsImport.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/audioWave.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/closestPointOnCurve.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/hlslShader.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/measure.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/nodeCreatedCBCmd.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/pointOnMeshInfo.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/PolyTools.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/stringFormatNode.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/sun.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/weightEditor.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/compiled_devkit_examples/crash.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/compiled_devkit_examples/gameInputDevice.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/compiled_devkit_examples/randomizerDevice.mll"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/win64-2020/compiled_devkit_examples/udpDevice.mll"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="macOS" Platform="Maya" SeriesMin="2017" SeriesMax="2017" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/macOS-2017" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/3dsImport.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/audioWave.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/closestPointOnCurve.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/corrosionTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/crash.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/cvColorShader.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/denimTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/diffractionShader.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/drawReduceTool.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/drawSplitTool.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/frecklesTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/gameInputDevice.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/hwColorPerVertexShader.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/measure.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/nodeCreatedCBCmd.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/pointOnMeshInfo.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/polyVariance.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/randomizerDevice.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/ringsTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/scallopTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/skinShader.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/splatterTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/streaksTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/stringFormatNode.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/sun.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/treeBarkTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/udpDevice.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/veiningTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2017/woodGrainTexture.bundle"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="macOS" Platform="Maya" SeriesMin="2018" SeriesMax="2018" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/macOS-2018" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/3dsImport.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/audioWave.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/closestPointOnCurve.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/corrosionTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/crash.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/cvColorShader.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/denimTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/diffractionShader.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/drawReduceTool.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/drawSplitTool.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/frecklesTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/gameInputDevice.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/hwColorPerVertexShader.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/measure.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/nodeCreatedCBCmd.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/pointOnMeshInfo.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/randomizerDevice.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/ringsTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/scallopTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/skinShader.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/splatterTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/streaksTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/stringFormatNode.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/sun.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/treeBarkTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/udpDevice.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/veiningTexture.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2018/woodGrainTexture.bundle"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="macOS" Platform="Maya" SeriesMin="2019" SeriesMax="2019" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/macOS-2019" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/3dsImport.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/audioWave.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/closestPointOnCurve.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/measure.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/nodeCreatedCBCmd.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/pointOnMeshInfo.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/stringFormatNode.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/sun.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/compiled_devkit_examples/crash.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/compiled_devkit_examples/gameInputDevice.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/compiled_devkit_examples/randomizerDevice.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2019/compiled_devkit_examples/udpDevice.bundle"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="macOS" Platform="Maya" SeriesMin="2020" SeriesMax="2020" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/macOS-2020" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/3dsImport.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/audioWave.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/closestPointOnCurve.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/measure.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/nodeCreatedCBCmd.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/pointOnMeshInfo.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/stringFormatNode.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/sun.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/compiled_devkit_examples/crash.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/compiled_devkit_examples/gameInputDevice.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/compiled_devkit_examples/randomizerDevice.bundle"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/macOS-2020/compiled_devkit_examples/udpDevice.bundle"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="linux" Platform="Maya" SeriesMin="2017" SeriesMax="2017" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/linux-2017" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/3dsImport.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/audioWave.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/closestPointOnCurve.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/corrosionTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/crash.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/cvColorShader.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/denimTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/diffractionShader.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/drawReduceTool.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/drawSplitTool.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/frecklesTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/gameInputDevice.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/hwColorPerVertexShader.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/measure.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/nodeCreatedCBCmd.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/pointOnMeshInfo.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/PolyTools.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/polyVariance.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/randomizerDevice.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/ringsTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/scallopTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/skinShader.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/splatterTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/streaksTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/stringFormatNode.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/sun.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/treeBarkTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/udpDevice.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/veiningTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2017/woodGrainTexture.so"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="linux" Platform="Maya" SeriesMin="2018" SeriesMax="2018" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/linux-2018" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/3dsImport.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/audioWave.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/closestPointOnCurve.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/corrosionTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/crash.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/cvColorShader.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/denimTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/diffractionShader.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/drawReduceTool.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/drawSplitTool.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/frecklesTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/gameInputDevice.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/hwColorPerVertexShader.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/measure.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/nodeCreatedCBCmd.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/PolyTools.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/polyVariance.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/randomizerDevice.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/ringsTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/scallopTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/skinShader.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/splatterTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/streaksTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/stringFormatNode.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/sun.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/treeBarkTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/udpDevice.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/veiningTexture.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2018/woodGrainTexture.so"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="linux" Platform="Maya" SeriesMin="2019" SeriesMax="2019" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/linux-2019" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/3dsImport.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/audioWave.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/closestPointOnCurve.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/measure.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/nodeCreatedCBCmd.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/PolyTools.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/stringFormatNode.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/sun.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/compiled_devkit_examples/crash.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/compiled_devkit_examples/gameInputDevice.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/compiled_devkit_examples/randomizerDevice.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2019/compiled_devkit_examples/udpDevice.so"/>
+		</Components>
+
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="linux" Platform="Maya" SeriesMin="2020" SeriesMax="2020" />
+			<MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/linux-2020" />
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/3dsImport.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/audioWave.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/closestPointOnCurve.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/measure.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/nodeCreatedCBCmd.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/pointOnMeshInfo.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/PolyTools.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/pyFrameStatsCmd.py"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/stringFormatNode.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/sun.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/compiled_devkit_examples/crash.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/compiled_devkit_examples/gameInputDevice.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/compiled_devkit_examples/randomizerDevice.so"/>
+			<ComponentEntry ModuleName="./Contents/plug-ins/linux-2020/compiled_devkit_examples/udpDevice.so"/>
+		</Components>
+		<!-- Python Scripts -->
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2017" SeriesMax="2017" />
+			<ComponentEntry ModuleName="./Contents/python-2017/AlignUVShells.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_addTransparencyAttr.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_aeTemplateBuilder.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_cleanupCurveMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_createFloatingFrameRate.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_createMeshLocator.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_curveToRibbonMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_curveToTubeMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_findMissingTextures.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_flattenComponents.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_moveObjToCamera.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_movePivotToFirstCV.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_randomizer.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/bt_zeroTransforms.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/em_commands.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/pipe.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2017/pipeAssemblyManager.py"/>	
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2018" SeriesMax="2018" />
+			<ComponentEntry ModuleName="./Contents/python-2018/AlignUVShells.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_addTransparencyAttr.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_aeTemplateBuilder.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_cleanupCurveMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_createFloatingFrameRate.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_createMeshLocator.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_curveToRibbonMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_curveToTubeMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_findMissingTextures.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_flattenComponents.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_moveObjToCamera.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_movePivotToFirstCV.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_randomizer.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/bt_zeroTransforms.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/pipe.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2018/pipeAssemblyManager.py"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2019" SeriesMax="2019" />
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_addTransparencyAttr.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_aeTemplateBuilder.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_alignUVShells.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_cleanupCurveMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_createCircleControl.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_createFloatingFrameRate.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_createJointAtCustomPivotAxis.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_createLocatorAtCustomPivotAxis.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_createMeshLocator.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_curveToRibbonMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_curveToTubeMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_findMissingTextures.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_flattenComponents.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_flattenComponentsManip.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_flattenComponentsSimple.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_moveObjToCamera.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_movePivotToFirstCV.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_profileOneFrame.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_randomizer.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/bt_zeroTransforms.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/pipe.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2019/pipeAssemblyManager.py"/>
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2020" SeriesMax="2020" />
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_addTransparencyAttr.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_aeTemplateBuilder.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_alignUVShells.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_cleanupCurveMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_createCircleControl.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_createFloatingFrameRate.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_createJointAtCustomPivotAxis.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_createLocatorAtCustomPivotAxis.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_createMeshLocator.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_curveToRibbonMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_curveToTubeMesh.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_findMissingTextures.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_flattenComponents.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_flattenComponentsManip.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_flattenComponentsSimple.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_moveObjToCamera.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_movePivotToFirstCV.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_profileOneFrame.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_randomizer.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/bt_zeroTransforms.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/pipe.py"/>
+			<ComponentEntry ModuleName="./Contents/python-2020/pipeAssemblyManager.py"/>
+		</Components>
+
+		<!-- MEL Scripts -->
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2017" SeriesMax="2017" />
+			<MayaEnv expr="MAYA_SCRIPT_PATH+:=scripts-2017" />
+			<ComponentEntry ModuleName="./Contents/scripts-2017/bonusToolsMenu.mel" />
+			<ComponentEntry ModuleName="./Contents/scripts-2017/MayaBonusTools_load.mel" />
+			<ComponentEntry ModuleName="./Contents/scripts-2017/bonusToolsHelp.mel" />
+			<!-- ComponentEntry ModuleName="./Contents/scripts-2017/userSetup.mel" / -->
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2018" SeriesMax="2018" />
+			<MayaEnv expr="MAYA_SCRIPT_PATH+:=scripts-2018" />
+			<ComponentEntry ModuleName="./Contents/scripts-2018/bonusToolsMenu.mel" />
+			<ComponentEntry ModuleName="./Contents/scripts-2018/MayaBonusTools_load.mel" />
+			<ComponentEntry ModuleName="./Contents/scripts-2018/bonusToolsHelp.mel" />
+			<!-- ComponentEntry ModuleName="./Contents/scripts-2018/userSetup.mel" / -->
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2019" SeriesMax="2019" />
+			<MayaEnv expr="MAYA_SCRIPT_PATH+:=scripts-2019" />
+			<ComponentEntry ModuleName="./Contents/scripts-2019/bonusToolsMenu.mel" />
+			<ComponentEntry ModuleName="./Contents/scripts-2019/MayaBonusTools_load.mel" />
+			<ComponentEntry ModuleName="./Contents/scripts-2019/bonusToolsHelp.mel" />
+			<!-- ComponentEntry ModuleName="./Contents/scripts-2019/userSetup.mel" / -->
+		</Components>
+		<Components>
+			<RuntimeRequirements SupportPath="./Contents/docs" OS="win64|macOS|linux" Platform="Maya" SeriesMin="2020" SeriesMax="2020" />
+			<MayaEnv expr="MAYA_SCRIPT_PATH+:=scripts-2020" />
+			<ComponentEntry ModuleName="./Contents/scripts-2020/bonusToolsMenu.mel" />
+			<ComponentEntry ModuleName="./Contents/scripts-2020/MayaBonusTools_load.mel" />
+			<ComponentEntry ModuleName="./Contents/scripts-2020/bonusToolsHelp.mel" />
+			<!-- ComponentEntry ModuleName="./Contents/scripts-2020/userSetup.mel" / -->
+		</Components>	
+	</ApplicationPackage>

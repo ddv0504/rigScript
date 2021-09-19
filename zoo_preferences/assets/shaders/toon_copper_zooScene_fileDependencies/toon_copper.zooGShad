@@ -1,0 +1,30 @@
+{
+    "nullObj":{
+        "attributesShaderDict":{
+            "gCoatIor":1.5,
+            "gCoatWeight":1.0,
+            "gSpecIor":4.0,
+            "gDiffuseWeight":1.0,
+            "gSpecColor_srgb":[
+                0.6799999908109459,
+                0.5057870207354378,
+                0.29149950737698077
+            ],
+            "gSpecWeight":1.0,
+            "gSpecRoughness":0.5450000166893005,
+            "gDiffuseColor_srgb":[
+                0.0,
+                0.0,
+                0.0
+            ],
+            "gCoatRoughness":0.23999999463558197,
+            "gCoatColor_srgb":[
+                0.9999999999999999,
+                0.9999999999999999,
+                0.9999999999999999
+            ]
+        },
+        "shaderName":"toon_copper_RS",
+        "objectFaces":[]
+    }
+}

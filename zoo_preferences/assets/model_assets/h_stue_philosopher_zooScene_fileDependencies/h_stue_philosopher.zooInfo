@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Bust of a Philosopher or Barbarian (?) - License: CC0 Public Domain\nThe identity of this bust has never been confirmed. The original, housed at the Kunsthistorisches Museum (ORIG1690), was written about by Votes in 1988; the work was formerly considered a barbarian, but the portrait has no traits that are found only in barbarians. The more common understanding is that the portrait depicts a philosopher or cynic.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, bust, head, face, male, man, portrait, Philosopher, Barbarian, masculine, clothed, hero",
+    "creators":"Scuplture: Unknown Artist\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-bust-of-a-philosopher-or-barbarian-102085  "
+}

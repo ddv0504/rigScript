@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"HDR Labs City sunset. Pink fill, white rim right,  left purple large disk (side). ",
+    "version":"1.0.0",
+    "tags":"ibl, city, HDR Labs, sunset, key, soft, blue, purple, nat, natalie",
+    "creators":"Skydome: HDR Labs\nLights: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdrlabs.com\nwww.create3dcharacters.com"
+}

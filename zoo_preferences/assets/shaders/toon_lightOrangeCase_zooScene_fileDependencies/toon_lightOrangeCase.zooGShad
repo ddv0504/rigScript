@@ -1,0 +1,30 @@
+{
+    "nullObj":{
+        "attributesShaderDict":{
+            "gCoatIor":1.5,
+            "gCoatWeight":1.0,
+            "gSpecIor":5.889999866485596,
+            "gDiffuseWeight":1.0,
+            "gSpecColor_srgb":[
+                0.9999999999999999,
+                0.7066168267264695,
+                0.38410564938699027
+            ],
+            "gSpecWeight":1.0,
+            "gSpecRoughness":0.30000001192092896,
+            "gDiffuseColor_srgb":[
+                0.6449999998192787,
+                0.4557678543833595,
+                0.24774814580700977
+            ],
+            "gCoatRoughness":0.10000000149011612,
+            "gCoatColor_srgb":[
+                0.9999999999999999,
+                0.9999999999999999,
+                0.9999999999999999
+            ]
+        },
+        "shaderName":"toon_lightCase_RS",
+        "objectFaces":[]
+    }
+}

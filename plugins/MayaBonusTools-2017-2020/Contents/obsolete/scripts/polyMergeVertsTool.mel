@@ -1,0 +1,69 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+global proc mergeToFirstVert(string $Selection1[], string $Selection2[]){
+
+	float $pos[] = `xform -q -ws -t $Selection1[0]`;
+
+	xform -a -ws -t $pos[0] $pos[1] $pos[2] $Selection2[0];
+
+	polyMergeVertex  -d 0.0001 -ch 1 $Selection1[0] $Selection2[0];
+
+	select -clear;
+
+
+}
+
+
+proc polyMergeVertsToolCtx(){
+	
+	scriptCtx
+		-title "Poly Merge Verts"
+		-image1 "weld_NEX32.png"
+		-toolCursorType "tumble"
+		-totalSelectionSets 2
+		
+		-cumulativeLists false
+		-expandSelectionList true
+		-fcs ("mergeToFirstVert $Selection1 $Selection2;")
+
+		-setNoSelectionPrompt "Select poly vert to merge to"
+		//-setSelectionPrompt ("Select additional faces to wedge " +
+		//	"and press Enter to complete")
+		
+		-setAutoToggleSelection true
+		-setAutoComplete true
+		-setSelectionCount 1
+		-polymeshVertex true
+		
+		-setNoSelectionPrompt "Select poly vert to move and merge"
+		//-setSelectionPrompt ("Select additional edges to wedge " +
+		//	"about and press Enter to complete")
+		-setAutoToggleSelection true
+		-setAutoComplete true
+		-setSelectionCount 1
+		-polymeshVertex true
+		
+		
+		//-exitUponCompletion true
+		
+		polyMergeVertsTool;
+	
+}
+
+
+
+
+global proc polyMergeVertsTool(){
+	
+	if (!`contextInfo -exists polyMergeVertsTool`)
+	{
+		polyMergeVertsToolCtx;
+	}
+	setToolTo polyMergeVertsTool;
+	
+}

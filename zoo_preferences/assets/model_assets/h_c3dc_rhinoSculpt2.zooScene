@@ -1,0 +1,31 @@
+{
+    "shaderDict":true,
+    "meshObjects":{
+        "|rhino_grp|rhinoScale_grp|rhino_eyes_R|eye_rot_group_R|eye_R":{
+            "useSmoothPreviewForRender":true,
+            "renderSmoothLevel":2,
+            "displaySmoothMesh":0,
+            "smoothLevel":2
+        },
+        "|rhino_grp|rhinoScale_grp|rhino_body_geo":{
+            "useSmoothPreviewForRender":true,
+            "renderSmoothLevel":2,
+            "displaySmoothMesh":0,
+            "smoothLevel":2
+        },
+        "|rhino_grp|rhinoScale_grp|rhino_eyes_L|eye_rot_group_L|eye_L":{
+            "useSmoothPreviewForRender":true,
+            "renderSmoothLevel":2,
+            "displaySmoothMesh":0,
+            "smoothLevel":2
+        }
+    },
+    "version":"1.0.0",
+    "lightDict":false,
+    "namespaces":[],
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ]
+}

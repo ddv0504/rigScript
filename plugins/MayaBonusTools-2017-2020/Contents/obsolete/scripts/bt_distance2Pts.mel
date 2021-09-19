@@ -1,0 +1,29 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+//	Description:
+//		Returns the distance between two 3D points.
+//
+global proc float distance2Pts( float $p1[], float $p2[] )
+{
+	if( size($p1) != 3 )
+		warning("distance2Pts(): You must give a float array of 3 values as the 1st argument\n");
+	if( size($p2) != 3 )
+		warning("distance2Pts(): You must give a float array of 3 values as the 2nd argument\n");
+
+	float $distance;
+	float $v[3];
+	$v[0] = $p1[0] - $p2[0];
+	$v[1] = $p1[1] - $p2[1];
+	$v[2] = $p1[2] - $p2[2];
+	$distance = $v[0]*$v[0] + $v[1]*$v[1] + $v[2]*$v[2];
+	$distance = sqrt( $distance );
+
+	return $distance;
+}
+

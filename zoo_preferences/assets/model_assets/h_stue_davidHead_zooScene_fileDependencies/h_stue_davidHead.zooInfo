@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"David Bust - License: CC0 Public Domain\nThis is a scan from a cast of the original David by Michelangelo, a masterpiece of Renaissance art. The cropped bust was crafted in 1899 (Beckett number 756).",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, david, Renaissance, Michelangelo, head, face, bust, man, male, portrait, masculine, hero",
+    "creators":"Scuplture: Michelangelo\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-head-of-michelangelo-s-david-52645"
+}

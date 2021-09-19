@@ -1,0 +1,39 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+proc polySubdivideToolCtx(){
+	
+	scriptCtx
+		-title "Poly Subdivide"
+		-image1 "polySubdFacet.png"
+		-totalSelectionSets 1
+		
+		-expandSelectionList true
+		-finalCommandScript ("SubdividePolygon;")
+
+		-setNoSelectionPrompt "Select poly component to subdivide"
+		-setAutoComplete true
+		-setSelectionCount 1
+		-polymeshEdge true
+		-polymeshFace true
+		-toolCursorType "create"
+
+		
+		polySubdivideTool;
+	
+}
+
+
+global proc polySubdivideTool(){
+	
+	if (!`contextInfo -exists polySubdivideTool`)
+	{
+		polySubdivideToolCtx;
+	}
+	setToolTo polySubdivideTool;
+	
+}

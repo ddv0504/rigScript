@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Studio setup, front light purple key and fill, side lights red and aqua. Softbox backlit. Factory Pumps skydome, hdri ibl",
+    "version":"1.0.0",
+    "tags":"studio, color, red, aqua, blue, key, fill, soft, backlit, shaderbot, shader bot, hdri, skydome, factory, ibl, pick",
+    "creators":"Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.create3dcharacters.com"
+}

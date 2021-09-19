@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"HDRI Skies sunset, with primary red fills and white large round key.\n2d Dragon: Ville Sinkkonen\n3d Dragon: Andrew Silke",
+    "version":"1.0.0",
+    "tags":"ibl, HDR Skies, red, blue, soft, dragon",
+    "creators":"Skydome: HDRI Skies\nLights: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdri-skies.com\nwww.create3dcharacters.com\nwww.villes.artstation.com"
+}

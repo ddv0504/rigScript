@@ -1,0 +1,37 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+proc polyChamferVertexToolCtx(){
+
+	 scriptCtx
+		 -title "Poly Chamfer Vertex"
+		 -image1 "polyChamfer.png"
+		 -totalSelectionSets 1
+		 -fcs "ChamferVertex;"
+		 //-cumulativeLists true
+		 -expandSelectionList true
+		 -setNoSelectionPrompt "Select a poly vertex to chamfer"
+		 //-setSelectionPrompt "Select a second curve close to the attachment point"
+		 //-setDoneSelectionPrompt "Never used because setAutoComplete is set"
+		 //-setAutoToggleSelection true
+		 -setSelectionCount 1
+		 -setAutoComplete true
+		 -polymeshVertex true
+		 -exitUponCompletion true
+		 -toolCursorType "create"
+		 polyChamferVertexTool;
+
+}
+
+
+global proc polyChamferVertexTool(){
+
+	if (!`contextInfo -exists polyChamferVertexTool`)
+		{polyChamferVertexToolCtx;}
+	setToolTo polyChamferVertexTool;
+
+}

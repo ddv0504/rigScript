@@ -1,0 +1,358 @@
+// Copyright (C) 1997-2020 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+//
+//
+// Author:	Steven T. L. Roselle                
+// Last updated:      ( 01/01/20 )
+
+
+
+global proc bt_stackAllAboveLast (string $list[], int $axis)
+{
+	$size = `size $list`;
+	$last = $list[$size-1];
+	$c = $size-2;
+
+	if ($axis == 1)
+		$flag = "-x";
+	else if ($axis == 2)
+		$flag = "-y";
+	else if ($axis == 3)
+		$flag = "-z";
+	
+	$stackTo = $last;
+	
+	while ($c >= 0) 
+		{
+		select -r $list[$c] $stackTo;
+
+		//make sure first obj is definitely on top
+		align -atl $flag Max;
+		select -r $list[$c];
+		move -r -ws $flag 5000;
+
+		//then stack
+		select -r $list[$c] $stackTo;	
+		align -atl $flag Stack;
+
+		//set next obj to stack on
+		$stackTo = $list[$c];
+
+		$c--;
+		}
+
+select -r $list;
+}
+
+
+
+global proc bt_stackAllUnderLast (string $list[], int $axis)
+{
+	string $flag;
+	float $startPosition;
+	float $newPosition;
+	float $difference ;
+	
+	$size = `size $list`;
+	$last = $list[$size-1];
+	$first = $list[0];
+	$c = 1;
+
+	if ($axis == 1)
+		{
+		$flag = "-x";
+		$startPosition = `getAttr ($last + ".tx")`;
+		}
+	else if ($axis == 2)
+		{
+		$flag = "-y";
+		$startPosition = `getAttr ($last + ".ty")`;
+		}
+	else if ($axis == 3)
+		{
+		$flag = "-z";
+		$startPosition = `getAttr ($last + ".tz")`;
+		}
+	
+		
+	//start by stacking above first object
+		
+	$stackTo = $first;
+	
+	while ($c <= ($size-1)) 
+		{
+		select -r $list[$c] $stackTo;
+
+		//make sure first obj is definitely on top
+		align -atl $flag Max;
+		select -r $list[$c];
+		move -r -ws $flag 5000;
+
+		//then stack
+		select -r $list[$c] $stackTo;	
+		align -atl $flag Stack;
+
+		//set next obj to stack on
+		$stackTo = $list[$c];
+
+		$c++;
+		}
+		
+	select -r $list;
+
+	//reloacate to stack below last object
+	
+	if ($axis == 1)
+		{
+		$newPosition = `getAttr ($last + ".tx")`;
+		$difference = $startPosition - $newPosition;
+		move -r $difference 0 0;
+		}
+	else if ($axis == 2)
+		{
+		$newPosition = `getAttr ($last + ".ty")`;
+		$difference = $startPosition - $newPosition;
+		move -r 0 $difference 0;		}
+	else if ($axis == 3)
+		{
+		$newPosition = `getAttr ($last + ".tz")`;
+		$difference = $startPosition - $newPosition;
+		move -r 0 0 $difference;
+	}
+
+}
+
+global proc bt_BoundingBoxAlign (int $axis)
+{
+					
+
+	if (($axis == 1))  // X
+	    {
+		align -x Dist;
+		align -atl -y Mid;
+		align -atl -z Mid;
+		}
+	else if (($axis == 2))  // Y
+	    {
+		align -y Dist;
+		align -atl -x Mid;
+		align -atl -z Mid;
+		}
+	else if (($axis == 3))  // Z
+	    {
+		align -z Dist;	
+		align -atl -x Mid;
+		align -atl -y Mid;
+		}
+	else
+		warning "wrong parameters.";
+}
+
+global proc bt_alignObjects (string $type, int $axis)
+{
+	if (($type == "center") && ($axis == 1))  // X
+		align -atl -z Mid -y Mid;
+	else if (($type == "center") && ($axis == 2))  // Y
+		align -atl -x Mid -z Mid;
+	else if (($type == "center") && ($axis == 3))  // Z
+		align -atl -y Mid -x Mid;
+	
+	else if (($type == "base") && ($axis == 1))  // X
+		align -atl -z Mid -y Min;
+	else if (($type == "base") && ($axis == 2))  // Y
+		{
+		align -atl -x Mid -z Mid;
+		warning ("No base to align to when aligning along Y axis.  Center used instead");
+		}
+	else if (($type == "base") && ($axis == 3))  // Z
+		align -atl -y Min -x Mid;
+	
+	else if (($type == "top") && ($axis == 1))  // X
+		align -atl -z Mid -y Max;
+	else if (($type == "top") && ($axis == 2))  // Y
+		{
+		align -atl -x Mid -z Mid;
+		warning ("No top to align to when aligning along Y axis.  Center used instead");
+		}
+	else if (($type == "top") && ($axis == 3))  // Z
+		align -atl -y Max -x Mid;	
+		
+		
+	else if (($type == "min") && ($axis == 1))  // X
+		align -atl -x Min;
+	else if (($type == "min") && ($axis == 2))  // Y
+		align -atl -y Min;
+	else if (($type == "min") && ($axis == 3))  // Z
+		align -atl -z Min;		
+		
+	else if (($type == "mid") && ($axis == 1))  // X
+		align -atl -x Mid;
+	else if (($type == "mid") && ($axis == 2))  // Y
+		align -atl -y Mid;
+	else if (($type == "mid") && ($axis == 3))  // Z
+		align -atl -z Mid;	
+		
+	else if (($type == "max") && ($axis == 1))  // X
+		align -atl -x Max;
+	else if (($type == "max") && ($axis == 2))  // Y
+		align -atl -y Max;
+	else if (($type == "max") && ($axis == 3))  // Z
+		align -atl -z Max;					
+		
+
+	else if (($type == "dist") && ($axis == 1))  // X
+		align -x Dist;
+	else if (($type == "dist") && ($axis == 2))  // Y
+		align -y Dist;
+	else if (($type == "dist") && ($axis == 3))  // Z
+		align -z Dist;	
+	else
+		warning "wrong parameters.";
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+global proc bt_stackAlignObjects ()
+{
+
+
+	if (`optionVar -ex bt_stackAxis` == 0)
+		optionVar -intValue bt_stackAxis 1;
+
+						
+	
+    // Get main UI settings
+    //
+    $bt_windowHeight = 300;		
+    $bt_windowWidth = 400;
+    
+    string $tmpWindow;	
+	
+    	//first delete window if it exists already
+    	if( (`window -exists bt_stackAlignObjectsWindow`) == true )
+    			{
+    			deleteUI bt_stackAlignObjectsWindow;
+     			//windowPref -remove bt_stackAlignObjectsWindow;
+    			}
+
+
+	
+	
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//					Begin UI Creation
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	     $tmpWindow = `window -s 0 -menuBar true -t "Stack / Align Objects" bt_stackAlignObjectsWindow`;
+    	
+    
+    			columnLayout -adjustableColumn true;
+    		
+    			
+    				//////////////////////
+    				//		TRANSLATE
+    				//
+    				source manipMoveOrient; //for edge and face move manip
+    				    
+   						separator -st single;
+   						
+    						rowColumnLayout -numberOfColumns 1 -columnWidth 1 ($bt_windowWidth);
+					    
+    					    text -l "Bounding  Box  Based  Stacking  /  Alignment" -fn smallPlainLabelFont -h 25 -al center -ann "Align objects based on their bounding boxes.";
+
+    					    setParent ..; //rowColumn
+    
+        					rowColumnLayout -numberOfColumns 4 -columnWidth 1 ($bt_windowWidth/4) -columnWidth 2 ($bt_windowWidth/4) -columnWidth 3 ($bt_windowWidth/4) -columnWidth 4 ($bt_windowWidth/4) ;
+        					
+                            	
+    						//Get state of axis radio buttons
+    						if 	((`optionVar -q bt_moveSpace` == "-os") || (`optionVar -q bt_moveSpace` == "-ws"))
+    							$axisState = 1;
+    						else 
+    							$axisState = 0;
+    						
+    						text -l "World Axis :  " -al right;
+    						radioCollection;
+    							if (`optionVar -q bt_stackAxis` == 1)
+    								{
+    								$bt_moveAxisX = `radioButton -al center -en $axisState -l "X" -sl -onc "optionVar -iv bt_stackAxis 1"`;
+    								$bt_moveAxisY = `radioButton -al center -en $axisState -l "Y" -onc "optionVar -iv bt_stackAxis 2"`;
+    								$bt_moveAxisZ = `radioButton -al center -en $axisState -l "Z" -onc "optionVar -iv bt_stackAxis 3"`;
+    								}
+    							else if (`optionVar -q bt_stackAxis` == 2)
+    								{
+    								$bt_moveAxisX = `radioButton -al center -en $axisState -l "X" -onc "optionVar -iv bt_stackAxis 1"`;
+    								$bt_moveAxisY = `radioButton -al center -en $axisState -l "Y" -sl -onc "optionVar -iv bt_stackAxis 2"`;
+    								$bt_moveAxisZ = `radioButton -al center -en $axisState -l "Z" -onc "optionVar -iv bt_stackAxis 3"`;
+    								}
+    							else if (`optionVar -q bt_stackAxis` == 3)
+    								{
+    								$bt_moveAxisX = `radioButton -al center -en $axisState -l "X" -onc "optionVar -iv bt_stackAxis 1"`;
+    								$bt_moveAxisY = `radioButton -al center -en $axisState -l "Y" -onc "optionVar -iv bt_stackAxis 2"`;
+    								$bt_moveAxisZ = `radioButton -al center -en $axisState -l "Z" -sl -onc "optionVar -iv bt_stackAxis 3"`;
+    								}
+    		
+                            separator -st none;
+    		
+    					    setParent ..; //rowColumn
+    					   
+    
+    						rowColumnLayout -numberOfColumns 3 -columnWidth 1 ($bt_windowWidth/2) -columnWidth 2 3 -columnWidth 3 ($bt_windowWidth/2);
+        						
+    						button -l "Stack Above" -ann "Stack all selected objects above (or in front of) last selected on specified axis" -c "bt_alignObjects center `optionVar -q bt_stackAxis`; bt_stackAllAboveLast `ls -sl` `optionVar -q bt_stackAxis`" ;
+                            separator -st none;
+    						button -l "Stack Below" -ann "Stack all selected objects below (or behind) last selected on specified axis" -c "bt_alignObjects center `optionVar -q bt_stackAxis`; bt_stackAllUnderLast `ls -sl` `optionVar -q bt_stackAxis`" ;
+    						
+    					    setParent ..; //rowColumn
+    					   
+    
+    						rowColumnLayout -numberOfColumns 3 -columnWidth 1 ($bt_windowWidth/2) -columnWidth 2 3 -columnWidth 3 ($bt_windowWidth/2);
+    						
+    						button -l "Align Along" -ann "Align all selected objects to last selected along specified axis based on bounding box center" -c "bt_alignObjects center `optionVar -q bt_stackAxis`";  
+                            separator -st none;
+    						button -l "Equidistant Along" -ann "Align all selected objects to last selected along specified axis and space equaly based on bounding box" -c "bt_BoundingBoxAlign `optionVar -q bt_stackAxis`";
+
+    					    setParent ..; //rowColumn
+
+    						rowColumnLayout -numberOfColumns 5 -columnWidth 1 ($bt_windowWidth/3) -columnWidth 2 3 -columnWidth 3 ($bt_windowWidth/3) -columnWidth 4 3 -columnWidth 5 ($bt_windowWidth/3);
+
+    						button -l "Align To Min" -ann "Align selected objects with last selected along the specified axis using min bounding box value for each object" -c "bt_alignObjects min `optionVar -q bt_stackAxis`" ;
+                            separator -st none;
+    						button -l "Align To Mid" -ann "Align selected objects with last selected along the specified axis using mid bounding box value for each object" -c "bt_alignObjects mid `optionVar -q bt_stackAxis`" ;
+                            separator -st none;
+    						button -l "Align To Max" -ann "Align selected objects with last selected along the specified axis using max bounding box value for each object" -c "bt_alignObjects max `optionVar -q bt_stackAxis`" ;
+    				  							
+    							    					
+    					    setParent ..; //rowColumn
+        
+        print ($tmpWindow + "\n");
+         
+        showWindow bt_stackAlignObjectsWindow;
+
+
+
+}
+
+
+bt_stackAlignObjects;

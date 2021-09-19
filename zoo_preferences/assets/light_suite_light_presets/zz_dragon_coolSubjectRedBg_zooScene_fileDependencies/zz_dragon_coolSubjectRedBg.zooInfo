@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Studio, rect white key, softbox blue back lit, red bg light, light blue right fill.\n2d Dragon: Ville Sinkkonen\n3d Dragon: Andrew Silke",
+    "version":"1.0.0",
+    "tags":"studio, backlit, soft, key, blue, red",
+    "creators":"Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.villes.artstation.com\nwww.create3dcharacters.com"
+}

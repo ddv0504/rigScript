@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Winter Forest single HDR Skydome IBL by HDR Labs",
+    "version":"1.0.0",
+    "tags":"skydomePure, iblPure, hdrlabs, grey, forest, nature, pick",
+    "creators":"HDR Labs Christian Bloch",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"http://www.hdrlabs.com\nwww.create3dcharacters.com"
+}

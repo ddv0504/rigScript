@@ -1,0 +1,64 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+// getComponentShader.mel
+
+//			may 2002: fixed error that occurred if faces were not mapped
+// 
+// this script will select the shader assigned to the active poly face
+//
+// Usage: with a face selected, enter `getComponentShader` in the script 
+// editor or on the command line.
+
+global proc bgGetComponentShader(){
+
+	string $comps[] = `ls -selection -flatten`;
+	if (`size($comps)` > 0){
+
+		// find the shape node
+		string $shape[] = `listRelatives -parent $comps[0]`;
+		
+		// find the shading engine
+		string $connections[] = `listConnections -source false -type 
+			"shadingEngine" $shape[0]`;
+
+		// there may be more than one shading group connected to the
+		// geometry so find the exact one
+		$connections = `stringArrayRemoveDuplicates $connections`;
+		string $shadingGroup;
+
+		for ($connection in $connections){
+			int $result = `sets -isMember $connection`;
+			if ($result == 1) {$shadingGroup = $connection;}
+		}
+		
+		// if no shading group has been found, the components must not be
+		// mapped - this means the shape is mapped
+		if ($shadingGroup == ""){
+			for ($connection in $connections){
+				int $result = `sets -isMember $connection $shape[0]`;
+				if ($result == 1) {$shadingGroup = $connection;}
+			}
+		}
+
+		if ($shadingGroup != ""){
+			// find the shader connected to the shading group
+			string $shaderConnection = `connectionInfo -sourceFromDestination 
+				($shadingGroup + ".surfaceShader")`;
+			string $shader[];
+			tokenize $shaderConnection "." $shader;
+			
+			// select and show the shader
+			select -tgl $shader[0];
+			showEditor $shader[0];
+		}
+
+	} else {
+		error ("No component selected: Select a component to see its " +
+			"material attributes.");
+	}	
+}

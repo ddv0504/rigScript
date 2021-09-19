@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Desert Highway HDR Labs IBL with large round white key. ",
+    "version":"1.0.0",
+    "tags":"desert, ibl, HDR Labs, grey, blue, key, shaderbot, shader bot",
+    "creators":"Skydome: HDRI Skies\nLight Setup: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"http://www.hdrlabs.com\nwww.create3dcharacters.com"
+}

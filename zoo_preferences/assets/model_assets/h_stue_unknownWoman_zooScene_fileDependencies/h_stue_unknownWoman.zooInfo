@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Woman - License: CC0 Public Domain\nLittle is known about the provenance and identification of this portrait. The plaster cast was produced from The Louvre, from a bust which is either in Paris or Urbino, Italy (?).",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Scan The World, historical, bust, head, face, female, woman, portrait, Italy, stw, hero",
+    "creators":"Scuplture: Artist Unknown\nScan: Scan The World",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-woman-100225"
+}

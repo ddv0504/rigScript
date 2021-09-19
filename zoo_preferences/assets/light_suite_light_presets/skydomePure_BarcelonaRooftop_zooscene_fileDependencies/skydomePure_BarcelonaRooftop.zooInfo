@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Barcelona Rooftop, single HDR Skydome IBL by HDR Labs",
+    "version":"1.0.0",
+    "tags":"pick, skydomePure, iblPure, hdrlabs, blue",
+    "creators":"HDR Labs Christian Bloch",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"http://www.hdrlabs.com\nwww.create3dcharacters.com"
+}

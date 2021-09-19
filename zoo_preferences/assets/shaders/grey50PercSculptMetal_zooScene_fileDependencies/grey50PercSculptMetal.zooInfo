@@ -1,0 +1,10 @@
+{
+    "assetType":"Shaders",
+    "animation":"None",
+    "description":"Half diffuse half metal useful for a sculpt shader that isn't full metal",
+    "version":"1.0.0",
+    "tags":"grey, 50, ior, sculpt, ZBrush, Mudbox, blinn",
+    "creators":"Andrew Silke",
+    "saved":"[]",
+    "websites":"create3dcharacters.com"
+}

@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"HDRI skies yellow morning strong side sun with round white side key and light blue fill.",
+    "version":"1.0.0",
+    "tags":"sun, morning, key, side, ibl, HDRI Skies, yellow, nat, natalie",
+    "creators":"HDRI: HDRI Skies\nLights: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdri-skies.com\nwww.create3dcharacters.com"
+}

@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"A Little Girl With Kittens - License: CC0 Public Domain\nThis beautiful sculpture by Danish artist JA (Jens Adolf) Jerichau (1816 - 1883) depicts in marble a little girl gazing down at three kittens she is holding whilst an adult cat (most likely the mother) brushes itself alongside the girl's leg.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, scan,  artec, figure, girl, child, clothed, cat, kitten, Jens, Adolf, Jerichau, hero",
+    "creators":"Scuplture: Jens Adolf Jerichau\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-a-little-girl-with-kittens-105328 "
+}

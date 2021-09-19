@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Pure white two large side rect lights placed slightly in front of the subject. No HDRI.",
+    "version":"1.0.0",
+    "tags":"pure, studio, fill, soft, side, fill, shaderbot, shader bot",
+    "creators":"Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.create3dcharacters.com"
+}

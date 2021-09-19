@@ -1,0 +1,13 @@
+{
+  "settings": {
+    "imageHDR": true, 
+    "imageTIF": true, 
+    "iblSkydomesUniformIcons": true, 
+    "imageTX": false, 
+    "lightPresetsFolder": "C:/Users/duke_/OneDrive/documents/zoo_preferences\\assets\\light_suite_light_presets", 
+    "imageEXR": true, 
+    "imageTEX": false, 
+    "iblSkydomesFolder": "C:/Users/duke_/OneDrive/documents/zoo_preferences\\assets\\light_suite_ibl_skydomes", 
+    "lightPresetsUniformIcons": true
+  }
+}

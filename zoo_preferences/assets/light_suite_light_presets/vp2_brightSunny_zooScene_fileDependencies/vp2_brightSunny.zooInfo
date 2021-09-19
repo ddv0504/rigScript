@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Viewport light setup with HDR Skies 024 sunny skydome",
+    "version":"1.0.0",
+    "tags":"viewport, vp2, sunny, bright",
+    "creators":"Skydome: HDRI Skies\nLight Setup: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"https://hdri-skies.com/\nwww.create3dcharacters.com"
+}

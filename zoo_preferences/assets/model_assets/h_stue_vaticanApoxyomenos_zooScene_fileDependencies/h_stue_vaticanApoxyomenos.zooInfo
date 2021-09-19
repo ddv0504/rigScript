@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Head from the Vatican Apoxyomenos\nLicense: CC0 Public Domain\nThis head is cast made from an original sculpture of a standing athlete, presumably made by the 4th Century BC sculptor Lysippos. The original work (ca. 4th Century BC), is housed in the Albertinum.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, bust, head, face, male, man, Vatican, Apoxyomenos, masculine, hero",
+    "creators":"Scuplture: Lysippos  \nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-head-from-the-vatican-apoxyomenos-105601 "
+}

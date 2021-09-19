@@ -1,0 +1,32 @@
+{
+    "areaLights":null,
+    "directionalLights":{},
+    "iblSkydomes":{
+        "skyDomeLight":{
+            "gLightColor_srgb":[
+                1.0,
+                1.0,
+                1.0
+            ],
+            "gIntensity":10.224499702453613,
+            "gLightVisibility":false,
+            "gExposure":null,
+            "gIblTexture":"C:/Users/Andrew Silke/Documents/zoo_preferences/assets/light_suite_ibl_skydomes/HDRI-SKIES_Sky023.hdr",
+            "gScale":[
+                1.0,
+                1.0,
+                1.0
+            ],
+            "gTranslate":[
+                0.0,
+                0.0,
+                0.0
+            ],
+            "gRotate":[
+                0.0,
+                705.0,
+                0.0
+            ]
+        }
+    }
+}

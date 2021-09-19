@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Statue of an unknown Cynic philosopher, Menippus of Gadara?\nLicense: CC0 Public Domain\nThis plaster copy was acquired in 1897, cast after a Roman copy of a lost Greek original Hellenistic style dating from the 3rd Century BC, found in The Villa of the Antonines (home to Antoninus Pius, Marcus Aurelius, Lucius Verus and Commodus) outside Rome. The scroll in his right hand is an 18th Century restoration.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, scan,  artec, figure, male, clothed, male, man, Cynic philosopher, Menippus, Gadara, roman, greek, masculine, hero",
+    "creators":"Scuplture: Unknown Artist\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-statue-of-an-unknown-cynic-philosopher-menippus-of-gadara-104926  "
+}

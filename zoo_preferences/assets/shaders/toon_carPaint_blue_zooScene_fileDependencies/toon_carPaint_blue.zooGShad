@@ -1,0 +1,30 @@
+{
+    "nullObj":{
+        "attributesShaderDict":{
+            "gCoatIor":1.5,
+            "gCoatWeight":1.0,
+            "gSpecIor":16.0,
+            "gDiffuseWeight":1.0,
+            "gSpecColor_srgb":[
+                0.18810898210473015,
+                0.41586194483173716,
+                0.4901088506446643
+            ],
+            "gSpecWeight":1.0,
+            "gSpecRoughness":0.5,
+            "gDiffuseColor_srgb":[
+                0.2027150243974577,
+                0.5245566908599392,
+                0.6950701420156016
+            ],
+            "gCoatRoughness":0.25,
+            "gCoatColor_srgb":[
+                0.5850000092028481,
+                0.5850000092028481,
+                0.5850000092028481
+            ]
+        },
+        "shaderName":"truck_blue_body_RS",
+        "objectFaces":[]
+    }
+}

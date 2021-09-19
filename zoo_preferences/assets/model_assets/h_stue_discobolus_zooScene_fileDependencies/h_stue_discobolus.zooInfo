@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Discobolus (The Discus Thrower) - License: CC0 Public Domain\nThe sculpture depicting a discus thrower is described in surviving accounts from Antiquity, but it took a long time before archaeologists were able to reconstruct the original on the basis of fragments from a range of copies from Antiquity. For example, the head was placed in several different ways before settling on a final version; this is evident in the two versions housed at the Royal Cast Collection. The strange horns in the figure\u2019s forehead are the remnants of a device used to support a victory wreath.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, scan,  artec, figure, naked, male, nude, male, man, discus, Discobolus, thrower, hero",
+    "creators":"Sculpture: Unknown Artist\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-discobolus-the-discus-thrower-25156  "
+}

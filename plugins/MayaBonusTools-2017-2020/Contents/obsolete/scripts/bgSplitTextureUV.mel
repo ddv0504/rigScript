@@ -1,0 +1,39 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+//  Creation Date:      September 2, 2001
+//
+//
+//  Procedure Name:
+//      splitTextureUV
+//
+//  Description:
+//	splits texture UV from selected vertex or uv.
+//
+//  Input Arguments:
+//      None.
+//
+//  Return Value:
+//      None.
+//
+//  Usage:
+//	Select vertices that you want their texture UVs to split
+//	or texture UVs, and 
+//		splitTextureUV;
+//
+//
+
+global proc bgSplitTextureUV () {
+
+    $sel = `ls -sl`;
+    PolySelectConvert 2;
+    polyMapCut;
+    select -r $sel;
+    PolySelectConvert 4;
+
+}

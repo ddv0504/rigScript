@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Pure white light setup based on beauty studio light setup, two round keys and round fill, front lit. No HDRI.",
+    "version":"1.0.0",
+    "tags":"beauty, pure, white, studio, fill, nat, natalie",
+    "creators":"Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.create3dcharacters.com"
+}

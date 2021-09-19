@@ -1,0 +1,21 @@
+{
+    "shaderDict":true,
+    "meshObjects":{
+        "|venusItalica_geo":{
+            "useSmoothPreviewForRender":true,
+            "renderSmoothLevel":2,
+            "displaySmoothMesh":0,
+            "smoothLevel":2
+        }
+    },
+    "version":"1.0.0",
+    "lightDict":false,
+    "namespaces":[
+        "smk_venus_italica_kas_dep1"
+    ],
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ]
+}

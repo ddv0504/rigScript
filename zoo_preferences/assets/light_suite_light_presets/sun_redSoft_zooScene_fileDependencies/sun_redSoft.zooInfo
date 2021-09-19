@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Pink dusk HDRI Skies. Low soft sun directional.  White fill right.",
+    "version":"1.0.0",
+    "tags":"sun, soft, pink, sunset, HDRI Skies, ibl, shaderbot, shader bot",
+    "creators":"Skydome: HDRI Skies\nLight Setup: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdri-skies.com\nwww.create3dcharacters.com"
+}

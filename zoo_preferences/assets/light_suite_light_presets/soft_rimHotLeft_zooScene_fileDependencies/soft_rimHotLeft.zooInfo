@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Grey HDRI Skies snow IBL with white key and rim.",
+    "version":"1.0.0",
+    "tags":"grey, ibl, HDRI Skies, snow, rim, key, shaderbot, shader bot",
+    "creators":"Skydome: HDRI Skies\nLight Setup: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdri-skies.com\nwww.create3dcharacters.com"
+}

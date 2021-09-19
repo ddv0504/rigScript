@@ -1,0 +1,30 @@
+{
+    "nullObj":{
+        "attributesShaderDict":{
+            "gCoatIor":1.5,
+            "gCoatWeight":0.0,
+            "gSpecIor":4.0,
+            "gDiffuseWeight":1.0,
+            "gSpecColor_srgb":[
+                0.7099999974147344,
+                0.7099999974147344,
+                0.7099999974147344
+            ],
+            "gSpecWeight":1.0,
+            "gSpecRoughness":0.22499999403953552,
+            "gDiffuseColor_srgb":[
+                0.1549999965614409,
+                0.1549999965614409,
+                0.1549999965614409
+            ],
+            "gCoatRoughness":0.10000000149011612,
+            "gCoatColor_srgb":[
+                0.9999999999999999,
+                0.9999999999999999,
+                0.9999999999999999
+            ]
+        },
+        "shaderName":"toon_darkMetal",
+        "objectFaces":[]
+    }
+}

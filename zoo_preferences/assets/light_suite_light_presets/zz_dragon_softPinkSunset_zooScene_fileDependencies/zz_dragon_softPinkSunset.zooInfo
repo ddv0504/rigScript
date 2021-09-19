@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Pink dusk HDRI Skies IBL with large round white key. \n2d Dragon: Ville Sinkkonen\n3d Dragon: Andrew Silke",
+    "version":"1.0.0",
+    "tags":"ibl, pink, blue, sunset, dusk, soft, key, HDRI Skies, dragon",
+    "creators":"Skydome: HDRI Skies\nLights: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdri-skies.com\nwww.create3dcharacters.com\nwww.villes.artstation.com"
+}

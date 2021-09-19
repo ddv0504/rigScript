@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Sky 201 - Orange Sunset Green Grass, single HDR Skydome IBL by HDRI Skies",
+    "version":"1.0.0",
+    "tags":"skydomePure, iblPure, hdriskies, sunrise, sunset",
+    "creators":"HDRI Skies",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"https://hdri-skies.com\nwww.create3dcharacters.com"
+}

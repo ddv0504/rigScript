@@ -1,0 +1,30 @@
+{
+    "nullObj":{
+        "attributesShaderDict":{
+            "gCoatIor":1.5,
+            "gCoatWeight":1.0,
+            "gSpecIor":20.0,
+            "gDiffuseWeight":1.0,
+            "gSpecColor_srgb":[
+                0.7099999974147344,
+                0.6412648532885953,
+                0.4825553045125703
+            ],
+            "gSpecWeight":1.0,
+            "gSpecRoughness":0.30000001192092896,
+            "gDiffuseColor_srgb":[
+                0.3999999974259806,
+                0.37847287895686144,
+                0.3344770294824187
+            ],
+            "gCoatRoughness":0.10000000149011612,
+            "gCoatColor_srgb":[
+                0.5050000010317919,
+                0.5050000010317919,
+                0.5050000010317919
+            ]
+        },
+        "shaderName":"truck_tv_screen_RS",
+        "objectFaces":[]
+    }
+}

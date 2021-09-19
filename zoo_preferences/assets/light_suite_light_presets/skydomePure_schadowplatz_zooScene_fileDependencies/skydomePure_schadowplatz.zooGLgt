@@ -1,0 +1,32 @@
+{
+    "areaLights":null,
+    "directionalLights":{},
+    "iblSkydomes":{
+        "skyDomeLight":{
+            "gLightColor_srgb":[
+                1.0,
+                1.0,
+                1.0
+            ],
+            "gIntensity":0.3222000002861023,
+            "gLightVisibility":true,
+            "gExposure":null,
+            "gIblTexture":"C:/Users/Andrew Silke/Documents/zoo_preferences/assets/light_suite_ibl_skydomes/HDRIHaven_schadowplatz.hdr",
+            "gScale":[
+                1.0,
+                1.0,
+                1.0
+            ],
+            "gTranslate":[
+                0.0,
+                0.0,
+                0.0
+            ],
+            "gRotate":[
+                0.0,
+                -90.0,
+                0.0
+            ]
+        }
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "baseCylinderBlack":{
+        "attributesShaderDict":{
+            "gCoatIor":1.5,
+            "gSpecIor":1.5,
+            "gCoatColor_srgb":[
+                0.9999999999999999,
+                0.9999999999999999,
+                0.9999999999999999
+            ],
+            "gSpecColor_srgb":[
+                0.9999999999999999,
+                0.9999999999999999,
+                0.9999999999999999
+            ],
+            "gDiffuseColor_srgb":[
+                0.05000000142575615,
+                0.05000000142575615,
+                0.05000000142575615
+            ],
+            "gCoatWeight":0.30000001192092896,
+            "gSpecWeight":0.30000001192092896,
+            "gSpecRoughness":0.5,
+            "gCoatRoughness":0.20000000298023224,
+            "gDiffuseWeight":1.0
+        },
+        "shaderName":"baseCylinderBlack",
+        "objectFaces":[
+            "|baseSquare|baseSquareShape"
+        ]
+    }
+}

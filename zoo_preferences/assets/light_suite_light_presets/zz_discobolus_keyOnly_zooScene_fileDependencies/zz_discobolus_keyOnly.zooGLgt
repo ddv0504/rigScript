@@ -1,0 +1,29 @@
+{
+    "areaLights":{
+        "key":{
+            "gShape_shape":1,
+            "gLightColor_srgb":[
+                1.0,
+                1.0,
+                1.0
+            ],
+            "translateX":221.77418098552312,
+            "translateY":272.46851471007403,
+            "translateZ":131.73579871735026,
+            "gExposure":0.0,
+            "scaleX":33.52094600383837,
+            "scaleY":33.52094600383837,
+            "scaleZ":33.52094600383837,
+            "gTempOnOff":0.0,
+            "rotateX":-59.31646209594305,
+            "rotateY":24.889705015442196,
+            "rotateZ":-14.947243990062962,
+            "gIntensity":221390.359375,
+            "gLightVisibility":0.0,
+            "gTemperature":6500.0,
+            "gNormalize":1.0
+        }
+    },
+    "directionalLights":{},
+    "iblSkydomes":{}
+}

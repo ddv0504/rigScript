@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Portrait of a Bearded Man - License: CC0 Public Domain\nThe identity of this lightly bearded man is unknown, though his clothing suggests that he is of a religious background (priest?). The original marble, now housed in the State Museums, was creted in Florence, Italy around 1470.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, bust, head, face, male, man , portrait, lighly, bearded, Italy, Florence, masculine, hero",
+    "creators":"Scuplture: Unknown Artist\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-portrait-of-a-bearded-man-102679  "
+}

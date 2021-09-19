@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Desert HDR Labs IBL with purple key disk, side lights orange and blue. ",
+    "version":"1.0.0",
+    "tags":"color, orange, blue, purple, fill, desert, HDR Labs, desert, ibl, nat, natalie",
+    "creators":"Skydome: HDR Labs\nLights: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdrlabs.com\nwww.create3dcharacters.com"
+}

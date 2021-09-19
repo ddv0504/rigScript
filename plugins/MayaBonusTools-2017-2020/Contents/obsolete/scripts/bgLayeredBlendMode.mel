@@ -1,0 +1,23 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+// for selected layered texture nodes,
+// set the blendMode as specified
+//
+//	i.e bgLayeredBlendMode 6;
+//
+//		4 is add
+//		6 is multiply
+
+global proc bgLayeredBlendMode(int $blendMode){
+
+	string $nodes[] = `ls -sl`;
+	
+	for ($node in $nodes){
+			setAttr ($node + ".inputs[0].blendMode") $blendMode;
+		}
+}

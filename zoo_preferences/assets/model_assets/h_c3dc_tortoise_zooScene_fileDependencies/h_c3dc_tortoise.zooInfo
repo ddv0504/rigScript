@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Tortoise model created for Maya quad draw and sculpt tutorials at create3dcharacters.com, by Andrew Silke\n\nLicense: Non-Commercial Educational use only. Please do not distribute.",
+    "version":"1.0.0",
+    "tags":"tortoise, turtle, stylised, cartoon, character, quadraped, Andrew Silke, cartoon, c3dc, create3dcharacters",
+    "creators":"Andrew Silke",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"www.create3dcharacters.com"
+}

@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":"1 20",
+    "description":"Zanzi 20 frame run cycle animation.  Based off 2d design by Kim Allen and Chee Ghee. 3d by Andrew Silke\n\nLicense: Non-Commercial Educational use only. Please do not distribute.",
+    "version":"1.0.0",
+    "tags":"character, zanzi, model, biped, run, cycle, andrew silke, kim allen, chee ghee, fly, bug, wings, cartoon, insect, c3dc, create3dcharacters, animation, loop, hero",
+    "creators":"3d: Andrew Silke\nCharacter Design: Kim Allen\nIllustrator: Chee Ghee",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"www.create3dcharacters.com\nwww.vimeo.com/121406042"
+}

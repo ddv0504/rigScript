@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Pure white backlit softbox only. No HDRI.",
+    "version":"1.0.0",
+    "tags":"pure, dark, shadow, studio, rim, backlit, soft,  mood, dramatic, shaderbot, shader bot",
+    "creators":"Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.create3dcharacters.com"
+}

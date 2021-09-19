@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":"1 32",
+    "description":"Croc walk cycle. 3d by Andrew Silke, 2d concept by James Castillo. Plain shaders no textures",
+    "version":"1.0.0",
+    "tags":"croc, walk, james castillo, andrew silke, biped, creature, stylised",
+    "creators":"3d Model: Andrew Silke\n2d Concept: James Castillo",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"www.create3dcharacters.com\nhttps://www.facebook.com/murfishart/"
+}

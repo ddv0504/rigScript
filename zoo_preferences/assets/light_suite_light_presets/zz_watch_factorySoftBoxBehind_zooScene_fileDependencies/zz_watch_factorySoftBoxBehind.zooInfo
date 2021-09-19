@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Bright chrom setup with HDR Labs factory skydome backlit with key.\nWatch by R Chavez\nhttps://archive3d.net/?a=download&id=6beb1f6b",
+    "version":"1.0.0",
+    "tags":"HDR Labs, bright, ibl, factory, backlit, chrome, key, watch, reflective, product",
+    "creators":"Skydome: HDR Labs\nLights: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdrlabs.com\nwww.create3dcharacters.com"
+}

@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"White three point light studio traditional setup, soft variation. Rect key, fill and rim. Grey Factory Pumps Skydome for reflections.",
+    "version":"1.0.0",
+    "tags":"studio, three point, rim, key, fill, classic, shaderbot, shader bot, soft, factory, hdrlabs, skyome, ibl, hdri, pick",
+    "creators":"Skydome: HDR Labs\nLights: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdrlabs.com\nwww.create3dcharacters.com"
+}

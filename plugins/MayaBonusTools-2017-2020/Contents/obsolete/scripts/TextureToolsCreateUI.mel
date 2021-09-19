@@ -1,0 +1,32 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+//  Description:
+//  Creates the UI for the TextureTools plugin
+//
+//  Return Value:
+//      None.
+
+///////////////////////////////////////////////////////////////////////////////
+
+global proc TToolsAddUVMenus()
+{
+}
+
+// Add UI when plugin is loaded
+///////////////////////////////////////////////////////////////////////////////
+global proc TextureToolsCreateUI()
+{
+}
+
+// Remove UI when plugin is unloaded
+///////////////////////////////////////////////////////////////////////////////
+global proc TextureToolsDeleteUI()
+{
+}
+

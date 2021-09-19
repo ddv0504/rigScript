@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Grey dusk HDRI Skies IBL with large round white key. ",
+    "version":"1.0.0",
+    "tags":"grey, ibl, HDRI Skies, cloudy, key, dusk, soft, nat, natalie",
+    "creators":"Skydome: HDRI Skies\nLights: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdri-skies.com\nwww.create3dcharacters.com"
+}

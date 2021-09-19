@@ -1,0 +1,31 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// bgToggleManips.mel
+// cpam 2002
+// 
+// makes manips appear to turn off by scaling them down to a very small size
+//
+// usage:	bgToggleManips 1;//turns manips on
+//			bgToggleManips 0;//turns manips off
+
+global proc bgToggleManips (int $state){
+	if ($state == 1){
+		manipOptions 
+			-scale `optionVar -query manipGlobalScale`
+			-handleSize `optionVar -query manipHandleSize`
+			;
+	} else if ($state == 0){
+		manipOptions 
+			-scale 0.0001
+			-handleSize 1
+			;
+	} else {
+		warning "bgToggleManips  $state argument must be 1 for on or 0 for off";
+	}
+}

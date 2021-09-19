@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Seated Muse, Thalia - License: CC0 Public Domain\nCopy in plaster acquired 1896 as one of several from the same group of museums, original, Roman work from 2nd century BC, found in Emperor Hadrian's Villa outside Rome. Thalia means \"the blossoming\". She is the daughter of Zeus and Mnemosyne (the memory) and is the muse of the light genre of comedy, poetry and songs. The museums have named the phenomenon \"Museum\".  ",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, scan,  artec, figure, clothed, female, woman, Muse, Thalia, roman, hero",
+    "creators":"Scuplture: Unknown Artist\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-seated-muse-thalia-105614  "
+}

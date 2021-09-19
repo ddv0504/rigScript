@@ -1,0 +1,34 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+global proc createAutoProjectionController(){
+
+	string $objects[] = `ls -sl`;
+	string $controller = `createNode -name "polyAutoProjControl#" polyAutoProj`;
+
+	setAttr ($controller + ".optimize") 0;
+	setAttr ($controller + ".layout") 3;
+
+	for ($object in $objects){
+		string $projection[] = `polyAutoProjection -pb 0 -ibd 1 -cm 0 -l 3 -sc 1 -o 0 -p 6 -ps 0.2 -ws 1 ($object + ".f[*]")`;
+		connectAttr -f ($controller + ".translate") ($projection[0] + ".translate");
+		connectAttr -f ($controller + ".rotate") ($projection[0] + ".rotate");
+		connectAttr -f ($controller + ".scale") ($projection[0] + ".scale");
+		connectAttr -f ($controller + ".pivot") ($projection[0] + ".pivot");
+		connectAttr -f ($controller + ".planes") ($projection[0] + ".planes");
+		connectAttr -f ($controller + ".optimize") ($projection[0] + ".optimize");
+		connectAttr -f ($controller + ".layoutMethod") ($projection[0] + ".layoutMethod");
+		connectAttr -f ($controller + ".layout") ($projection[0] + ".layout");
+		connectAttr -f ($controller + ".skipIntersect") ($projection[0] + ".skipIntersect");
+		connectAttr -f ($controller + ".percentageSpace") ($projection[0] + ".percentageSpace");
+		connectAttr -f ($controller + ".scaleMode") ($projection[0] + ".scaleMode");
+		connectAttr -f ($controller + ".projectBothDirections") ($projection[0] + ".projectBothDirections");
+	}
+
+	select -replace $objects;
+	select -add $controller;
+}

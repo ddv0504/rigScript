@@ -1,0 +1,17 @@
+{
+    "meshObjects":{
+        "|stand":{
+            "smoothLevel":3,
+            "renderSmoothLevel":2,
+            "displaySmoothMesh":2,
+            "useSmoothPreviewForRender":true
+        }
+    },
+    "version":"1.0.0",
+    "namespaces":[],
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ]
+}

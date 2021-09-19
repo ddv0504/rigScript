@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Bust of Antinous as Dionysus - License: CC0 Public Domain\nThis bust adaption originates from a full-figure marble sculpture of Antinous depicted as Dionysus, housed at The Pio Clementino Museum (ORIG330), originating from around 130-138 BC.\nThe Emperor Hadrian became obsessed with Antinous, a young man from Asia Minor, to the extent that the Emperor created a cult of Antinous when the young man died, in 130 CE.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, bust, head, face, male, man, Antinous, Dionysus, masculine, hero",
+    "creators":"Scuplture: Unknown Artist\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-bust-of-antinous-as-dionysus-50345  "
+}

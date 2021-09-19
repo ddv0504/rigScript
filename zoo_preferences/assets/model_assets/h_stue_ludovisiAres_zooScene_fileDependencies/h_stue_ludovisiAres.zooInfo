@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Ludovisi Ares - License: CC0 Public Domain\nThe Ludovisi Ares is an Antonine Roman marble sculpture of Mars, a fine 2nd-Century copy of a late 4th-Century BC Greek original, associated with Scopas or Lysippus: thus the Roman god of war receives his Greek name, Ares.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, figure, naked, male, nude, man, mars, Ludovisi, Ares, Roman, Greek, god, masculine, clothed, hero",
+    "creators":"Scuplture: Artist Unknown \nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-the-ludovisi-gaul-104930  "
+}

@@ -1,0 +1,50 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+
+//	polyFixAppendMap.mel
+//
+//	Fix the mapping resulting from a create/append poly op
+//
+
+global proc polyFixAppendMap( ){
+	
+	string $faces[] = `filterExpand -sm 34`;
+	
+	//assuming it has some mapping
+	//no consideration for multiple UVs yet
+	
+	for ($face in $faces){
+		print "\nface";
+		string $verts[] = `polyListComponentConversion -toVertex $face`;
+		$verts = `filterExpand -sm 31 $verts`;
+		
+		for ($vert in $verts){
+			print "\nvert ";
+			print $vert;
+			string $uvs[] = `polyListComponentConversion -toUV $vert`;
+			$uvs = `filterExpand -sm 35 $uvs`;
+			//print "\nuvs ";print $uvs;
+			float $coords[] = `polyEditUV -query $uvs`;
+			int $numCoords = `size $coords`;
+			int $numUVs = `size $uvs`;
+
+			print "\nnum uvs ";
+			print $numUVs;
+			
+			polyEditUV -relative false
+				-uValue $coords[0]
+				-vValue $coords[1]
+				$uvs[($numUVs-1)];
+			
+		}
+		
+		
+	}
+	
+	
+}

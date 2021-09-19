@@ -1,0 +1,24 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+// makeSelectedLayered.mel
+// cpam july 2001
+//
+// For selected texture, create a layered texture node downstream 
+// and insert into shading network. Texture must be connected to a 
+// shader.
+//
+// Requires modifed turnTextureIntoLayeredTexture.mel (july 2001)
+//
+
+global proc bgMakeSelectedLayered(){
+	string $files[] = `ls -sl`;
+	int $mode = 1;
+	for ($file in $files){
+		turnTextureIntoLayeredTexture $file;
+		}
+}

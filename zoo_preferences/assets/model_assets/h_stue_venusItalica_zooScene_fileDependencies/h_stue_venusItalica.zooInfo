@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Venus Italica - License: CC0 Public Domain\nAntonio Canova's famous Venus Italica was commissioned as a replacement for the famous Medici Venus which had been seized by Napoleon in 1802 and removed to the Louvre. The Medici Venus (see similar, the Capitoline Venus) is itself a 1st Century BC copy of a work by Cleomenes of Athens.",
+    "version":"1.0.0",
+    "tags":"Venus Italica, sculpture, Neoclassical , Antonio Canova, scan, artec, figure, female, woman, clothed, wrinkles, Venus, Italica, Antonio, Canova, hero",
+    "creators":"Sculpture: Antonio Canova\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-venus-italica-102804"
+}

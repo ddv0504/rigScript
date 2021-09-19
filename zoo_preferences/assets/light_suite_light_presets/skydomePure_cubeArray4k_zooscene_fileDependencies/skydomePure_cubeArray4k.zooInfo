@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Cube Array 4k, single HDR Skydome IBL by Ingo Clemmens",
+    "version":"1.0.0",
+    "tags":"pick, skydomePure, iblPure, greyPure",
+    "creators":"Ingo Clemmens",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"http://www.braverabbit.de/\nwww.create3dcharacters.com"
+}

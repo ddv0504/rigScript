@@ -1,0 +1,48 @@
+
+// Author:		Steven T. L. Roselle
+//
+// Created:        ( 04/01/15 )
+
+global proc bt_textureEditorCheckerSize (){
+
+	int $value = `intSliderGrp -q -v intSlidercheckerSizeValue`;
+	//textureWindow -e -imageBaseColor $value $value $value polyTexturePlacementPanel1; 
+	textureWindow -e -checkerDensity ($value/2)  polyTexturePlacementPanel1;
+
+}
+
+global proc bt_UVEditorCheckerSizeWindow (){
+
+
+	string $checkerSizeWindow = "bt_UVEditorCheckerSizeWindow";
+
+	if (`window -exists $checkerSizeWindow`)
+	{
+		deleteUI $checkerSizeWindow;
+		windowPref -remove $checkerSizeWindow;
+	}
+
+	float $color = `optionVar -q polycheckerSizeValue` ;
+
+	window -title "UV Editor Check Size" -w 500 $checkerSizeWindow;
+
+	columnLayout;
+
+	intSliderGrp 
+		-label "Checker Size: " 
+		-field true
+		-w 500
+		-s 2
+		-minValue 2 -maxValue 1024
+		-fieldMinValue 2 -fieldMaxValue 2048
+		-value $color
+		-changeCommand "bt_textureEditorCheckerSize"
+		-dragCommand "bt_textureEditorCheckerSize"
+		intSlidercheckerSizeValue;
+
+	showWindow $checkerSizeWindow;
+
+}
+
+
+

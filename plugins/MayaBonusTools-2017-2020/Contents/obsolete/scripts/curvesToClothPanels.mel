@@ -1,0 +1,29 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+/*  curvesToPanels.mel
+ * 
+ * February 1999 
+ * CPAM
+ * 
+ * This script will make panels from selected groups of
+ * panel curves.
+ * 
+ * Usage:
+ * select all panel groups
+ * run this script
+ */
+global proc curvesToClothPanels(){
+$curvesToPanels = `ls -sl`;
+print $curvesToPanels;
+for ($group in $curvesToPanels)
+	{
+	print $group;
+	select -r $group;
+	cpPanel;
+	}
+}

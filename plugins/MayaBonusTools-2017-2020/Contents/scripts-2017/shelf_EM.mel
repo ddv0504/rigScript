@@ -1,0 +1,831 @@
+// Copyright (C) 1997-2014 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+global proc string shelf_EM()
+{
+    global string $gBuffStr;
+    global string $gBuffStr0;
+    global string $gBuffStr1;
+    
+    
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Query the scheduling type of the selected nodes."
+        -enableBackground 0
+        -align "center" 
+        -label "S-q" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "S-q" 
+        -overlayLabelColor 0.79925 0.79925 0.79925 
+        -overlayLabelBackColor 1 1 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_printSchedulingOnSelectedNodeTypes;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Set the scheduling type on nodes with the same type as the selected ones to \"parallel\"."
+        -enableBackground 0
+        -align "center" 
+        -label "S_P" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "P" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 1 1 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_setParallelSchedulingOnSelectedNodeTypes;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Set the scheduling type on nodes with the same type as the selected ones to \"globally serialized\"."
+        -enableBackground 0
+        -align "center" 
+        -label "S_GS" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "GS" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 1 1 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_setGlobalSSchedulingOnSelectedNodeTypes;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Set the scheduling type on nodes with the same type as the selected ones to \"untrusted\"."
+        -enableBackground 0
+        -align "center" 
+        -label "S_U" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "U" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 1 1 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_setUntrustedSchedulingOnSelectedNodeTypes;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    
+    //
+    // Button 5
+    //
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Turn the EM off." 
+        -enableBackground 0
+        -align "center" 
+        -label "DG" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "DG" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0 1 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_turnOffEM;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Turn the EM on in Serial mode." 
+        -enableBackground 0
+        -align "center" 
+        -label "EMS" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "EMS" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0 1 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_turnOnEMInSerialMode;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Turn the EM on in Parallel mode." 
+        -enableBackground 0
+        -align "center" 
+        -label "EMP" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "EMP" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0 1 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_turnOnEMInParallelMode;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Toggle OpenCL deformer (only valid in EMS and EMP modes)." 
+        -enableBackground 0
+        -align "center" 
+        -label "GPU" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "GPU" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0 0.483 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "toggleOpenCLEvaluator;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Toggle EM Manipulation (only valid in EMS and EMP modes)." 
+        -enableBackground 0
+        -align "center" 
+        -label "MAN" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "MAN" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0 0.483 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "toggleEvaluationManagerManipulation;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    
+    //
+    // Button 10
+    //
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Toggle the Dynamics evaluator (on by default)."
+        -enableBackground 0
+        -align "center" 
+        -label "DYN" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "DYN" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 1 0 1 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_toggleDynamicsEvaluator;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Toggle the trace object that tracks EM graph invalid evaluation paths."
+        -enableBackground 0
+        -align "center" 
+        -label "VAL" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "VAL" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0 0 1 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_toggleEvalMgrGraphValidDBTrace;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Toggle the trace object that prints out the nodes being computed."
+        -enableBackground 0
+        -align "center" 
+        -label "CMPT" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "CMPT" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0 0 1 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_toggleComputeDBTrace;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Change the selection to only those under EM control. (Uses the selection list if any are selected, otherwise checks all nodes.)." 
+        -enableBackground 0
+        -align "center" 
+        -label "SEL" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "SEL" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0 1 1 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_selectNodesUnderEMControl" 
+        -sourceType "mel;" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Select all nodes upstream from the current selection that are currently under EM control."
+        -enableBackground 0
+        -align "center" 
+        -label "S_UP" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "S_UP" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 1 1 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_selectUpStreamNodes;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    //
+    // Button 15
+    //
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Select all nodes downstream from the current selection that are currently under EM control." 
+        -enableBackground 0
+        -align "center" 
+        -label "S_DOWN" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "S_DOWN" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 1 1 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_selectDownStreamNodes;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Print the list of nodes in the deformer evaluator's clusters." 
+        -enableBackground 0
+        -align "center" 
+        -label "G_CLUS" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "G_CLUS" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0.0265283 0.45098 0.45098 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_printDeformerClusters;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Create a PDF (and DOT) file showing the clusters in the currently selected nodes." 
+        -enableBackground 0
+        -align "center" 
+        -label "CLUS" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "CLUS" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 1 1 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_createClusterGraphFile;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Prints a list of dirty plugs handled by the EM on the selected nodes." 
+        -enableBackground 0
+        -align "center" 
+        -label "DP" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "DP" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 1 1 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_printDirtyPlug;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Print a list of all evaluation nodes and connections on the currently selected nodes (or all nodes if nothing is selected)." 
+        -enableBackground 0
+        -align "center" 
+        -label "D_EG" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "D_EG" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 1 1 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_printEvaluationNodesAndConnections;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    //
+    // Button 20
+    //    
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Create a PDF (and DOT) file showing the current evaluation graph in the scene."
+        -enableBackground 0
+        -align "center" 
+        -label "DD_EG" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "DD_EG" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 1 1 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_createEvaluationGraphFile;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "If the first selected DG node is in \"HasNoEffect\" mode then put all selected nodes into \"Normal\" mode, otherwise put all selected nodes into \"HasNoEffect\" mode." 
+        -enableBackground 0
+        -align "center" 
+        -label "DG_PASS" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "DG_PASSTHROUGH" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 1 0 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_toggleSelectedDGNodeHasNoEffectWithNormalMode;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Put all selected node types into \"passthrough\" mode in the GPU (OpenCL) deformers." 
+        -enableBackground 0
+        -align "center" 
+        -label "G_PASS" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "G_PASSTHROUGH" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 1 0 0 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_setSelectionInPassthroughMode;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Turn off the EM HUD." 
+        -enableBackground 0
+        -align "center" 
+        -label "H_Dis" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "H_Dis" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0.0403691 0.686275 0.0403691 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "SetEvaluationManagerHUDVisibility( 0 );" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Turn on the EM HUD." 
+        -enableBackground 0
+        -align "center" 
+        -label "H_Enb" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "H_Enb" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0.0403691 0.686275 0.0403691 0.2 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "SetEvaluationManagerHUDVisibility( 1 );" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    
+    //
+    // Button 25
+    //
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Run the emPerformanceTest on the current scene." 
+        -enableBackground 0
+        -align "center" 
+        -label "PERF" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "PERF" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0.443137 0.0980392 0.560784 0.8 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_runEMPerformanceTest;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Run the emCorrectnessTest on the current scene." 
+        -enableBackground 0
+        -align "center" 
+        -label "CORR" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -font "plainLabelFont" 
+        -imageOverlayLabel "CORR" 
+        -overlayLabelColor 0.89 0.89 0.89 
+        -overlayLabelBackColor 0.443137 0.0980392 0.560784 0.8 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "em_runEMCorrectnessTest;"
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+	// This shelf was introduced in Maya 2016
+	return "2016";
+} 
+

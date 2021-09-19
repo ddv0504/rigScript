@@ -1,0 +1,327 @@
+// Copyright (C) 1997-2020 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+//
+// Author:  Steven T. L. Roselle                
+//
+// Created: 01/01/20
+
+global proc bt_deletebRandomizeTransformsOptionVars()
+{
+	//Delete optionVars so they can be reset back to default values
+	
+	//////////////////////
+	//		Random
+	//
+	optionVar -rm bt_randomFrame;
+	optionVar -rm bt_randomOffsetX;
+	optionVar -rm bt_randomOffsetY;
+	optionVar -rm bt_randomOffsetZ;
+
+	optionVar -rm bt_randMoveMinValue;
+	optionVar -rm bt_randMoveMaxValue;
+	optionVar -rm bt_randRotMinValue;
+	optionVar -rm bt_randRotMaxValue;
+	optionVar -rm bt_randScaleMinValue;
+	optionVar -rm bt_randScaleMaxValue;
+
+	inViewMessage -smg "Randomize Transform Settings have been reset. Close and reopen window for reset to apply." -pos midCenter -bkc 0x11111111 -alpha .5 -fade -fst 2000;
+
+}
+
+
+
+global proc float bt_setFloatFieldValue(string $id, string $optVar)
+{
+	// Return number from float field change
+	//
+
+	float $val = `floatField -q -value $id` ;
+	optionVar -fv $optVar $val;
+	return $val;
+}
+
+
+
+global proc int bt_setIntFieldValue(string $id, string $optVar)
+{
+	// Return number from integer field change
+	//
+
+	int $val = `intField -q -value $id` ;
+	optionVar -iv $optVar $val;
+	return $val;
+}
+
+
+
+
+///////////////////////////
+// Random transform procs
+
+global proc bt_randomRotate (float $min, float $max)
+
+{
+    string $mode = "-r";
+    string $meshSelection[] = `ls -sl`;
+
+    float $LTrotationValueX;
+    float $LTrotationValueY;
+    float $LTrotationValueZ;
+
+    for ($i=0; $i<size($meshSelection); $i++) {
+	$LTrotationValueX = rand($min ,$max);	
+	$LTrotationValueY = rand($min ,$max);
+	$LTrotationValueZ = rand($min ,$max);
+	select -r $meshSelection[$i];
+       rotate -os $mode -x ($LTrotationValueX * `optionVar -q bt_randomOffsetX`);  //multiply by zero if X axis toggle is off
+       rotate -os $mode -y ($LTrotationValueY * `optionVar -q bt_randomOffsetY`);  //multiply by zero if Y axis toggle is off
+       rotate -os $mode -z ($LTrotationValueZ * `optionVar -q bt_randomOffsetZ`);  //multiply by zero if Z axis toggle is off
+    }               
+    select -r $meshSelection;            
+}
+
+
+
+global proc bt_randomScale (float $min, float $max)
+
+{
+    string $mode = "-r";
+    string $meshSelection[] = `ls -sl`;
+
+    float $LTscaleValue;  // keep uniform if all selected
+
+    for ($i=0; $i<size($meshSelection); $i++) {
+	$LTscaleValue = rand($min ,$max);	
+	select -r $meshSelection[$i];
+	if (`optionVar -q bt_randomOffsetX`)
+	       scale $mode -x ($LTscaleValue / 100);  //convert from % to decimal
+	if (`optionVar -q bt_randomOffsetY`)	
+		scale $mode -y ($LTscaleValue / 100);  //convert from % to decimal
+ 	if (`optionVar -q bt_randomOffsetZ`)
+		scale $mode -z ($LTscaleValue / 100);  //convert from % to decimal
+    }   
+
+    select -r $meshSelection;            
+}
+
+
+global proc bt_randomMove (float $min, float $max)
+{
+    string $mode = "-r";
+    string $meshSelection[] = `ls -sl`;
+
+    float $LTmoveValueX;
+    float $LTmoveValueY;
+    float $LTmoveValueZ;
+
+    for ($i=0; $i<size($meshSelection); $i++) {
+	$LTmoveValueX = rand($min ,$max);	
+	$LTmoveValueY = rand($min ,$max);
+	$LTmoveValueZ = rand($min ,$max);
+	select -r $meshSelection[$i];
+       move $mode -x ($LTmoveValueX * `optionVar -q bt_randomOffsetX`);  //multiply by zero if X axis toggle is off
+       move $mode -y ($LTmoveValueY * `optionVar -q bt_randomOffsetY`);  //multiply by zero if Y axis toggle is off
+       move $mode -z ($LTmoveValueZ * `optionVar -q bt_randomOffsetZ`);  //multiply by zero if Z axis toggle is off
+    }   
+
+    select -r $meshSelection;            
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+global proc bt_randomizeTransforms ()
+{
+    
+	// Initialize Global vars for UI and options
+	// All global vars and optionVars will have an bt_ suffix
+
+
+	global string $bt_randMoveMinFieldName;
+	global string $bt_randRotMinFieldName;
+	global string $bt_randScaleMinFieldName;
+	global string $bt_randMoveMaxFieldName;
+	global string $bt_randRotMaxFieldName;
+	global string $bt_randScaleMaxFieldName;
+
+	
+		
+	//initialize standard Maya global vars	
+	global string $gChannelBoxForm;
+    global string $gMainWindow;
+	
+	
+	
+	//Initialize local vars for Transform
+	float $moveValue;
+	float $rotateValue;
+
+
+	//////////////////////
+	//		Randomize
+	//
+	if (`optionVar -ex bt_randomeFrame` == 0)
+		optionVar -intValue bt_randomFrame 0; //set to expanded
+	
+	if (`optionVar -ex bt_randomOffsetX` == 0)
+		optionVar -intValue bt_randomOffsetX 1;
+	if (`optionVar -ex bt_randomOffsetY` == 0)
+		optionVar -intValue bt_randomOffsetY 1;
+	if (`optionVar -ex bt_randomOffsetZ` == 0)
+		optionVar -intValue bt_randomOffsetZ 1;
+
+
+	if (`optionVar -ex bt_randMoveMinValue` == 0)
+		optionVar -floatValue bt_randMoveMinValue -0.1;
+	if (`optionVar -ex bt_randMoveMaxValue` == 0)
+		optionVar -floatValue bt_randMoveMaxValue 0.1;
+	if (`optionVar -ex bt_randRotMinValue` == 0)
+		optionVar -intValue bt_randRotMinValue -30;
+	if (`optionVar -ex bt_randRotMaxValue` == 0)
+		optionVar -intValue bt_randRotMaxValue 30;
+	if (`optionVar -ex bt_randScaleMinValue` == 0)
+		optionVar -intValue bt_randScaleMinValue 90;
+	if (`optionVar -ex bt_randScaleMaxValue` == 0)
+		optionVar -intValue bt_randScaleMaxValue 110;
+						
+	
+    // Get main UI settings
+    //
+    $bt_windowHeight = 250;		
+    $bt_windowWidth = 300;
+    
+    string $tmpWindow;	
+	
+    	//first delete window if it exists already
+    	if( (`window -exists RandomTransformWindowTransform`) == true )
+    			{
+    			deleteUI RandomTransformWindowTransform;
+     			//windowPref -remove RandomTransformWindowTransform;
+    			}
+
+
+	
+	
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//					Begin UI Creation
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	     $tmpWindow = `window -s 0 -menuBar true -t "Randomize Transforms" RandomTransformWindowTransform`;
+
+			//$bt_form = `formLayout -w $bt_windowWidth bt_form`; 
+		 	$bt_menuBar = `menuBarLayout`;
+				
+			menu -tearOff 0 -l "Edit";
+			    //menuItem -l "Reset Settings" -ann "Reset all setting to default values." -c "bt_deletebRandomizeTransformsOptionVars ;bt_randomizeTransformsToolsUI";
+			    menuItem -l "Reset Settings" -ann "Reset all setting to default values." -c "bt_deletebRandomizeTransformsOptionVars";
+    
+    			columnLayout -adjustableColumn true;
+    		
+    			
+    				//////////////////////
+    				//		Random
+    				//
+    				  
+    				  columnLayout -adjustableColumn true;
+        
+    					separator ;
+    					text " ";
+    
+    					rowColumnLayout -numberOfColumns 4 -columnWidth 1 ($bt_windowWidth/4 -5) -columnWidth 2 ($bt_windowWidth/4) -columnWidth 3 ($bt_windowWidth/4) -columnWidth 4 ($bt_windowWidth/4 +5);
+    
+
+                            separator -st none;
+    						text -l "Min" -ann "Unit value used for random move offest" -al center;
+    						text -l "Max" -ann "Unit value used for random move offest" -al center;
+                            separator -st none;
+
+                            separator -st none;
+         					text " ";
+        					text " ";
+                            separator -st none;
+                            
+    						text -l "Move :  " -ann "Unit value used for random move offest" -al right;
+    						$minValue = `optionVar -q bt_randMoveMinValue`;
+    						$maxValue = `optionVar -q bt_randMoveMaxValue`;
+    						$bt_randMoveMinFieldName = `floatField -value $minValue -cc "bt_setFloatFieldValue $bt_randMoveMinFieldName bt_randMoveMinValue"`;
+    						$bt_randMoveMaxFieldName = `floatField -value $maxValue -cc "bt_setFloatFieldValue $bt_randMoveMaxFieldName bt_randMoveMaxValue"`;	
+    
+    						$units = `currentUnit -query -linear`;
+    						text -l (" "+$units) -al left  -fn boldLabelFont;
+    
+    						text -l "Rotate :  " -ann "Degree used for random rotate offset" -al right;
+    						$minValue = `optionVar -q bt_randRotMinValue`;
+    						$maxValue = `optionVar -q bt_randRotMaxValue`;
+    						$bt_randRotMinFieldName = `intField -value $minValue -cc "bt_setIntFieldValue $bt_randRotMinFieldName bt_randRotMinValue"`;
+    						$bt_randRotMaxFieldName = `intField -value $maxValue -cc "bt_setIntFieldValue $bt_randRotMaxFieldName bt_randRotMaxValue"`;		
+    						text -l " °" -al left  -fn boldLabelFont;
+    
+    						text -l "Scale :  " -ann "Percent used for random scale offset" -al right;
+    						$minValue = `optionVar -q bt_randScaleMinValue`;
+    						$maxValue = `optionVar -q bt_randScaleMaxValue`;
+    						$bt_randScaleMinFieldName = `intField -value $minValue -cc "bt_setIntFieldValue $bt_randScaleMinFieldName bt_randScaleMinValue"`;
+    						$bt_randScaleMaxFieldName = `intField -value $maxValue -cc "bt_setIntFieldValue $bt_randScaleMaxFieldName bt_randScaleMaxValue"`;		
+    						text -l " %" -al left  -fn boldLabelFont;
+    
+    					    setParent ..;  //frame 
+    
+    
+    					rowColumnLayout -numberOfColumns 5 -columnWidth 1 ($bt_windowWidth/5 +10) -columnWidth 2 ($bt_windowWidth/5) -columnWidth 3 ($bt_windowWidth/5) -columnWidth 4 ($bt_windowWidth/5) -columnWidth 5 ($bt_windowWidth/5 - 20);
+    
+    						text -l "Axis :  " -ann "Unit value used for random move offest" -al right;
+    						checkBox -l " X" -align "right" -v `optionVar -q bt_randomOffsetX` -onc "optionVar -iv bt_randomOffsetX 1" -ofc "optionVar -iv bt_randomOffsetX 0";
+    						checkBox -l " Y" -align "center" -v `optionVar -q bt_randomOffsetY` -onc "optionVar -iv bt_randomOffsetY 1" -ofc "optionVar -iv bt_randomOffsetY 0";
+    						checkBox -l " Z" -align "left" -v `optionVar -q bt_randomOffsetZ` -onc "optionVar -iv bt_randomOffsetZ 1" -ofc "optionVar -iv bt_randomOffsetZ 0";
+                            separator -st none;
+    					    setParent ..;  //frame 
+                            
+                        text " ";
+                        separator;
+    
+    					rowColumnLayout -numberOfColumns 3 -columnWidth 1 ($bt_windowWidth/3) -columnWidth 2 ($bt_windowWidth/3) -columnWidth 3 ($bt_windowWidth/3) -co 2 "both" 5 -adj 2;
+    						button -l "Random Move" -ann "Randomly offset move for selected objects" -c "setToolTo $gMove; bt_randomMove (`optionVar -q bt_randMoveMinValue`, `optionVar -q bt_randMoveMaxValue`)";
+    						button -l "Random Rotate" -ann "Randomly offset rotate for selected objects" -c "setToolTo $gRotate; bt_randomRotate (`optionVar -q bt_randRotMinValue`, `optionVar -q bt_randRotMaxValue`)";
+    						button -l "Random Scale" -ann "Randomly offset scale for selected objects" -c "setToolTo $gScale; bt_randomScale (`optionVar -q bt_randScaleMinValue`, `optionVar -q bt_randScaleMaxValue`)";
+    	                    
+    					setParent ..;  //frame 
+    					
+    				setParent ..; //rowColumn
+    				
+    			setParent ..;  //column	
+    								    			
+
+        
+        print ($tmpWindow + "\n");
+         
+        showWindow RandomTransformWindowTransform;
+
+
+
+}
+
+
+bt_randomizeTransforms;

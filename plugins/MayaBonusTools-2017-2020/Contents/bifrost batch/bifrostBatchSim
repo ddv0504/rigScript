@@ -1,0 +1,208 @@
+#!/usr/bin/env python
+
+# ======================================================================
+# Copyright (C) 2015 Autodesk, Inc., and/or its licensors.
+# All rights reserved.
+#
+# The coded instructions, statements, computer programs, and/or related
+# material (collectively the "Data") in these files contain unpublished
+# information  proprietary to  Autodesk,  Inc.  ("Autodesk") and/or its
+# licensors, which is protected by  U.S. and Canadian federal copyright
+# law and by international treaties.
+#
+# The Data is  provided  for use exclusively by You. You have the right
+# to use, modify, and incorporate  this  Data into  other  products for
+# purposes  authorized  by  the  Autodesk  software  license agreement,
+# without fee.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+# DOES  NOT MAKE  AND  HEREBY  DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+# INCLUDING,  BUT  NOT LIMITED TO,  THE  WARRANTIES  OF  NON-INFRINGEMENT,
+# MERCHANTABILITY  OR FITNESS FOR A PARTICULAR PURPOSE,  OR ARISING FROM A
+# COURSE OF DEALING, USAGE,  OR TRADE PRACTICE.  IN NO EVENT WILL AUTODESK
+# AND/OR ITS LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA,  OR PROFITS,
+# OR SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK
+# AND/OR ITS LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY  OR PROBABILITY
+# OF SUCH DAMAGES.
+# ======================================================================
+
+'''
+bifrostBatchSim
+
+A simple wrapper to run a Bifrost simulation in batch. This enables us to cache
+data from the command line, without the overhead of Maya.
+
+NOTE: This depends on an external Mel script, bifrostBatchSim.mel.
+
+adrian.graham@autodesk.com
+03/27/15
+'''
+
+import argparse
+from datetime import date
+import os
+import subprocess
+
+# Detect OS.
+# One of 'Linux', 'CYGWIN_NT*', 'Darwin'.
+OS = os.uname()[0]
+LINUX = True
+WIN = False
+if OS.startswith('CYGWIN'):
+    LINUX = False
+    WIN = True
+# end if
+
+# Need to specify the Maya location dir.
+MAYA_LOCATION = os.getenv( 'MAYA_LOCATION' )
+if not MAYA_LOCATION:
+    if not LINUX:
+        MAYA_LOCATION = os.path.join( 
+            'C:',
+            'Program Files',
+            'Autodesk',
+            'Maya2016'
+        )
+    else:
+        MAYA_LOCATION = os.path.join( 
+            os.path.sep,
+            'usr',
+            'autodesk',
+            'maya2016'
+        )
+    # end if
+# end if
+
+if not os.path.exists( MAYA_LOCATION ):
+    raise Exception( 'Unable to determine MAYA_LOCATION.' )
+else:
+    print( 'Using MAYA_LOCATION: %s' % MAYA_LOCATION )
+# end if
+
+MAYA_PROJECT = os.getenv( 'MAYA_PROJECT' )
+if not MAYA_PROJECT:
+    raise Exception( 'You must set your MAYA_PROJECT.' )
+# end if
+
+# NOTE: If running this under Cygwin on Windows, Maya does not like cygpaths.
+# Convert to proper drive letters.
+MAYA_PROJECT = MAYA_PROJECT.replace( '/cygdrive/c', 'C:' )
+
+# Define executable.
+EXE = os.path.join( 
+    MAYA_LOCATION,
+    'bin',
+    'maya'
+)
+
+# On Windows, use 'mayabatch'.
+if WIN:
+    EXE += 'batch'
+
+# Compile simple mel command to run Bifrost caches in batch.
+def run( args ):
+    '''
+    Run the Maya command.
+    '''
+
+    # Correct relative path for out_dir.
+    if not LINUX:
+        out_dir = args.out_dir
+    else:
+        out_dir = os.path.realpath( args.out_dir )
+    # end if
+
+    # Define where to put output log.
+    log_dir = os.path.join(
+        out_dir,
+        'logs'
+    )
+
+    # Assemble Mel command.
+    mel_cmd = 'bifrostBatchSim( %s, %s, \\"%s\\" )' % (args.start, args.end, out_dir)
+
+    # Assemble basename.
+    file_base = os.path.basename( 
+        os.path.splitext( args.filename )[0]
+    )
+
+    # Create out_dir, if it doesn't already exist.
+    if not os.path.isdir( out_dir ):
+        os.mkdir( out_dir )
+    # end if
+
+    # Assemble logfile name.
+    today = date.today()
+    date_str = '%02d%02d%s' % (today.month, today.day, today.year)
+    log_file = os.path.join(
+        out_dir,
+        'logs',
+        '%s_%s_%s_sim.txt' % (file_base, date_str, os.getpid() )
+    )
+
+    # Create log dir, if it doesn't already exist.
+    if not os.path.isdir( log_dir ):
+        os.mkdir( log_dir )
+    # end if
+    print( '# Writing to logfile %s.' % log_file )
+
+    # Initialize log file write.
+    log_file_out = open( log_file, 'a+' )
+
+    # Assemble shell command.
+    subprocess_cmd = '%s -batch -command "%s" -file %s' % \
+                (EXE, mel_cmd, args.filename)
+    if not LINUX:
+        subprocess_cmd = '"%s" -batch -command "%s" -file %s' % \
+            (EXE, mel_cmd, args.filename)
+    # end if
+
+    # We use subprocess.call because we don't want to fork a separate process
+    # (which is what Popen does). Don't specify stdout because for some reason
+    # it's being suppressed.
+    print( '# Running cmd: %s' % subprocess_cmd )
+    subprocess.call( 
+        subprocess_cmd, 
+        shell=True,
+        stdout=log_file_out,
+        stderr=log_file_out
+    )
+
+# end def run
+
+
+if __name__ == '__main__':
+
+    USAGE  = 'A simple wrapper to run a Bifrost simulation in batch. This '
+    USAGE += 'enables us to cache data from the command line, without the '
+    USAGE += 'overhead of the Maya UI.'
+
+    PARSER = argparse.ArgumentParser( description=USAGE )
+    PARSER.add_argument(
+        '--start', '-s', required=True,
+        help='The start frame of the simulation.'
+    )
+    PARSER.add_argument(
+        '--end', '-e', required=True,
+        help='The end frame of the simulation.'
+    )
+    PARSER.add_argument(
+        '--out_dir', '-o', required=True,
+        help='Path to output directory for caches.'
+    )
+    PARSER.add_argument(
+        'filename', 
+        help='Name of file to cache.'
+    )
+
+    ARGS = PARSER.parse_args()
+
+    # Check for existence of filename.
+    if not os.path.exists( ARGS.filename ):
+        raise Exception( 'Input file \'%s\' does not exist.' % ARGS.filename )
+    # end if
+
+    # Run simulation with args.
+    run( ARGS )
+
+# end if

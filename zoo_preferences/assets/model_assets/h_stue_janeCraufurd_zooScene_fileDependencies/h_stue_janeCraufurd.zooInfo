@@ -1,0 +1,14 @@
+{
+    "assetType":"Hero Model",
+    "animation":null,
+    "description":"Jane Craufurd - License: CC0 Public Domain\nIn 1818, Lady Craufurd commissioned Thorvaldsen to make twelve plaster copies of her daughter [A307[ - which she wishes to send to England immediately.",
+    "version":"1.0.0",
+    "tags":"sculpture, statue, scan, artec, Statens Museum for Kunst, historical, bust, head, face, female, woman, Jane, Craufurd, hero",
+    "creators":"Scuplture: Bertel Thorvaldsen\nScan: SMK - Statens Museum for Kunst",
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Mesh Info"
+    ],
+    "websites":"https://www.myminifactory.com/object/3d-print-jane-craufurd-107656  "
+}

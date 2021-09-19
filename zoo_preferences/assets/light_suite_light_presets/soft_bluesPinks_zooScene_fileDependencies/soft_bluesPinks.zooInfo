@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"HDR Labs beach IBL with large light purple key and rim, light orange fill.",
+    "version":"1.0.0",
+    "tags":"ibl, blue, beach, fill, key, fill, HDR Labs, shaderbot, shader bot",
+    "creators":"Skydome: HDRI Skies\nLight Setup: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"http://www.hdrlabs.com\nwww.create3dcharacters.com"
+}

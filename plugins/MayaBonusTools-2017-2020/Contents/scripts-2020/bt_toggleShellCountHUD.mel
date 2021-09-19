@@ -1,0 +1,70 @@
+// Copyright (C) 1997-2020 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+//
+// Author:		Steven T. L. Roselle
+//
+// Last Update:        ( 04/01/14 )
+
+global proc int[] bt_shellCounter ()
+{
+	//Count number of shells in selected poly objects
+	//
+	string $names[] = `filterExpand -sm 12` ;  // polygon
+	int $scountSelected[0];
+	
+	if (`size( $names )`) 
+		$scountSelected = `polyEvaluate -s`;
+	else 
+		$scountSelected[0] = 0;
+	
+	return $scountSelected;
+}
+
+
+
+global proc bt_createShellCountHUD (){
+
+	//headsUpDisplay -rp 0 7;
+	
+	headsUpDisplay
+		-section          0
+		//-block            7
+		-b `headsUpDisplay -nfb  0`
+		-blockSize        "small"
+		-label            "Shells:"
+		-labelFontSize    "small"
+		-dataFontSize	    "small"
+		-command          "bt_shellCounter"
+		-event            "SelectionChanged"
+		-nodeChanges      "attributeChange"
+	HUDShellCounter;
+}
+
+
+global proc bt_toggleShellCountHUD ()
+{
+
+    if (`headsUpDisplay -ex HUDShellCounter`)
+	headsUpDisplay -rem HUDShellCounter;
+    else 
+        bt_createShellCountHUD;
+     	
+}

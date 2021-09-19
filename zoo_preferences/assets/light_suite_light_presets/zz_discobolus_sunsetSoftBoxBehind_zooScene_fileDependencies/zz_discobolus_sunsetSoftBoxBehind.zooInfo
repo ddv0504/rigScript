@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Pink dusk HDRI Skies IBL with large round white key. Rect side lights left right for large rims.\n\nFree Statue Of Discobolus scanned by Statens Museum for Kunst  \nhttps://www.myminifactory.com/object/3d-print-discobolus-the-discus-thrower-25156  ",
+    "version":"1.0.0",
+    "tags":"ibl, pink, blue, sunset, dusk, soft, key, HDRI Skies, rim, side, discobolus, statue, discus",
+    "creators":"Skydome: HDRI Skies\nLights: Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.hdri-skies.com\nwww.create3dcharacters.com"
+}

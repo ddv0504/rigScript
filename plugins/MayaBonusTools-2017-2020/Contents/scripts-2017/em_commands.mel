@@ -1,0 +1,464 @@
+// Copyright (C) 1997-2014 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+
+/////////////////////////////////////////////////////////////////////
+//                      Helper function
+/////////////////////////////////////////////////////////////////////
+
+
+proc int isEvaluationManagerOn()
+{
+    string $modes[] = `evaluationManager -query -mode`;
+    return $modes[0] != "off";
+}
+
+
+proc string[] getTypesFromSelection()
+{
+    string $objects[] = `ls -selection`;
+    string $objectsType[];
+    for($i = 0; $i < size($objects); $i++ )
+    {
+        $objectsType[$i] = `nodeType $objects[$i]`;
+    }
+    return stringArrayRemoveDuplicates($objectsType);
+}
+
+
+proc printScheduling(string $typeOfNode )
+{
+    int $queryParallel[]  = `evaluationManager -query -ntp $typeOfNode`;
+    int $queryGlobalS[]   = `evaluationManager -query -ntg $typeOfNode`;
+    int $queryUntrusted[] = `evaluationManager -query -ntu $typeOfNode`;
+    string $hasParallel  = $queryParallel[0]  ? "True" : "False";
+    string $hasGlobalS   = $queryGlobalS[0]   ? "True" : "False";
+    string $hasUntrusted = $queryUntrusted[0] ? "True" : "False";    
+    print ("NodeType *"+ $typeOfNode +"* has parallel *"+ $hasParallel +"*, globalSerialization *"+ $hasGlobalS +"*, untrusted *"+ $hasUntrusted +"*\n");
+}
+
+
+
+proc setScheduling( string $typeOfNode, int $parallelOn, int $globalSerialOn, int $untrustedOn )
+{
+    evaluationManager -ntp $parallelOn -ntg $globalSerialOn -ntu $untrustedOn $typeOfNode;
+    printScheduling( $typeOfNode );
+}
+
+
+
+proc setSchedulingOnSelectedNodeTypes( int $parallelOn, int $globalSerialOn, int $untrustedOn )
+{
+    if (isEvaluationManagerOn())
+    {
+        string $uniqueTypes[] = getTypesFromSelection();
+        if(size($uniqueTypes) == 0)
+        {
+            error "You must selection at least one object !";
+        }
+        
+        for( $type in $uniqueTypes)
+        {            
+            setScheduling( $type, $parallelOn, $globalSerialOn, $untrustedOn );
+            evaluationManager -invalidate false;
+        }
+    }
+    else
+    {
+        error "Evaluation Manager has to be active to apply this change!\n";
+    }
+} 
+
+
+
+proc toggleEvaluatorEnable( string $evaluatorName )
+{
+    if( `evaluator -query -name $evaluatorName` )
+    {
+        evaluator -name $evaluatorName -enable false;
+        print ("Evaluator " + $evaluatorName + " is now disabled");
+    }
+    else
+    {
+        evaluator -name $evaluatorName -enable true;
+        print ("Evaluator " + $evaluatorName + " is now enabled");    
+    }
+}
+
+
+
+proc toggleDBTrace( string $traceName )
+{
+    if( stringArrayContains($traceName+"[0]", `dbtrace -query`) )
+    {    
+        dbtrace -off -keyword $traceName;
+        print ("Trace " + $traceName + " is now disabled");
+    }
+    else
+    {
+        dbtrace -keyword $traceName;
+        print ("Trace " + $traceName + " is now enabled");
+    }
+}
+
+
+
+/////////////////////////////////////////////////////////////////////
+//                      EM Shelf button Callback
+/////////////////////////////////////////////////////////////////////
+
+
+
+//
+// Print the scheduling type in the Maya console for all selected node.
+//
+global proc em_printSchedulingOnSelectedNodeTypes()
+{
+    if (isEvaluationManagerOn())
+    {
+        string $uniqueTypes[] = getTypesFromSelection();
+        if(size($uniqueTypes) == 0)
+        {
+            error "You must selection at least one object !";
+        }
+        for( $type in $uniqueTypes )
+        {
+            printScheduling( $type );
+        }
+    }
+    else
+    {
+        error "Evaluation Manager has to be active to query!";
+    }
+} 
+
+
+
+//
+// Set the scheduling type for all selected node to Parallel.
+//
+global proc em_setParallelSchedulingOnSelectedNodeTypes()
+{
+    int $setParallel = true;
+    int $setGlobalS = false;
+    int $setUntrusted = false;
+    setSchedulingOnSelectedNodeTypes( $setParallel, $setGlobalS, $setUntrusted );
+}
+
+
+
+//
+// Set the scheduling type for all selected node to GlobalS.
+//
+global proc em_setGlobalSSchedulingOnSelectedNodeTypes()
+{
+    int $setParallel = false;
+    int $setGlobalS = true;
+    int $setUntrusted = false;
+    setSchedulingOnSelectedNodeTypes( $setParallel, $setGlobalS, $setUntrusted );
+}
+
+
+
+//
+// Set the scheduling type for all selected node to Untrusted.
+//
+global proc em_setUntrustedSchedulingOnSelectedNodeTypes()
+{
+    int $setParallel = false;
+    int $setGlobalS = false;
+    int $setUntrusted = true;
+    setSchedulingOnSelectedNodeTypes( $setParallel, $setGlobalS, $setUntrusted );
+}
+
+//
+// Turn the EM off
+//
+global proc em_turnOffEM()
+{
+    evaluationManager -mode "off";
+    SetEvaluationManagerHUDVisibility( 0 );
+}
+
+
+
+//
+// Turn the EM on in Serial mode
+//
+global proc em_turnOnEMInSerialMode()
+{
+    evaluationManager -mode serial;
+    SetEvaluationManagerHUDVisibility( 1 );
+}
+
+
+
+//
+// Turn the EM on in Parallel mode
+//
+global proc em_turnOnEMInParallelMode()
+{
+    evaluationManager -mode parallel;
+    SetEvaluationManagerHUDVisibility( 1 );
+}
+
+
+
+//
+// Select all nodes upstream from the current selection that are currently under EM control.
+//
+global proc em_selectUpStreamNodes()
+{
+    string $selection[] = `ls -sl`;
+    if(size($selection) == 0)
+    {
+        error "You must select an object !";
+    }
+    
+    select -clear;
+    for( $item in $selection )
+    {
+        string $upstream[] = `evaluationManager -upstreamFrom $item -query`;
+        int $upstreamCount = size($upstream);
+        for( $i = 1; $i < $upstreamCount; $i+=2)
+        {
+            select -add $upstream[$i];
+        }
+    }
+}    
+
+
+
+//
+// Select all nodes downstream from the current selection that are currently under EM control.
+//
+global proc em_selectDownStreamNodes()
+{
+    string $selection[] = `ls -sl`;
+    if(size($selection) == 0)
+    {
+        error "You must select an object !";
+    }
+    
+    select -clear;
+    for( $item in $selection )
+    {   
+        string $downstream[] = `evaluationManager -downstreamFrom $item -query`;
+        int $downstreamCount = size($downstream);
+        for( $i = 1; $i < $downstreamCount; $i+=2)
+        {
+            select -add $downstream[$i];
+        }
+    } 
+}
+
+
+
+//
+// Put all selected node types into passthrough mode in the GPU (OpenCL) deformers
+//
+global proc em_setSelectionInPassthroughMode()
+{
+    if(!isEvaluatorActive( "deformer" ))
+    {
+        error "OpenCL deformer must be enabled to use the Passthrough Mode !";
+    }
+    
+    string $selectionList[] = `ls -sl`;
+    if( size($selectionList) > 0)
+    {
+        string $type = `nodeType $selectionList[0]`;
+        GPUBuiltInDeformerControl -name $type -passthrough;
+    }
+    else
+    {
+        error "You must select at least one node to put into passthrough mode in the GPU !";
+    }
+} 
+
+
+ 
+//
+// Toggle the Dynamics evaluator (on by default)
+//
+global proc em_toggleDynamicsEvaluator()
+{
+    toggleEvaluatorEnable("dynamics");
+    evaluationManager -invalidate false;
+}
+
+
+
+//
+// Toggle the trace object that tracks EM graph invalid evaluation paths
+//
+global proc em_toggleEvalMgrGraphValidDBTrace()
+{
+    toggleDBTrace( "evalMgrGraphValid" );
+}
+
+
+
+//
+// Toggle the trace object that prints out the nodes being computed
+//
+global proc em_toggleComputeDBTrace()
+{
+    toggleDBTrace( "compute" );
+}
+
+
+
+//
+// Change the selection to only those under EM control. (Uses the selection list if any are selected, 
+// otherwise checks all nodes.)
+// 
+global proc em_selectNodesUnderEMControl()
+{
+    string $dbPeekResult = `dbpeek -all -op "graph" -a "evaluationGraph" -a "nodes"`;
+    string $dbPeekResultArray[] = stringToStringArray($dbPeekResult, "\n");
+    string $itemToSelect[];
+    for( $item in $dbPeekResultArray)
+    {
+        if(size($item ) > 0)
+        {
+            stringArrayInsertAtIndex(0, $itemToSelect, $item);
+        }
+    }
+    select( $itemToSelect );
+}
+
+
+
+//
+// Print the list of nodes in the deformer evaluator's clusters
+//
+global proc em_printDeformerClusters()
+{
+    string $result = `evaluator -query -name "deformer" -clusters`;
+    print $result;
+} 
+
+
+    
+//
+// Prints a list of dirty plugs handled by the EM on the selected nodes.
+// If no nodes are selected then print dirty plugs on all EM nodes.
+//
+global proc em_printDirtyPlug()
+{
+    string $dirtyPlugCommand = "dbpeek -op \"graph\" -a \"evaluationGraph\" -a \"plugs\"";
+
+    string $selectionList[] = `ls -selection`;
+    if(size($selectionList) == 0)
+    {
+        $dirtyPlugCommand = $dirtyPlugCommand + " -all";
+    }
+    
+    string $allDirtyPlugs   = eval($dirtyPlugCommand);
+    string $allDirtyPlugsArray[] = stringToStringArray($allDirtyPlugs, "\n");
+    
+    if(size($allDirtyPlugsArray) == 0)
+    {
+        print "No dirty plug found !";
+    }
+    else
+    {
+        for( $dirtyPlug in $allDirtyPlugsArray )
+        {
+            if( size($dirtyPlug) > 0 )
+            {
+                print($dirtyPlug + "\n");
+            }
+        }
+    }
+}  
+
+
+
+//
+// Create a PDF (and DOT) file showing the clusters in the currently selected nodes
+// 
+// Note : To be able to generate the PDF file, Graphviz must be installed.
+// Note : To be able to automatically open the PDF file, Adobe Reader must be installed.
+// 
+global proc em_createClusterGraphFile()
+{
+    python("from em_commands import *"); 
+    python("createClusterGraphFile()");  
+}  
+
+
+
+//
+// Create a PDF (and DOT) file showing the current evaluation graph in the scene
+//
+// Note : To be able to generate the PDF file, Graphviz must be installed.
+// Note : To be able to automatically open the PDF file, Adobe Reader must be installed.
+// 
+global proc em_createEvaluationGraphFile()
+{
+    python("from em_commands import *"); 
+    python("createEvaluationGraphFile()");
+}  
+
+
+
+//
+// If the first selected DG node is in HasNoEffect mode then put all selected nodes into Normal mode, 
+// otherwise put all selected nodes into HasNoEffect mode.
+// 
+global proc em_toggleSelectedDGNodeHasNoEffectWithNormalMode()
+{
+    python("from em_commands import *"); 
+    python("toggleSelectedDGNodeHasNoEffectWithNormalMode()");
+}  
+
+
+
+//
+// Print a list of all evaluation nodes and connections on the currently selected nodes (or all nodes if nothing is selected)
+//
+global proc em_printEvaluationNodesAndConnections()
+{
+    print `dbpeek -all -op "graph" -a "nodes" -a "connections" -a "evaluationGraph"`;
+}     
+
+
+
+//
+// Run the emPerformanceTest on the current scene
+//
+global proc em_runEMPerformanceTest()
+{
+    python("from em_commands import *"); 
+    python("runEMPerformanceTest()");
+}  
+
+
+//
+// Run the emCorrectnessTest on the current scene
+//
+global proc em_runEMCorrectnessTest()
+{
+    python("from em_commands import *"); 
+    python("runEMCorrectnessTest()");
+}  

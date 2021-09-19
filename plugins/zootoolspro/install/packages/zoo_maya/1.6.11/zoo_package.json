@@ -1,0 +1,58 @@
+{
+    "author": "Create3dCharacters",
+    "authorEmail": "info@create3dcharacters.com",
+    "description": "General Maya and Maya framework related code for Zoo Tools Pro",
+    "displayName": "Zoo Maya",
+    "environment": {
+        "PYTHONPATH": [
+            "{self}"
+        ],
+        "ZOO_ARTIST_PALETTE_PATH": [
+            "{self}/zoo/apps/maya_integrate/palette.py"
+        ],
+        "ZOO_BASE_PATHS": [
+            "{self}"
+        ],
+        "ZOO_COMMAND_LIB": "{self}/zoo/libs/maya/mayacommand/library",
+        "ZOO_ICON_PATHS": [
+            "{self}/icons"
+        ],
+        "ZOO_MENU_LAYOUTS": [
+            "{self}/zoo/apps/maya_integrate/zoo_artist_palette_menu.layout"
+        ],
+        "ZOO_META_PATHS": [
+            "{self}/zoo/libs/maya/meta/base.py",
+            "{self}/zoo/libs/maya/meta/metarig.py",
+            "{self}/zoo/libs/maya/cmds/meta"
+        ],
+        "ZOO_MM_COMMAND_PATH": [
+            "{self}/zoo/libs/maya/cmds/markingmenus"
+        ],
+        "ZOO_MM_LAYOUT_PATH": [
+            "{self}/zoo/libs/maya/cmds/markingmenus"
+        ],
+        "ZOO_MM_MENU_PATH": [
+            "{self}/zoo/libs/maya/cmds/markingmenus"
+        ],
+        "ZOO_SHAPE_LIB": [
+            "{self}/zoo/libs/maya/shapelib"
+        ],
+        "ZOO_SHAPE_SAVE_PATH": [
+            "{self}/zoo/libs/maya/shapelib"
+        ],
+        "ZOO_SHELF_LAYOUTS": [
+            "{self}/zoo/apps/maya_integrate/zoo_artist_palette_shelf.layout"
+        ],
+        "ZOO_TOOLDEFINITION_MODULES": [
+            "{self}/zoo/apps/maya_integrate/zoo_artist_palette_tooldefinitions.py"
+        ]
+    },
+    "name": "zoo_maya",
+    "requirements": [
+        "zoo_core"
+    ],
+    "tests": [
+        "{self}/tests"
+    ],
+    "version": "1.6.11"
+}

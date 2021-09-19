@@ -1,0 +1,25 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+// for selected texture nodes
+// add a resolution attribte (if necessary)
+// and set it to the resolution specified
+//
+//	i.e bgTextureResolution 256;
+//
+//	Use power of 2 resolutions and expect performance
+//	slowdowns with resolutions above 256
+
+global proc bgTextureResolution(int $resolution){
+
+	string $nodes[] = `ls -sl`;
+	
+	for ($node in $nodes){
+			catch (`addAttr -ln resolution $node`);
+			setAttr ($node + ".resolution") $resolution;
+		}
+}

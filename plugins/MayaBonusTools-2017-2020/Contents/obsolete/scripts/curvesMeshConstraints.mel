@@ -1,0 +1,46 @@
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+/*  curvesToPanels.mel
+ * 
+ * March 1999 
+ * CPAM
+ * 
+ * This script will mesh constrain multiple curves to
+ * a mesh in one shot.
+ * 
+ * Usage:
+ * select all panel curves
+ * select mesh
+ * run this script
+ */
+ 
+
+$constrain = `ls -sl`;
+print $constrain;
+$total = size($constrain);
+print "$total: ";print $total;print "\n";
+$mesh = $constrain[$total-1];
+print "$mesh = "; print $mesh;
+
+
+for ($con in $constrain)
+{
+    print $con;
+    print "\n";
+    if ($con == $mesh)
+    {
+	break;
+    }
+    else
+    {
+        select -cl;
+	select -r $con;
+	select -tgl $mesh;
+	cpConstraint -type mesh;
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "shaderDict":true,
+    "meshObjects":{
+        "|theCapitolineAntinous_geo":{
+            "useSmoothPreviewForRender":true,
+            "renderSmoothLevel":2,
+            "displaySmoothMesh":0,
+            "smoothLevel":2
+        }
+    },
+    "version":"1.0.0",
+    "lightDict":true,
+    "namespaces":[],
+    "saved":[
+        "Alembic",
+        "Generic Shaders",
+        "Generic Lights",
+        "Mesh Info"
+    ]
+}

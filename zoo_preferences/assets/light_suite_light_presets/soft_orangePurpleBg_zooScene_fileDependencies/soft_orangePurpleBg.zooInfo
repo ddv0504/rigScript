@@ -1,0 +1,12 @@
+{
+    "assetType":"Lights",
+    "animation":null,
+    "description":"Studio light purple softbox backlit, key, fill and rims. Purple blue and orange. No HDRI.",
+    "version":"1.0.0",
+    "tags":"studio, softbox backlit, colors, purple, orange, blue, shaderbot, shader bot",
+    "creators":"Andrew Silke",
+    "saved":[
+        "Generic Lights"
+    ],
+    "websites":"www.create3dcharacters.com"
+}
