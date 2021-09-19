@@ -22,9 +22,11 @@ import maya.cmds as cmds
 import maya.mel as mel
 import pymel.core as pm
 
-from ztRigUtils import tak_cleanUpModel
+#from ztRigUtils import tak_cleanUpModel
+#reload(tak_cleanUpModel)
 
 from ztRigUtils import tak_lib
+reload(tak_lib)
 import json
 #import takRiggingToolkit.base.control as control
 
@@ -157,7 +159,7 @@ def mirrorObj(*args):
         if selType == 1:  # In case selected object is mesh.
             # Filp duplicated object to opposite x side.
             cmds.select(cmds.listRelatives(newName, s=False))
-            tak_cleanUpModel.allInOne()
+            #tak_cleanUpModel.allInOne()
 
             if not cmds.getAttr('%s.inheritsTransform' % newName):
                 cmds.setAttr('%s.inheritsTransform' % newName, 1)
@@ -189,7 +191,7 @@ def mirrorObj(*args):
                     dupObjLs.append(newName)
 
             cmds.select(dupObjLs, r=True)
-            tak_cleanUpModel.allInOne()
+            #tak_cleanUpModel.allInOne()
             try:
                 cmds.parent(dupObjLs, world=True)
             except:
@@ -264,7 +266,7 @@ def siglJoint(*args):
     jntList = []
     orientation = [0, 0, 0]
     for sel in sels:
-        print type(sel)
+        print(type(sel))
         if type(sel) in [pm.general.MeshVertex, pm.general.MeshEdge, pm.general.MeshFace, pm.general.NurbsCurveCV]:
             worldPosition = pm.xform(sel, q=True, ws=True, t=True)
         else:
@@ -414,10 +416,10 @@ def TransSkinWeights():
         desSkClu = cmds.skinCluster(jnts, trgShape, mi=3, dr=4.5, tsb=True, omi=False, nw=1)[0]
         # copy skin weights from the source to the target
         cmds.copySkinWeights(ss=skClu, ds=desSkClu, sa='closestPoint', ia='oneToOne', nm=True)
-        print 'Skin weights transfered from %s to %s.' % (src, trg)
-    print '#' * 50
-    print 'Transfer skin weights job is done.'
-    print '#' * 50
+        print('Skin weights transfered from %s to %s.' % (src, trg))
+    print('#' * 50)
+    print('Transfer skin weights job is done.')
+    print('#' * 50)
     cmds.select(selList)
 
 
@@ -810,12 +812,12 @@ def dupMatAndAssign():
         cmds.select(lod03Mat, r=True)
         cmds.hyperShade(duplicate=True)
         dupMat = cmds.ls(sl=True)[0]
-        print dupMat
+        print(dupMat)
 
         # Assign duplicated material to lod02 geometries.
         cmds.hyperShade(objects=lod03Mat)
         lod02Geos = [x for x in cmds.ls(sl=True) if "lod02_" in x]
-        print lod02Geos
+        print(lod02Geos)
         cmds.select(lod02Geos, r=True)
         cmds.hyperShade(assign=dupMat)
 
@@ -1318,7 +1320,7 @@ def doGroup(obj, suffix):
 
     grpNode | obj
     if objParent:
-        objParent | grpNode
+        objParent  | grpNode
 
     return str(grpNode)
 
@@ -1421,10 +1423,10 @@ def editDfmMember(mode, *args):
     for connection in connections:
         if cmds.objectType(connection) == 'objectSet' and not 'modelPanel' in connection:
             dfmSet = connection
-            print 'Result: %s\'s deformer set is "%s"' % (dfm, dfmSet)
+            print('Result: %s\'s deformer set is "%s"' % (dfm, dfmSet))
             break
     if not dfmSet:
-        print 'There is no valid deformer set.'
+        print('There is no valid deformer set.')
         return
 
     selList = cmds.ls(sl=True)
@@ -2252,7 +2254,7 @@ def copyTexRename(*args):
 
     finalFileNodeLs = []
     for selObj in selObjLs:
-        print selObj
+        print(selObj)
         selObjMat = tak_lib.getMatFromSel(selObj)
         if selObjMat:
             fileNodes = cmds.ls(cmds.listHistory(selObjMat), type='file')
@@ -2287,7 +2289,7 @@ def cntShpGeo():
         cntGeo = cmds.duplicate(n=sel + '_cntGeo')
         cmds.parent(cntGeo, world=True)
         cmds.select(cntGeo, r=True)
-        tak_cleanUpModel.allInOne()
+        #tak_cleanUpModel.allInOne()
 
         srcShp = cmds.ls(cmds.listRelatives(sel), ni=True)[0]
         trgShp = cmds.listRelatives(cntGeo, ni=True)[0]
@@ -2563,8 +2565,8 @@ def copySkinByName(dst, prefix="", srchStr="", rplcStr="", copyMatOpt=False):
         elif prefix:
             srcGeo = prefix + dstGeo
 
-        print ">>> Source Geometry: " + srcGeo
-        print ">>> Destination Geometry: " + dstGeo
+        print(">>> Source Geometry: " + srcGeo)
+        print(">>> Destination Geometry: " + dstGeo)
 
         if cmds.objExists(srcGeo):
             cmds.select(srcGeo, dstGeo, r=True)
@@ -2785,7 +2787,7 @@ def setupSoftModCtrl(geometry=None):
     pm.parent(softModCtrl.spaceGrp, softModSlideCtrl.name)
 
     geoBB = geometry.getBoundingBox(space='world')
-    print softModSlideCtrl.spaceGrp
+    print(softModSlideCtrl.spaceGrp)
     softModSlideCtrl.spaceGrp.setTranslation(geoBB.center(), space='world')
 
     pm.select(geometry, r=True)

@@ -1,6 +1,6 @@
-global proc startup(){
-    print "############    RIG SCRIPT ENV SETUP ############\n\n\n";
 
+print "############    RIG SCRIPT ENV SETUP ############\n\n\n";
+global proc startup(){
     scriptJob -e NewSceneOpened defaultSceneUI;
     scriptJob -e SceneOpened openSceneUI;
 
@@ -9,20 +9,20 @@ global proc startup(){
 
     // python User setup.
     python("import pyUserSetup");
-    python("reload(pyUserSetup)");
     //python("reload(pyUserSetup)");
+
     print "Import pyUserSetup.py success.";
 
     print "\n\n\n############    RIG SCRIPT ENV SETUP  END   ############\n";
-}
-  
+
+}  
 //temparorily depend onModelChange3dc proc.
 // 에러 방지.
 global proc onModelChange3dc(string $UI){
     return;
 }
 
-evalDeferred("startup");
+evalDeferred(startup);
 // deadline - 배치일 경우 실행 안됩니다.
 /*if (!`about -batch`)
 {

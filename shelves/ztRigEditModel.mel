@@ -144,36 +144,6 @@ global proc ztRigEditModel () {
         -manage 1
         -visible 1
         -preventOverride 0
-        -enableBackground 0
-        -backgroundColor 0 0 0 
-        -highlightColor 0.321569 0.521569 0.65098 
-        -align "center" 
-        -labelOffset 0
-        -rotation 0
-        -flipX 0
-        -flipY 0
-        -useAlpha 1
-        -font "plainLabelFont" 
-        -overlayLabelColor 0.8 0.8 0.8 
-        -overlayLabelBackColor 0 0 0 0.5 
-        -image "cleanUpMesh.bmp" 
-        -image1 "cleanUpMesh.bmp" 
-        -style "iconOnly" 
-        -marginWidth 1
-        -marginHeight 1
-        -command "from ztRigUtils import tak_cleanUpModel\nreload(tak_cleanUpModel)\ntak_cleanUpModel.UI()" 
-        -sourceType "python" 
-        -commandRepeatable 1
-        -flat 1
-    ;
-    shelfButton
-        -enableCommandRepeat 1
-        -enable 1
-        -width 32
-        -height 32
-        -manage 1
-        -visible 1
-        -preventOverride 0
         -annotation "import modelToolsUI\nreload(modelToolsUI)\nmodelToolsUI.main()" 
         -enableBackground 0
         -backgroundColor 0 0 0 
@@ -222,12 +192,106 @@ global proc ztRigEditModel () {
         -imageOverlayLabel "AriSymmetryChecker" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
-        -image "N:/sccEnv/rigScript/melScripts/icon/AriSymmetryChecker.png" 
-        -image1 "N:/sccEnv/rigScript/melScripts/icon/AriSymmetryChecker.png" 
+        -image "AriSymmetryChecker.png" 
+        -image1 "AriSymmetryChecker.png" 
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
         -command "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScripts\n\nmel.eval('source \"%s/AriSymmetryChecker\";AriSymmetryChecker();' % melScripts.path.replace('\\\\','/'))" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "cleanUpMesh.bmp" 
+        -image1 "cleanUpMesh.bmp" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "from ztRigUtils import tak_cleanUpModel\nreload(tak_cleanUpModel)\ntak_cleanUpModel.UI()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "paintBlendshape.png" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "paintBlendshape.png" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "paintBlendshape.png" 
+        -image1 "paintBlendshape.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "ArtPaintBlendShapeWeightsToolOptions" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "import QuadRemesher\nQuadRemesher.QuadRemesher()" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "import QuadRemesher\nQuadRemesher.QuadRemesher()" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "QuadRemesher.png" 
+        -image1 "QuadRemesher.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import QuadRemesher\nQuadRemesher.QuadRemesher()" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1

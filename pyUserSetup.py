@@ -1,63 +1,85 @@
 # -*- coding:utf-8 -*
 
 import os, sys
-
+import os
+import json
+from maya.api import OpenMaya as om2
 import maya.cmds as cmds
 import maya.mel as mel
-
+#from setuptools import setup, find_namespace_packages
 path = os.path.dirname(__file__)
 mayaVersion = cmds.about(v=True)
 
-
 # 환경변수 setup.
-# print '///////////////////////////////////////////////////////////'
+# print '//////////////////////////////////////////////////////////'
 envKeyLst = ['MAYA_SCRIPT_PATH','XBMLANGPATH','PYTHONPATH','MAYA_PLUGIN_PATH','MAYA_MODULE_PATH']
 
-scriptPath = os.getenv('MAYA_SCRIPT_PATH')
-scriptPathLst = scriptPath.split(';')
-scriptPathLst.append('%s/melScripts' % path)
-scriptPathLst.append('%s/advenced_Skeleton5' % path)
-os.environ['MAYA_SCRIPT_PATH'] = ';'.join(scriptPathLst)
-print('MAYA_SCRIPT_PATH ---->{0}/melScripts;{0}/advenced_Skeleton5'.format(path))
+def addEnvPath(envKey,path):
+    keyPath = os.getenv(envKey)    
+    if keyPath:
+        pathLst = keyPath.split(';')
+    else:
+        pathLst = []
+    pathLst.append(path)
+    os.environ[envKey] = ';'.join(pathLst)
+    print('{0} ---->{1}'.format(envKey,path))
 
-iconPath = os.getenv('XBMLANGPATH')
-iconPathLst = iconPath.split(';')
-iconPathLst.append('%s/icons' % path)
-iconPathLst.append('%s/advenced_Skeleton5/AdvancedSkeleton5Files/icons' % path)
-os.environ['XBMLANGPATH'] = ';'.join(iconPathLst)
-print('XBMLANGPATH ---->{0}/icons;{0}/advenced_Skeleton5/AdvancedSkeleton5Files/icons'.format(path))
+# Main script path:
+addEnvPath('MAYA_SCRIPT_PATH','%s/melScripts' % path)
+# AdvencedSkeleton5 script path:
+addEnvPath('MAYA_SCRIPT_PATH','%s/advenced_Skeleton5' % path)
+# QuadRemesher script path:
+addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/QuadRemesher/Contents/scripts' % path)
+# ngSkinTools script path:
+addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/ngskintools2/Contents/scripts' % path)
+# MayaBonusTools script path:
+addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/MayaBonusTools-2017-2020/Contents/scripts-%s'% (path,mayaVersion))
 
-pythonPath = os.getenv('PYTHONPATH')
-pythonPathLst = pythonPath.split(';')
-pythonPathLst.append(path)
-os.environ['PYTHONPATH'] = ';'.join(pythonPathLst)
-print('PYTHONPATH ---->{0}'.format(path))
 
-pluginPath = os.getenv('MAYA_PLUGIN_PATH')
-if pluginPath:
-    pluginPathLst = pluginPath.split(';')
-else:
-    pluginPathLst = []
-pluginPathLst.append('%s/plugins' % path)
-os.environ['MAYA_PLUGIN_PATH'] = ';'.join(pluginPathLst)
-print('MAYA_PLUGIN_PATH ---->{0}/plugins'.format(path))
+# Icon path:
+addEnvPath('XBMLANGPATH','%s/icons' % path)
 
-module = os.getenv('MAYA_MODULE_PATH')
-if module:
-    moduleLst = module.split(';')
-else:
-    moduleLst = []
-moduleLst.append('%s/module' % path)
-os.environ['MAYA_MODULE_PATH'] = ';'.join(moduleLst)
-print('MAYA_MODULE_PATH ---->{0}/module'.format(path))
+# PYTHONPATH main:
+addEnvPath('PYTHONPATH',path)
+# ngSkinTools python path:
+addEnvPath('PYTHONPATH','%s/plugins/ngskintools2/Contents/scripts' % path)
+# QuadRemesher python path:
+addEnvPath('PYTHONPATH','%s/plugins/QuadRemesher/Contents/scripts' % path)
+# MayaBonusTools python path:
+addEnvPath('PYTHONPATH','%s/plugins/MayaBonusTools-2017-2020/Contents/python-%s'% (path,mayaVersion))
 
-if not path in sys.path:
-    sys.path.append(path)
+# ngSkinTools plugin path:
+addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/ngskintools2/Contents/plug-ins/%s' % (path,mayaVersion))
+# Quad Remesher plugin path:
+addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/QuadRemesher/Contents/plug-ins' % path)
+# MayaBonusTools plugin path:
+addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/MayaBonusTools-2017-2020/Contents/plug-ins/win64-%s' % (path,mayaVersion))
+
+
+# Module path:
+addEnvPath('MAYA_MODULE_PATH','%s/module' % path)
+
+# Zootools prefs:
+addEnvPath('MAYA_PRESET_PATH','%s/zoo_preferences/prefs/maya' % path)
+# Python script path:
+pythonPathLst = [path,
+                '%s/plugins/ngskintools2/Contents/scripts' % path,
+                '%s/plugins/QuadRemesher/Contents/scripts' % path,
+                '%s/plugins/MayaBonusTools-2017-2020/Contents/python-%s'% (path,mayaVersion),
+                ]
+for path in pythonPathLst:
+    if not path in sys.path:
+        sys.path.append(path)
 
 # remove commandPort error.
 if cmds.optionVar( q='commandportOpenByDefault' ):
     cmds.optionVar( iv=('commandportOpenByDefault', 0) )
 
+# Startup QuedRemesher
+mel.eval('source "QuadRemesher_load.mel";')
+# Startup MayaBonusTools
+mel.eval('source "bonusToolsMenu.mel";')
+mel.eval("bonusToolsMenu();")
 # Auto startup ztool
 import zTool_v004
 zTool_v004.main()

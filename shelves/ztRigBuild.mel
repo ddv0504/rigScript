@@ -24,8 +24,8 @@ global proc ztRigBuild () {
         -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
-        -image "N:/sccEnv/rigScript/icons/AS5.png" 
-        -image1 "N:/sccEnv/rigScript/icons/AS5.png" 
+        -image "AS5.png" 
+        -image1 "AS5.png" 
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1

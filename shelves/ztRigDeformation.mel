@@ -76,6 +76,38 @@ global proc ztRigDeformation () {
         -manage 1
         -visible 1
         -preventOverride 0
+        -annotation "ngst" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "ngst" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "ngSkinTools2ShelfIcon.png" 
+        -image1 "ngSkinTools2ShelfIcon.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import ngSkinTools2; ngSkinTools2.open_ui()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
         -annotation "Add Influence" 
         -enableBackground 0
         -backgroundColor 0 0 0 
@@ -126,6 +158,38 @@ global proc ztRigDeformation () {
         -marginWidth 1
         -marginHeight 1
         -command "RemoveInfluence" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "mirrorSkinWeightsDialog" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "mirrorSkinWeightsDialog" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "mirrorSkinWeight.png" 
+        -image1 "mirrorSkinWeight.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "MirrorSkinWeightsOptions" 
         -sourceType "mel" 
         -commandRepeatable 1
         -flat 1
@@ -313,12 +377,12 @@ global proc ztRigDeformation () {
         -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
-        -image "N:/b1Env/maya/2014/icons/cleanUpRig.png" 
-        -image1 "N:/b1Env/maya/2014/icons/cleanUpRig.png" 
+        -image "cleanUpRig.png" 
+        -image1 "cleanUpRig.png" 
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "import tak_cleanUpRig_b1\nreload(tak_cleanUpRig_b1)\ntak_cleanUpRig_b1.ui()" 
+        -command "from ztRigUtils import tak_cleanUpRig\nreload(tak_cleanUpRig)\ntak_cleanUpRig.ui()" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1
