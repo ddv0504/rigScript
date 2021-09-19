@@ -1,0 +1,12 @@
+global proc ClusterOnEdgeLoop()
+{
+string $selEdge[] = `ls -sl -fl`;
+
+for($cur in $selEdge)
+{
+select -r $cur;
+SelectEdgeLoopSp;
+PolySelectConvert 3;
+CreateCluster;
+}
+}

@@ -22,11 +22,11 @@ import maya.cmds as cmds
 import maya.mel as mel
 import pymel.core as pm
 
-import tak_cleanUpModel
+from ztRigUtils import tak_cleanUpModel
 
-import tak_lib
+from ztRigUtils import tak_lib
 import json
-import takRiggingToolkit.base.control as control
+#import takRiggingToolkit.base.control as control
 
 
 
@@ -3022,4 +3022,4 @@ def createCrvLocCtrls(crv):
     for i in xrange(crv.numCVs()):
         loc = pm.spaceLocator(n='%s_%02d_loc' % (crv.name(), i))
         loc.setTranslation(crv.cv[i].getPosition(space='world'))
-        loc.getShape().worldPosition >> crv.controlPoints[i]
+        #loc.getShape().worldPosition >> crv.controlPoints[i]

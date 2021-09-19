@@ -11,7 +11,7 @@ mayaVersion = cmds.about(v=True)
 
 # 환경변수 setup.
 # print '///////////////////////////////////////////////////////////'
-envKeyLst = ['MAYA_SCRIPT_PATH','XBMLANGPATH','PYTHONPATH','MAYA_PLUGIN_PATH']
+envKeyLst = ['MAYA_SCRIPT_PATH','XBMLANGPATH','PYTHONPATH','MAYA_PLUGIN_PATH','MAYA_MODULE_PATH']
 
 scriptPath = os.getenv('MAYA_SCRIPT_PATH')
 scriptPathLst = scriptPath.split(';')
@@ -34,16 +34,29 @@ os.environ['PYTHONPATH'] = ';'.join(pythonPathLst)
 print('PYTHONPATH ---->{0}'.format(path))
 
 pluginPath = os.getenv('MAYA_PLUGIN_PATH')
+if pluginPath:
+    pluginPathLst = pluginPath.split(';')
+else:
+    pluginPathLst = []
+pluginPathLst.append('%s/plugins' % path)
+os.environ['MAYA_PLUGIN_PATH'] = ';'.join(pluginPathLst)
+print('MAYA_PLUGIN_PATH ---->{0}/plugins'.format(path))
+
+module = os.getenv('MAYA_MODULE_PATH')
+if module:
+    moduleLst = module.split(';')
+else:
+    moduleLst = []
+moduleLst.append('%s/module' % path)
+os.environ['MAYA_MODULE_PATH'] = ';'.join(moduleLst)
+print('MAYA_MODULE_PATH ---->{0}/module'.format(path))
 
 if not path in sys.path:
     sys.path.append(path)
 
-
-
 # remove commandPort error.
 if cmds.optionVar( q='commandportOpenByDefault' ):
     cmds.optionVar( iv=('commandportOpenByDefault', 0) )
-
 
 # Auto startup ztool
 import zTool_v004

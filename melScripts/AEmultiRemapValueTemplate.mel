@@ -1,0 +1,19 @@
+global proc AEmultiRemapValueTemplate(string $nodeName)
+{
+    editorTemplate -beginScrollLayout;
+    
+        editorTemplate -addControl "inputValues";
+
+        AEaddRampControl($nodeName + ".curveRamp");
+
+        editorTemplate -beginLayout "Input and Output Ranges" -collapse 1;
+            editorTemplate -addControl "inputMinValue";
+            editorTemplate -addControl "inputMaxValue";
+            editorTemplate -addControl "outputMinValue";
+            editorTemplate -addControl "outputMaxValue";
+        editorTemplate -endLayout;
+
+        AEdependNodeTemplate $nodeName;
+        editorTemplate -addExtraControls;
+    editorTemplate -endScrollLayout;
+}

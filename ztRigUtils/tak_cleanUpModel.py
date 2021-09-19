@@ -19,7 +19,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 import maya.OpenMaya as OpenMaya
 
-import tak_logging, tak_misc, tak_lib
+from ztRigUtils import tak_misc, tak_lib
 
 from functools import partial
 import re
@@ -36,9 +36,6 @@ for plugin in PLUGINS[mayaVersion]:
     if plugin and not pm.pluginInfo(plugin, q=True, loaded=True):
         pm.loadPlugin(plugin)
 
-# create logger object
-logger = tak_logging.Logger()
-logger.setLevel('DEBUG')
 
 
 def UI():

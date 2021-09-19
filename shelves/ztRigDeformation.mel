@@ -12,12 +12,12 @@ global proc ztRigDeformation () {
         -manage 1
         -visible 1
         -preventOverride 0
-        -annotation "check" 
+        -annotation "skinClusterDialog" 
         -enableBackground 0
         -backgroundColor 0 0 0 
         -highlightColor 0.321569 0.521569 0.65098 
         -align "center" 
-        -label "check" 
+        -label "skinClusterDialog" 
         -labelOffset 0
         -rotation 0
         -flipX 0
@@ -26,13 +26,13 @@ global proc ztRigDeformation () {
         -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
-        -image "N:/b1Env/maya/2014/icons/cleanUpRig.png" 
-        -image1 "N:/b1Env/maya/2014/icons/cleanUpRig.png" 
+        -image "smoothSkin.png" 
+        -image1 "smoothSkin.png" 
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "import tak_cleanUpRig_b1\nreload(tak_cleanUpRig_b1)\ntak_cleanUpRig_b1.ui()" 
-        -sourceType "python" 
+        -command "SmoothBindSkinOptions" 
+        -sourceType "mel" 
         -commandRepeatable 1
         -flat 1
     ;
@@ -44,10 +44,44 @@ global proc ztRigDeformation () {
         -manage 1
         -visible 1
         -preventOverride 0
+        -annotation "Paint Skin Weights" 
         -enableBackground 0
         -backgroundColor 0 0 0 
         -highlightColor 0.321569 0.521569 0.65098 
         -align "center" 
+        -label "Paint Skin Weights" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "paintSkinWeights.png" 
+        -image1 "paintSkinWeights.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "ArtPaintSkinWeightsTool" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Add Influence" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Add Influence" 
         -labelOffset 0
         -rotation 0
         -flipX 0
@@ -61,8 +95,8 @@ global proc ztRigDeformation () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "import tak_misc\nreload(tak_misc)\ntak_misc.addInfUI()" 
-        -sourceType "python" 
+        -command "AddInfluence" 
+        -sourceType "mel" 
         -commandRepeatable 1
         -flat 1
     ;
@@ -254,6 +288,38 @@ global proc ztRigDeformation () {
         -marginHeight 1
         -command "weightHammerVerts" 
         -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "check" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "check" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "N:/b1Env/maya/2014/icons/cleanUpRig.png" 
+        -image1 "N:/b1Env/maya/2014/icons/cleanUpRig.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import tak_cleanUpRig_b1\nreload(tak_cleanUpRig_b1)\ntak_cleanUpRig_b1.ui()" 
+        -sourceType "python" 
         -commandRepeatable 1
         -flat 1
     ;

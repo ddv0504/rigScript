@@ -202,7 +202,7 @@ def addOffsetGroup(obj,name=None):
 
 ###### skin weight ######
 #Get skinning joint list
-
+            
 def getSkinClusterFromMesh(mesh,*args):
     return mel.eval('findRelatedSkinCluster %s;'%mesh)
 
