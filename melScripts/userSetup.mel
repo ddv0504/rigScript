@@ -22,7 +22,8 @@ global proc onModelChange3dc(string $UI){
     return;
 }
 
-evalDeferred("startup");
+//evalDeferred("startup");
+startup;
 // deadline - 배치일 경우 실행 안됩니다.
 /*if (!`about -batch`)
 {

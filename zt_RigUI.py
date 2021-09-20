@@ -175,7 +175,6 @@ class mayaShelfWidget(QWidget):
         if cmds.shelfLayout(self.name,ex=True):
             cmds.deleteUI(self.name)                        
         shelfLayout = cmds.shelfLayout(self.name,parent=mainWindow.objectName())
-
         
         mel.eval(funcName)   
         ptr = omui.MQtUtil_findControl(shelfLayout)

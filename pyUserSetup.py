@@ -9,7 +9,7 @@ import maya.mel as mel
 import maya.utils as utils
 from ztMisc import ztSceneCleanup
 #from setuptools import setup, find_namespace_packages
-path = os.path.dirname(__file__)
+path = os.path.dirname(__file__).replace('\\','/')
 mayaVersion = cmds.about(v=True)
 
 # 환경변수 setup.
@@ -38,6 +38,8 @@ addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/ngskintools2/Contents/scripts' % path)
 addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/MayaBonusTools-2017-2020/Contents/scripts-%s'% (path,mayaVersion))
 # brSmoothWeight script path:
 addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/brSmoothWeights/scripts' % path)
+# brSmoothWeight script path:
+addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/weightDriver/scripts' % path)
 
 # Icon path:
 addEnvPath('XBMLANGPATH','%s/icons' % path)
@@ -51,6 +53,7 @@ addEnvPath('PYTHONPATH','%s/plugins/QuadRemesher/Contents/scripts' % path)
 # MayaBonusTools python path:
 addEnvPath('PYTHONPATH','%s/plugins/MayaBonusTools-2017-2020/Contents/python-%s'% (path,mayaVersion))
 
+
 # ngSkinTools plugin path:
 addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/ngskintools2/Contents/plug-ins/%s' % (path,mayaVersion))
 # Quad Remesher plugin path:
@@ -59,6 +62,8 @@ addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/QuadRemesher/Contents/plug-ins' % pat
 addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/MayaBonusTools-2017-2020/Contents/plug-ins/win64-%s' % (path,mayaVersion))
 # brSmoothWeight plugin path:
 addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/brSmoothWeights/plug-ins/win64/%s' % (path,mayaVersion))
+# RBF plugin path:
+addEnvPath('MAYA_PLUG_IN_PATH','%s/plugins/weightDriver/plug-ins/win64/%s' % (path,mayaVersion))
 
 # Module path:
 addEnvPath('MAYA_MODULE_PATH','%s/module' % path)
@@ -68,6 +73,7 @@ pythonPathLst = [path,
                 '%s/plugins/ngskintools2/Contents/scripts' % path,
                 '%s/plugins/QuadRemesher/Contents/scripts' % path,
                 '%s/plugins/MayaBonusTools-2017-2020/Contents/python-%s'% (path,mayaVersion),
+                '%s/ztRigUtils/cgmtools/mayaTools' % path
                 ]
 for path in pythonPathLst:
     if not path in sys.path:
@@ -77,22 +83,41 @@ for path in pythonPathLst:
 if cmds.optionVar( q='commandportOpenByDefault' ):
     cmds.optionVar( iv=('commandportOpenByDefault', 0) )
 
-# Startup QuedRemesher
-mel.eval('source "QuadRemesher_load.mel";')
-# Startup MayaBonusTools
-mel.eval('source "bonusToolsMenu.mel";')
-mel.eval("bonusToolsMenu();")
-# Auto startup ztool
-import zTool_v004
-zTool_v004.main()
 
-# Auto startup brSmoothWeight
 def addMenuItems():
     if not cmds.about(batch=True):
+        # Auto startup brSmoothWeight
         mel.eval("source brSmoothWeightsCreateMenuItems; brSmoothWeightsAddMenuCommand;")
+        # Startup MayaBonusTools
+        mel.eval('source "bonusToolsMenu.mel";')
+        mel.eval("bonusToolsMenu();")
+        # Startup QuedRemesher
+        mel.eval('source "QuadRemesher_load.mel";')
+        # Auto startup ztool
+        import zTool_v004
+        reload(zTool_v004)
+        zTool_v004.main()
 
+pluginLst = [
+    'ngSkinTools2',
+    'QuadRemesherPlugIn',
+    'brSmoothWeights',
+    'weightDriver'
+    ]
+
+def loadPlugin():
+    for plug in pluginLst:
+        try:
+            cmds.loadPlugin(plug,qt=True)
+        except Exception as e:
+            print(plug,e)
+
+def loadMelScript():
+    mel.eval('source "QuadRemesher_shelf.mel";')
+
+utils.executeDeferred(loadMelScript)
 utils.executeDeferred(addMenuItems)
-
-# Before save cleanup unknown node and unknown plugins in this scene.
+utils.executeDeferred(loadPlugin)
+# Before save cleanup unknown node and unknown plugins.
 _id = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kBeforeSave, ztSceneCleanup.cleanUp )
 print(_id)

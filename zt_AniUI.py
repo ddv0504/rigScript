@@ -5,7 +5,7 @@ from PySide2.QtWidgets import *
 from PySide2.QtGui import *
 from PySide2.QtUiTools import *
 import shiboken2
-import ztool_ToolsUI as zToolUI
+import zt_RigUI
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 import maya.OpenMayaUI as omui
 import maya.cmds as cmds
@@ -58,6 +58,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
 
         #Tools UI
         toolLayout = QVBoxLayout()
+        shelfLayout = QVBoxLayout()
         alignLayout = QVBoxLayout()
         alignKeyLayout = QHBoxLayout()
         moveKeysLayout = QHBoxLayout()
@@ -65,12 +66,22 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         labelLayout = QVBoxLayout()
         setCameraLayout = QHBoxLayout()
         toolWidget.setLayout(toolLayout)
+        toolLayout.addLayout(shelfLayout)
         toolLayout.addLayout(labelLayout)
         toolLayout.addLayout(moveKeysLayout)
         toolLayout.addLayout(overLapLayout)
         topSpacerItem = QSpacerItem(20, 300, QSizePolicy.Minimum,QSizePolicy.Expanding)
-
-        ###Align Widgets###
+        ### Ani Shelf Widget ###
+        self.shelfPath = zt_RigUI.shelfPath
+        self.shelfPath = '%s/ztAnimation.mel' % self.shelfPath
+        self.aniShelf = zt_RigUI.mayaShelfWidget('ztAnimation',self.shelfPath)
+        self.aniShelf.setMinimumSize(150,120)
+        self.aniShelf.setStyleSheet('background-color:gray')
+        self.shelfSaveBtn = QPushButton('save')
+        shelfLayout.addWidget(self.aniShelf)
+        shelfLayout.addWidget(self.shelfSaveBtn)
+        self.shelfSaveBtn.clicked.connect(self.saveShelf)
+        ### Align Widgets ###
         alignLabel= QLabel('Align Keys:')
         alignLeftBtn = QPushButton()
         icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSkipBackward'))
@@ -82,7 +93,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         icon = QApplication.style().standardIcon(getattr(QStyle, 'SP_MediaSkipForward'))
         alignRightBtn.setIcon(icon)
         alignSpacerItem = QSpacerItem(500, 40, QSizePolicy.Minimum,QSizePolicy.Expanding)
-        ###Move key Widgets###
+        ### Move key Widgets ###
         moveKeyLabel = QLabel('Move Keys:')
         self.valueLine = QLineEdit()
         forwardBtn   = QPushButton()
@@ -154,7 +165,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
 
         setCameraBtn.clicked.connect(self.setPlayblastCam)
         playBlastBtn.clicked.connect(self.playBlast)
-        #Local UI
+        # Local UI
         localWidget = QWidget()
         tabWidget.addTab(localWidget,'Local')
         localLayout = QVBoxLayout()
@@ -180,6 +191,12 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         localLayout.addWidget(self.dirTreeView)
 
         explanBtn.clicked.connect(self.setToggle)
+    def saveShelf(self):
+        
+        name = 'ztAnimation'
+        print(name,os.path.splitext(self.shelfPath)[0])
+        cmds.saveShelf(name,os.path.splitext(self.shelfPath)[0])
+        print('%s was Saved' % name)
     def setPlayblastCam(self):
         try:
             panel = cmds.getPanel(wf=True)
@@ -379,6 +396,9 @@ class localItem(QStandardItem):
             self.setIcon(icon)
         pass
 
+class shelfWidget(QWidget):
+    def __init__(self):
+        pass
 
 def main():
     title = 'ZT_AniTools'

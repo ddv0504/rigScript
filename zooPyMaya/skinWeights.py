@@ -422,7 +422,7 @@ def mirrorWeightsOnSelected( tolerance=TOL ):
 
 	#so first we need to grab the geo to save weights for - we save geo for all objects which have
 	#verts selected
-	saveWeights( selObjs, Path('%TEMP%/tmp.weights'), mode=kREPLACE )
+	saveWeights( selObjs, Path('%TEMP%/tmp.weights') )
 	loadWeights( cmd.ls(sl=True), Path( '%TEMP%/tmp.weights' ), True, 2, (-1,), True )
 
 

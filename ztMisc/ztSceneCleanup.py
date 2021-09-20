@@ -198,6 +198,7 @@ def removeUnknownTypeNode():
     if _list:
         cmds.delete(_list)
         print('delete %s unknownTypeNode '% len(_list))
+        print('delete %s' % _list)
         reportIssue('delete %s unknownTypeNode '% len(_list))
     else:
         print('# no UnknownType Node')
