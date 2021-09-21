@@ -36,17 +36,17 @@ def onMayaDroppedPythonFile(*args):
     pythonPathLst = []
     if pythonPath:            
         if not path.replace('/','\\') in pythonPath:            
-            regUtil.appendPath(path)
+            regUtil.appendPath(path.replace('/','\\'))
     else:
-        pythonPathLst.append(path)
-    #[regUtil.appendPath(i.replace('/','\\')) for i in pythonPathLst]
+        #pythonPathLst.append(path)
+        regUtil.appendPath(path.replace('/','\\'))
     
     try:
         import maya.cmds as cmds
         import maya.mel as mel
 
-        cmds.evalDeferred("import sys")
-        cmds.evalDeferred('if not "{0}" in sys.path:\n\tsys.path.append("{0}")'.format(path))
+        import sys
+        if not path in sys.path:sys.path.append(path)
         
         mel.eval('source "%s/melScripts/userSetup.mel"' % path.replace('\\','/'))
         
