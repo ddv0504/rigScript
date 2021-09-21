@@ -84,8 +84,25 @@ def appendPath(value,type=reg.REG_EXPAND_SZ,keyname='PYTHONPATH'):
         if sys.version_info[0] == 3:
             ctypes.windll.shell32.ShellExecuteW(None,"runas",sys.executable,__file__,None,1)
 
-# Get environment value from read_registry
-# Ex:(u'N:\\b1Env\\maya\\scripts;N:\\sccEnv\\scripts\\mGearScripts;N:\\', 1)
+def registry_key(key, subkey, value):
+    """
+    Create a new Windows Registry Key in HKEY_CURRENT_USER
 
-    
-    
+    `Required`
+    :param str key:         primary registry key name
+    :param str subkey:      registry key sub-key name
+    :param str value:       registry key sub-key value
+
+    Returns True if successful, otherwise False
+
+    """
+    try:
+        
+        reg_key = reg.OpenKey(reg.HKEY_CURRENT_USER, key, 0, reg.KEY_WRITE)
+        reg.SetValueEx(reg_key, subkey, 0, reg.REG_SZ, value)
+        reg.CloseKey(reg_key)
+        return True
+    except Exception as e:
+        print(e)
+        return False 
+# Get environment value from read_registry   

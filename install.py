@@ -20,7 +20,7 @@ def addEnv(envKey,newEnvLst):
 def onMayaDroppedPythonFile(*args):
     
     scriptPath = regUtil.getEnv('MAYA_SCRIPT_PATH')
-    pythonPath = regUtil.getPythonPath('PYTHONPATH')
+    pythonPath = regUtil.getEnv('PYTHONPATH')
     scriptPathLst = []    
     #Add maya script path  
     if scriptPath: 
@@ -34,12 +34,13 @@ def onMayaDroppedPythonFile(*args):
 
     #Add maya python path.
     pythonPathLst = []
-    if pythonPath:            
-        if not path.replace('/','\\') in pythonPath:            
-            regUtil.appendPath(path.replace('/','\\'))
-    else:
-        #pythonPathLst.append(path)
-        regUtil.appendPath(path.replace('/','\\'))
+    if pythonPath:
+        [pythonPathLst.append(i) for i in pythonPath.split(';')]
+        if not path.replace('/','\\') in pythonPathLst:
+            pythonPathLst.append(path.replace('/','\\'))
+    else:        
+        pythonPathLst.append(path.replace('/','\\'))
+    addEnv('PYTHONPATH',pythonPathLst)
     
     try:
         import maya.cmds as cmds
@@ -49,9 +50,10 @@ def onMayaDroppedPythonFile(*args):
         if not path in sys.path:sys.path.append(path)
         
         mel.eval('source "%s/melScripts/userSetup.mel"' % path.replace('\\','/'))
-        
+        print(path)
     except ImportError:
         pass
-    
+
+
 if __name__ == '__main__':
     onMayaDroppedPythonFile()
