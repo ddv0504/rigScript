@@ -47,10 +47,10 @@ def onMayaDroppedPythonFile(*args):
         import maya.mel as mel
 
         import sys
-        if not path in sys.path:sys.path.append(path)
+        #cmds.evalDeferred('if not path in sys.path:sys.path.append(\"%s\")' % path)
         
         mel.eval('source "%s/melScripts/userSetup.mel"' % path.replace('\\','/'))
-        print(path)
+
     except ImportError:
         pass
 

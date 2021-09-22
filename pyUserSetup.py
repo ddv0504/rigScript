@@ -73,12 +73,13 @@ pythonPathLst = [path,
                 '%s/plugins/ngskintools2/Contents/scripts' % path,
                 '%s/plugins/QuadRemesher/Contents/scripts' % path,
                 '%s/plugins/MayaBonusTools-2017-2020/Contents/python-%s'% (path,mayaVersion),
-                '%s/ztRigUtils/cgmtools/mayaTools' % path
+                '%s/ztRigUtils/cgmtools/mayaTools' % path,
+                '%s/tools' % path
                 ]
 for path in pythonPathLst:
     if not path in sys.path:
         sys.path.append(path)
-
+        print(path)
 # remove commandPort error.
 if cmds.optionVar( q='commandportOpenByDefault' ):
     cmds.optionVar( iv=('commandportOpenByDefault', 0) )
