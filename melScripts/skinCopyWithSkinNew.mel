@@ -1,0 +1,84 @@
+//skin copy 
+//- vertex를 선택하고 도 가능하게.
+//- 한번에 여러개 도 가능하게  1개 소스에서 여러개 소스로.
+//- skin이 이미 들어 있어도 가능하게.
+
+global proc int skinCopyWithSkinNew(){
+
+	//vertex를 선택하고 컨트롤러 선택하고 실행.
+	string $selectList[] = `ls -sl -fl`;
+
+	// string $control = $selectList[size($selectList)-1];
+	// stringArrayRemoveAtIndex((size($selectList)-1), $selectList); //remove last.
+	 
+	string $sourceShape;
+	if ( size($selectList) == 0){
+		warning "Select a Source mesh with skin cluster";
+		return 0;
+	}
+	else if ( `objectType $selectList[0]` == "transform" ) {
+		$temp = `listRelatives -s $selectList[0]`;
+		$sourceShape = $temp[0];	
+	}
+	else if ( `objectType $selectList[0]` == "mesh" ) {
+		$sourceShape = $selectList[0];
+	}
+	else{
+		warning "Select a Source mesh with skin cluster";
+		return 0;
+	}
+
+	string $skinCluster = `findRelatedSkinCluster $sourceShape`;	
+	string $jointList[] = `skinCluster -q -inf $sourceShape`;
+
+	if (`objectType $selectList[1]` == "transform"){
+		for ($i=1 ; $i < size($selectList) ; $i++){
+
+			string $skinClusterB = `findRelatedSkinCluster $selectList[$i]`;
+			string $jointListB[];
+			if ($skinClusterB == ""){ // if already skined 
+				skinCluster -mi 1 -dr 4.5 -tsb $jointList $selectList[$i]; //add joint
+			}else{					
+				$jointListB = `skinCluster -q -inf $selectList[$i]`;
+				for ($curJoint in $jointList){
+					if (!stringArrayContains($curJoint, $jointListB))					
+						skinCluster -e -lw true -wt 0 -ai $curJoint $selectList[$i];
+				}	
+			}
+
+			select -r $sourceShape;
+			select -add $selectList[$i];
+			copySkinWeights  -noMirror -surfaceAssociation "closestPoint" -influenceAssociation "label" -influenceAssociation "oneToOne" -normalize;
+			print ("//result : skinCopy " + $sourceShape + " to " + $selectList[$i] + "\n");			
+		}	
+	}
+	else if (`gmatch $selectList[1] "*.vtx*"`){
+
+		string $tokenTemp[] = stringToStringArray( $selectList[0] ,".");
+
+		string $skinClusterB = `findRelatedSkinCluster $tokenTemp[0]`;	
+		string $jointListB[];
+		if ($skinClusterB == ""){
+			skinCluster -mi 1 -dr 4.5 -tsb $jointList $tokenTemp[0];
+		}else{
+			$jointListB = `skinCluster -q -inf $tokenTemp[0]`;
+			for ($curJoint in $jointList){	
+				if (!stringArrayContains($curJoint, $jointListB))	
+					skinCluster -e -lw true -wt 0 -ai $curJoint $tokenTemp[0];
+			}
+		}
+
+		select -r $sourceShape;
+		select -add $selectList;
+		copySkinWeights  -noMirror -surfaceAssociation "closestPoint" -influenceAssociation "label" -influenceAssociation "oneToOne" -normalize;
+		print ("//result : skinCopy from " + $sourceShape + "\n");
+			
+	}
+	else{
+        warning "please select mesh or vertex first.\n";
+        return 0;
+    } 
+
+    return 1;
+}
+

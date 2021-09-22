@@ -156,59 +156,59 @@ def getScriptPath():
     path = os.path.dirname(__file__)
     return path
 
-def checkEnv(envFile):
-    if not os.path.isfile(envFile):
-        with open(envFile,'w') as f:
-            f.write('')
+# def checkEnv(envFile):
+#     if not os.path.isfile(envFile):
+#         with open(envFile,'w') as f:
+#             f.write('')
 
-    lineContent = ''
-    with open(envFile,'r') as f:
-        lst = f.readlines()
-    pythonStr = 'PYTHONPATH'
-    for l in lst:
-        if not pythonStr in l:
-            continue
-        elif optionPath and getScriptPath() in l:
-            return
-        lineContent = l
-    if lineContent:
-        if '\r\n' in lineContent:
-            newlineContent = lineContent.split('\r\n')[0]
-            newLineContent = '%s;%s;%s;\r\n' % (newlineContent,optionPath,getScriptPath())
-            index = lst.index(lineContent)
-            lst[index] = newLineContent
-            t = time.time()
-            t = time.strftime("%Y%m%d")
-            shutil.copy2(envFile,'%s%s.backup' %(envFile,t))
-            print(t)
-        with open(envFile,'w') as f:
-            for l in lst:
-                f.write(l)
-    else:
-        print(getScriptPath())
-        with open(envFile,'w') as f:
-            f.write('PYTHONPATH = %s;%s;\r\n' % (optionPath,getScriptPath()) )
-checkEnv(envFile)
+#     lineContent = ''
+#     with open(envFile,'r') as f:
+#         lst = f.readlines()
+#     pythonStr = 'PYTHONPATH'
+#     for l in lst:
+#         if not pythonStr in l:
+#             continue
+#         elif optionPath and getScriptPath() in l:
+#             return
+#         lineContent = l
+#     if lineContent:
+#         if '\r\n' in lineContent:
+#             newlineContent = lineContent.split('\r\n')[0]
+#             newLineContent = '%s;%s;%s;\r\n' % (newlineContent,optionPath,getScriptPath())
+#             index = lst.index(lineContent)
+#             lst[index] = newLineContent
+#             t = time.time()
+#             t = time.strftime("%Y%m%d")
+#             shutil.copy2(envFile,'%s%s.backup' %(envFile,t))
+#             print(t)
+#         with open(envFile,'w') as f:
+#             for l in lst:
+#                 f.write(l)
+#     else:
+#         print(getScriptPath())
+#         with open(envFile,'w') as f:
+#             f.write('PYTHONPATH = %s;%s;\r\n' % (optionPath,getScriptPath()) )
+# checkEnv(envFile)
 
-#Startup file contents
-startUpFile     = '%s/maya/scripts/zTool/options/userSetup.py' % os.getenv('HOME')
-startUpContents = u'''\
-import maya.cmds as cmds
-cmds.evalDeferred("import zTool_v004")
-cmds.evalDeferred("zTool_v004.main()")
-    '''
+# #Startup file contents
+# startUpFile     = '%s/maya/scripts/zTool/options/userSetup.py' % os.getenv('HOME')
+# startUpContents = u'''\
+# import maya.cmds as cmds
+# cmds.evalDeferred("import zTool_v004")
+# cmds.evalDeferred("zTool_v004.main()")
+#     '''
 
-def userSetup(file):
-    startUpContents = u'''\
-    import maya.cmds as cmds
-    cmds.evalDeferred("import zTool_v004")
-    cmds.evalDeferred("zTool_v004.main()")
-    '''
-    if not os.path.isfile(file):
-        if not os.path.isdir(os.path.dirname(file)):
-            os.makedirs(os.path.dirname(file))
-        with open(file,'w') as f:
-            f.write(textwrap.dedent(startUpContents))
+# def userSetup(file):
+#     startUpContents = u'''\
+#     import maya.cmds as cmds
+#     cmds.evalDeferred("import zTool_v004")
+#     cmds.evalDeferred("zTool_v004.main()")
+#     '''
+#     if not os.path.isfile(file):
+#         if not os.path.isdir(os.path.dirname(file)):
+#             os.makedirs(os.path.dirname(file))
+#         with open(file,'w') as f:
+#             f.write(textwrap.dedent(startUpContents))
 
 #Rotate icon
 def rotateIcon(icon,deg):
@@ -395,25 +395,25 @@ class zTool(MayaQWidgetDockableMixin,QWidget):
         self.sceneSettingBtn.clicked.connect(self.sceneSetting)
         self.controlBtn.clicked.connect(self.addControl)
         self.toolBtn.clicked.connect(self.tools)
-        self.startUpCheckBox.stateChanged.connect(self.checkStartUp)
+        #self.startUpCheckBox.stateChanged.connect(self.checkStartUp)
 
-    def checkStartUp(self):
-        if self.startUpCheckBox.isChecked():
-            optionData.update({"startUp":1})
-            saveJson(optionFile,optionData)
-            if not os.path.isfile(startUpFile):
-                with open(startUpFile,'w') as f:
-                    f.write(textwrap.dedent(startUpContents))
-            print('%s file was created' % startUpFile)
-            print("Start up was checked.")
+    # def checkStartUp(self):
+    #     if self.startUpCheckBox.isChecked():
+    #         optionData.update({"startUp":1})
+    #         saveJson(optionFile,optionData)
+    #         if not os.path.isfile(startUpFile):
+    #             with open(startUpFile,'w') as f:
+    #                 f.write(textwrap.dedent(startUpContents))
+    #         print('%s file was created' % startUpFile)
+    #         print("Start up was checked.")
 
-        else:
-            optionData.update({"startUp":0})
-            saveJson(optionFile,optionData)
-            if os.path.isfile(startUpFile):
-                os.remove(startUpFile)
-            print('%s file was removed' % startUpFile)
-            print("Start up was unchecked.")
+    #     else:
+    #         optionData.update({"startUp":0})
+    #         saveJson(optionFile,optionData)
+    #         if os.path.isfile(startUpFile):
+    #             os.remove(startUpFile)
+    #         print('%s file was removed' % startUpFile)
+    #         print("Start up was unchecked.")
 
     def tools(self):
         import ztool_ToolsUI

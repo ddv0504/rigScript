@@ -863,15 +863,15 @@ def dumpNodeAttrs( node ):
 	attrs = listAttr( node )
 	for attr in attrs:
 		try:
-			print attr, getAttr( '%s.%s' % (node, attr) )
+			print(attr, getAttr( '%s.%s' % (node, attr) ))
 			if attributeQuery( attr, n=node, multi=True ):
 				indices = getAttr( '%s.%s' % (node, attr), multiIndices=True ) or []
 				for idx in indices:
-					print '\t%d %s' % (idx, getAttr( '%s.%s[%d]' % (node, attr, idx) ))
+					print('\t%d %s' % (idx, getAttr( '%s.%s[%d]' % (node, attr, idx) )))
 		except RuntimeError:
-			print attr
+			print(attr)
 		except TypeError:
-			print attr
+			print(attr)
 
 
 del( control )

@@ -31,23 +31,24 @@ def onMayaDroppedPythonFile(*args):
         scriptPathLst.append('%s\\melScripts' % path)
     
     addEnv('MAYA_SCRIPT_PATH',scriptPathLst)
-
-    #Add maya python path.
-    pythonPathLst = []
-    if pythonPath:
-        [pythonPathLst.append(i) for i in pythonPath.split(';')]
-        if not path.replace('/','\\') in pythonPathLst:
-            pythonPathLst.append(path.replace('/','\\'))
-    else:        
-        pythonPathLst.append(path.replace('/','\\'))
-    addEnv('PYTHONPATH',pythonPathLst)
     
+    pythonPahtLst = []    
+    #Add maya script path  
+    if pythonPath: 
+        [pythonPahtLst.append(i) for i in pythonPath.split(';')]    
+        if not path.replace('/','\\') in pythonPath:            
+            pythonPahtLst.append(path.replace('/','\\'))
+    else:
+        pythonPahtLst.append(path.replace('/','\\'))
+    
+    addEnv('PYTHONPATH',pythonPahtLst)
+
     try:
         import maya.cmds as cmds
         import maya.mel as mel
 
-        import sys
-        #cmds.evalDeferred('if not path in sys.path:sys.path.append(\"%s\")' % path)
+        cmds.evalDeferred('import sys')
+        cmds.evalDeferred('if not "{0}" in sys.path:sys.path.append("{0}")'.format(path.replace('\\','/')))
         
         mel.eval('source "%s/melScripts/userSetup.mel"' % path.replace('\\','/'))
 

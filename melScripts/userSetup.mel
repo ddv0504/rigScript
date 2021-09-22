@@ -1,4 +1,3 @@
-
 print "############    RIG SCRIPT ENV SETUP ############\n\n\n";
 global proc startup(){
     //scriptJob -e NewSceneOpened defaultSceneUI;
@@ -6,7 +5,7 @@ global proc startup(){
 
     loadPlugin -qt "AbcImport.mll";
     loadPlugin -qt "AbcExport.mll";
-
+    
     // python User setup.
     python("import pyUserSetup");
     //python("reload(pyUserSetup)");
@@ -22,8 +21,8 @@ global proc onModelChange3dc(string $UI){
     return;
 }
 
-//evalDeferred("startup");
-startup;
+evalDeferred("startup");
+//startup;
 // deadline - 배치일 경우 실행 안됩니다.
 /*if (!`about -batch`)
 {

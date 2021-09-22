@@ -7,6 +7,7 @@ import maya.OpenMaya as OpenMaya
 import maya.cmds as cmds
 import maya.mel as mel
 import maya.utils as utils
+from imp import reload
 from ztMisc import ztSceneCleanup
 #from setuptools import setup, find_namespace_packages
 path = os.path.dirname(__file__).replace('\\','/')
@@ -30,6 +31,7 @@ def addEnvPath(envKey,path):
 addEnvPath('MAYA_SCRIPT_PATH','%s/melScripts' % path)
 # AdvencedSkeleton5 script path:
 addEnvPath('MAYA_SCRIPT_PATH','%s/advenced_Skeleton5' % path)
+addEnvPath('MAYA_SCRIPT_PATH','%s/advenced_Skeleton5/AdvancedSkeleton5Files/Selector' % path)
 # QuadRemesher script path:
 addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/QuadRemesher/Contents/scripts' % path)
 # ngSkinTools script path:
@@ -43,6 +45,8 @@ addEnvPath('MAYA_SCRIPT_PATH','%s/plugins/weightDriver/scripts' % path)
 
 # Icon path:
 addEnvPath('XBMLANGPATH','%s/icons' % path)
+addEnvPath('XBMLANGPATH','%s/advenced_Skeleton5/AdvancedSkeleton5Files/Selector/face' % path)
+addEnvPath('XBMLANGPATH','%s/advenced_Skeleton5/AdvancedSkeleton5Files/Selector/biped' % path)
 
 # PYTHONPATH main:
 addEnvPath('PYTHONPATH',path)

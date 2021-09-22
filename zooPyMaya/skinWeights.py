@@ -131,7 +131,7 @@ def saveWeights( geos, filepath=None ):
 
 	filepath = Path( filepath )
 	filepath.pickle( toWrite)
-	print 'Weights Successfully Saved to %s: time taken %.02f seconds' % (filepath, time.clock()-start)
+	print('Weights Successfully Saved to %s: time taken %.02f seconds' % (filepath, time.clock()-start))
 
 	return filepath
 
@@ -145,7 +145,7 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 
 	#nothing to do...
 	if not objects:
-		print 'No objects given...'
+		print('No objects given...')
 		return
 
 	if filepath is None:
@@ -153,7 +153,7 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 	else:
 		filepath = Path(filepath)
 	if not filepath.exists():
-		print 'File does not exist %s' % filepath
+		print('File does not exist %s' % filepath)
 		return
 
 	start = time.clock()
@@ -218,7 +218,7 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 					search = cmd.ls('%s*' % leafName, r=True, type='joint')
 					if search:
 						joints[n] = search[0]
-						print '%s remapped to %s' % (j, search[0])
+						print('%s remapped to %s' % (j, search[0]))
 
 
 	#now that we've remapped joint names, we go through the joints again and remap missing joints to their nearest parent
@@ -233,7 +233,7 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 					break
 
 			if dealtWith:
-				print '%s remapped to %s' % (j, jp)
+				print('%s remapped to %s' % (j, jp))
 				continue
 
 			missingJoints.add(n)
@@ -340,7 +340,7 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 					jointList, weightList = weightDataById[vert]
 				except KeyError:
 					#in this case, the vert doesn't exist in teh file...
-					print '### no point found for %s' % vert
+					print('### no point found for %s' % vert)
 					continue
 				else:
 					jointList = [ joints[ j ] for j in jointList ]
@@ -352,7 +352,7 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 		curItem += 1
 
 	end = time.clock()
-	print 'time for weight load %.02f secs' % (end-start)
+	print('time for weight load %.02f secs' % (end-start))
 
 
 from maya.OpenMayaAnim import MFnSkinCluster

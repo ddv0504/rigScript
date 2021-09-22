@@ -73,6 +73,8 @@ class rigWindow(MayaQWidgetDockableMixin, QMainWindow):
     def saveShelf(self):
         for f in [ '%s/%s' % (shelfPath,i) for i in os.listdir(shelfPath)]:
             name = os.path.basename(os.path.splitext(f)[0])
+            if 'ztAnimation' in name:
+                continue
             print(name,os.path.splitext(f)[0])
             cmds.saveShelf(name,os.path.splitext(f)[0])
             print('%s was Saved' % name)

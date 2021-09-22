@@ -266,6 +266,39 @@ global proc ztRigDeformation () {
         -manage 1
         -visible 1
         -preventOverride 0
+        -annotation "source \"skinCopyWithSkinNew.mel\"; skinCopyWithSkinNew; repeatLas..." 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "source \"skinCopyWithSkinNew.mel\"; skinCopyWithSkinNew; repeatLas..." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "COPY" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "commandButton.png" 
+        -image1 "commandButton.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "source \"skinCopyWithSkinNew.mel\"; skinCopyWithSkinNew; repeatLast -ac skinCopyWithSkinNew" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
         -enableBackground 0
         -backgroundColor 0 0 0 
         -highlightColor 0.321569 0.521569 0.65098 

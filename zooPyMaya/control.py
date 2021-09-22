@@ -359,7 +359,7 @@ def buildControl( name,
 		_scale = list( getJointSize( [ place ] + (shapeDesc.joints or []) ) )
 		_scale = sorted( _scale )[ -1 ]
 		if abs( _scale ) < 1e-2:
-			print 'AUTO SCALE FAILED', _scale, name, place
+			print('AUTO SCALE FAILED', _scale, name, place)
 			_scale = scale
 
 		scale = _scale
@@ -387,7 +387,7 @@ def buildControl( name,
 
 			#if we get this far that means none of the joints have geo skinned to them - so set the surface and curve types to their default values
 			shapeDesc.surfaceType = shapeDesc.curveType = ShapeDesc.DEFAULT_TYPE
-			print 'WARNING - surface type was set to SKIN, but no geometry is skinned to the joints: %s' % shapeDesc.joints
+			print('WARNING - surface type was set to SKIN, but no geometry is skinned to the joints: %s' % shapeDesc.joints)
 		except BreakException: pass
 
 
