@@ -10,6 +10,7 @@ import maya.OpenMayaUI as omui
 import maya.cmds as cmds
 import pymel.core as pm
 import maya.mel as mel
+from zooPyMaya.mayaDecorators import d_unifyUndo
 from ztRigUtils import ztRigUtil
 reload(ztRigUtil)
 
@@ -116,6 +117,13 @@ class rigWindow(MayaQWidgetDockableMixin, QMainWindow):
         self.grpOperationLayout.addWidget(suffixLineEdit)
         radioBtnGrp.buttonClicked.connect(lambda:self.offsetGroupSwitch(defaultCheckBox,suffixLineEdit))
         addOffsetBtn.clicked.connect(lambda:self.addOffsetGroup(radioBtnGrp,suffixLineEdit))        
+    
+    def rotToOrient(self):
+        cmds.undoInfo(ock=True)
+        for jnt in cmds.ls(sl=True):
+            if cmds.objectType(jnt) == 'joint':
+                ztRigUtil.rotToOrient(jnt)
+        cmds.undoInfo(cck=True)
     def addOffsetGroup(self,btnGroup,lineEdit=None):
         objs = cmds.ls(sl=True)
         btn = [i for i in btnGroup.buttons() if i.isChecked()][0]
