@@ -21,6 +21,10 @@ global proc onModelChange3dc(string $UI){
     return;
 }
 
+global proc CgAbBlastPanelOptChangeCallback(string $UI){
+    return;
+}
+
 evalDeferred("startup");
 //startup;
 // deadline - 배치일 경우 실행 안됩니다.
