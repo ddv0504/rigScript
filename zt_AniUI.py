@@ -34,7 +34,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         QWidget.__init__(self,parent=None)
 
         self.setMinimumSize(500,350)
-        self.setMaximumSize(500,350)
+        #self.setMaximumSize(500,350)
         self.move(curser.pos())
         self.setForm()
         self.setLocalList()
