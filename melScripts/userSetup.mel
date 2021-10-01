@@ -1,5 +1,6 @@
-print "############    RIG SCRIPT ENV SETUP ############\n\n\n";
+
 global proc startup(){
+	print "############    RIG SCRIPT ENV SETUP ############\n\n\n";
     //scriptJob -e NewSceneOpened defaultSceneUI;
     //scriptJob -e SceneOpened openSceneUI;
 
