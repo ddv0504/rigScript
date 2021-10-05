@@ -57,6 +57,7 @@ def build_ui(parent):
             def create_mode_button(toolbar, mode, label, tooltip):
                 a = QtWidgets.QAction(label, parent)
                 a.setToolTip(tooltip)
+                a.setStatusTip(tooltip)
                 a.setCheckable(True)
                 actions[mode] = a
                 group.addAction(a)
@@ -71,7 +72,7 @@ def build_ui(parent):
                 toolbar.addAction(a)
 
             t = QtWidgets.QToolBar()
-            create_mode_button(t, PaintMode.replace, "Replace", "Whatever")
+            create_mode_button(t, PaintMode.replace, "Replace", "")
             create_mode_button(t, PaintMode.add, "Add", "")
             create_mode_button(t, PaintMode.scale, "Scale", "")
             row.addWidget(t)
@@ -115,6 +116,13 @@ def build_ui(parent):
             "When this option is enabled, smooth will only adjust existing influences per vertex, "
             "and won't include other influences from nearby vertices"
         )
+
+        volume_neighbours = QtWidgets.QCheckBox("Smooth across gaps and thin surfaces")
+        volume_neighbours.setToolTip(
+            "Use all nearby neighbours, regardless if they belong to same surface. "
+            "This will allow for smoothing to happen across gaps and thin surfaces."
+        )
+
         limit_to_component_selection = QtWidgets.QCheckBox("Limit to component selection")
         limit_to_component_selection.setToolTip("When this option is enabled, smoothing will only happen between selected components")
 
@@ -131,14 +139,22 @@ def build_ui(parent):
         def update_ui():
             with ui_lock:
                 widgets.set_paint_expo(intensity, model.current_settings.mode)
+
                 intensity.set_value(model.current_settings.intensity)
+
                 iterations.set_value(model.current_settings.iterations)
                 iterations.set_enabled(model.current_settings.mode in [PaintMode.smooth, PaintMode.sharpen])
+
                 fixed_influences.setEnabled(model.current_settings.mode in [PaintMode.smooth])
                 fixed_influences.setChecked(model.current_settings.fixed_influences_per_vertex)
+
                 limit_to_component_selection.setChecked(model.current_settings.limit_to_component_selection)
                 limit_to_component_selection.setEnabled(fixed_influences.isEnabled())
+
                 influences_limit.set_value(model.current_settings.influences_limit)
+
+                volume_neighbours.setChecked(model.current_settings.use_volume_neighbours)
+                volume_neighbours.setEnabled(model.current_settings.mode == PaintMode.smooth)
 
         settings_group = QtWidgets.QGroupBox("Mode Settings")
         layout = QtWidgets.QVBoxLayout()
@@ -148,6 +164,7 @@ def build_ui(parent):
         layout.addLayout(createTitledRow("Iterations:", iterations.layout()))
         layout.addLayout(createTitledRow("Influences limit:", influences_limit.layout()))
         layout.addLayout(createTitledRow("Weight bleeding:", fixed_influences))
+        layout.addLayout(createTitledRow("Volume smoothing:", volume_neighbours))
         layout.addLayout(createTitledRow("Isolation:", limit_to_component_selection))
         settings_group.setLayout(layout)
 

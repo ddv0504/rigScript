@@ -96,11 +96,12 @@ def build_ui(parent, globalActions):
             result = QtWidgets.QToolBar()
             group = QtWidgets.QActionGroup(parent)
 
-            def add(icon, title, mode, checked=False):
+            def add(title, tooltip, mode, use_volume, checked):
                 a = QtWidgets.QAction(title, parent)
                 a.setCheckable(True)
-                a.setIcon(QtGui.QIcon(icon))
                 a.setChecked(checked)
+                a.setToolTip(tooltip)
+                a.setStatusTip(tooltip)
                 result.addAction(a)
                 group.addAction(a)
 
@@ -109,14 +110,36 @@ def build_ui(parent, globalActions):
                 def toggled(checked):
                     if checked:
                         paint.brush_projection_mode = mode
+                        paint.use_volume_neighbours = use_volume
                         update_ui()
 
                 @signal.on(session.events.tool_settings_changed, qtParent=a)
                 def tool_settings_changed():
-                    a.setChecked(paint.brush_projection_mode == mode)
+                    a.setChecked(
+                        paint.brush_projection_mode == mode and (mode != BrushProjectionMode.surface or paint.use_volume_neighbours == use_volume)
+                    )
 
-            add(None, 'Surface', BrushProjectionMode.surface, checked=True)
-            add(None, 'Screen', BrushProjectionMode.screen, checked=False)
+            add(
+                'Surface',
+                'Using first surface hit under the mouse, update all nearby vertices that are connected by surface to the hit location. Only current shell will be updated.',
+                BrushProjectionMode.surface,
+                use_volume=False,
+                checked=True,
+            )
+            add(
+                'Volume',
+                'Using first surface hit under the mouse, update all nearby vertices, including those from other shells.',
+                BrushProjectionMode.surface,
+                use_volume=True,
+                checked=False,
+            )
+            add(
+                'Screen',
+                'Use screen projection of a brush, updating all vertices on all surfaces that are within the brush radius.',
+                BrushProjectionMode.screen,
+                use_volume=False,
+                checked=False,
+            )
             return result
 
         def stylus_pressure_selection():
@@ -330,5 +353,7 @@ def build_ui(parent, globalActions):
 
     update_to_tool()
     update_tab_enabled()
+
+    session.events.tool_settings_changed.emit()
 
     return tab.tabContents

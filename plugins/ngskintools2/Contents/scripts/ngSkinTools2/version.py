@@ -1,7 +1,5 @@
 from ngSkinTools2.python_compatibility import Object
-from ngSkinTools2 import options
 from ngSkinTools2.api import plugin
-from ngSkinTools2.options import PersistentValue
 
 COPYRIGHT = "<span>&copy; Viktoras Makauskas, 2012-2021</span>"
 PRODUCT_URL = "https://www.ngskintools.com"
@@ -12,7 +10,7 @@ def pluginVersion():
     Unique version of plugin, e.g. "1.0beta.680". Also represents
     required version of mll plugin. Automatically set at build time
     """
-    pluginVersion_doNotEdit = "2.0.33"
+    pluginVersion_doNotEdit = "2.0.34"
     return pluginVersion_doNotEdit
 
 
@@ -29,14 +27,15 @@ def uniqueClientId():
     """
     returns a unique ID for this installation. randomly generated at first run.
     """
-    model = PersistentValue(options.VAR_OPTION_PREFIX + "updateCheckUniqueClientId", None)
-    if model.get() is None:
-        model.set(generateUniqueClientId())
-    return model.get()
+    from ngSkinTools2.ui.options import config
+
+    if config.unique_client_id.get() is None:
+        config.unique_client_id.set(generate_unique_client_id())
+    return config.unique_client_id.get()
 
 
 # returns random hexadecimal 40-long string
-def generateUniqueClientId():
+def generate_unique_client_id():
     import random
 
     result = ""

@@ -49,6 +49,7 @@ class FloodSettings(Object):
         self.fixed_influences_per_vertex = False
         self.distribute_to_other_influences = False
         self.limit_to_component_selection = False
+        self.use_volume_neighbours = False
 
 
 def flood_weights(layer, influence=None, settings=None):
@@ -72,6 +73,7 @@ def flood_weights(layer, influence=None, settings=None):
         mirror=bool(settings.mirror),
         distributeRemovedWeight=settings.distribute_to_other_influences,
         limitToComponentSelection=settings.limit_to_component_selection,
+        useVolumeNeighbours=settings.use_volume_neighbours,
         fixedInfluencesPerVertex=bool(settings.fixed_influences_per_vertex),
     )
 

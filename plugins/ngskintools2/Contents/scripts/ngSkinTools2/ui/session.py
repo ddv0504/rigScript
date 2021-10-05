@@ -42,8 +42,6 @@ class State(Object):
         self.currentInfluence = CurrentPaintTargetState()
         from ngSkinTools2.ui import influencesview
 
-        self.influencesViewConfig = influencesview.Config()
-
     def set_skin_cluster(self, cluster):
         self.selectedSkinCluster = cluster
         self.layers = None if cluster is None else Layers(cluster)

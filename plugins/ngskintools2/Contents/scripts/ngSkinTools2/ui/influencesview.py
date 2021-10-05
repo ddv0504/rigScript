@@ -1,22 +1,20 @@
-import os
-
 from maya import cmds
 
+from ngSkinTools2.api.layers import Layer
 from ngSkinTools2.api.influenceMapping import InfluenceInfo
 from ngSkinTools2.api.target_info import list_influences
-from ngSkinTools2.observableValue import ObservableValue
 from ngSkinTools2.python_compatibility import Object
 import re
 
 from PySide2 import QtWidgets, QtCore, QtGui
-from ngSkinTools2 import signal, options
+from ngSkinTools2 import signal
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.mllInterface import MllInterface
 from ngSkinTools2.signal import Signal
-from ngSkinTools2.ui import qt
+from ngSkinTools2.ui import qt, options
 from ngSkinTools2.ui.layout import scale_multiplier
 
 log = getLogger("influencesView")
+_ = Layer  # only imported for type reference
 
 
 class InfluenceNameFilter(Object):
@@ -69,23 +67,12 @@ class InfluenceNameFilter(Object):
         return False
 
 
-class Config(Object):
-    def __init__(self):
-        self.used_influences_only = options.config.build_observable_value("influencesViewShowUsedInfluencesOnly", False)
-
-
-def build_used_influences_action(parent, config):
-    """
-    :type config: Config
-    """
+def build_used_influences_action(parent):
     from ngSkinTools2.ui import actions
-
-    @signal.on(config.used_influences_only.changed)
-    def update():
-        result.setChecked(config.used_influences_only())
+    from ngSkinTools2.ui.options import config
 
     def toggle():
-        config.used_influences_only.set(not config.used_influences_only())
+        config.influences_show_used_influences_only.set(not config.influences_show_used_influences_only())
 
     result = actions.define_action(
         parent,
@@ -93,19 +80,25 @@ def build_used_influences_action(parent, config):
         callback=toggle,
         tooltip="If enabled, influences view will only show influences that have weights on current layer",
     )
+
+    @signal.on(config.influences_show_used_influences_only.changed, qtParent=parent)
+    def update():
+        result.setChecked(config.influences_show_used_influences_only())
+
     result.setCheckable(True)
     update()
     return result
 
 
-def buildView(parent, actions, session, filter):
+def build_view(parent, actions, session, filter):
     """
+    :param parent: ui parent
     :type actions: ngSkinTools2.ui.actions.Actions
-    :param session: ngSkinTools2.ui.session.Session
+    :type session: ngSkinTools2.ui.session.Session
     :type filter: InfluenceNameFilter
     """
 
-    config = session.state.influencesViewConfig
+    from ngSkinTools2.ui.options import config
 
     icon_joint = QtGui.QIcon(":/joint.svg")
     icon_joint_disabled = qt.image_icon("joint_disabled.png")
@@ -137,7 +130,7 @@ def buildView(parent, actions, session, filter):
         for i in items:
             i.used = i.logicalIndex in used
 
-        if config.used_influences_only() and layer is not None:
+        if config.influences_show_used_influences_only() and layer is not None:
             items = [i for i in items if i.used]
 
         log.info("rebuilding influences items")
@@ -213,7 +206,7 @@ def buildView(parent, actions, session, filter):
     def refresh_items():
         build_items(view, list_influences(session.state.currentLayer.selectedSkinCluster), session.state.currentLayer.layer)
 
-    @signal.on(filter.changed, config.used_influences_only.changed, session.events.influencesListUpdated)
+    @signal.on(filter.changed, config.influences_show_used_influences_only.changed, session.events.influencesListUpdated)
     def filter_changed():
         refresh_items()
 

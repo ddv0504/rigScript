@@ -5,7 +5,7 @@
 	AutodeskProduct="Maya"
 	Name="ngskintools2"
 	Description="ngSkinTools2 - advanced skinning"
-	AppVersion="2.0.33"
+	AppVersion="2.0.34"
 	Author="ngSkinTools.com"
 	AppNameSpace="com.ngskintools.ngskintools2"
 	HelpFile="./Contents/docs/index.html"

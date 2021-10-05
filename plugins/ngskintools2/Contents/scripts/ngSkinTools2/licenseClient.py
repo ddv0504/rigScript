@@ -9,7 +9,8 @@ import time
 from threading import Thread
 
 from maya import cmds, utils as mu
-from ngSkinTools2 import cleanup, options, signal
+from ngSkinTools2 import cleanup, signal
+from ngSkinTools2.ui import options
 from ngSkinTools2.api import plugin
 from ngSkinTools2.log import getLogger
 from ngSkinTools2.python_compatibility import Object

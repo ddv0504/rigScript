@@ -58,6 +58,7 @@ class PaintTool(Object):
         cmds.setToolTo(cls.__paint_context)
 
     def flood(self, layer, influence):
+        log.info("settings: %s", self.brush_iterations)
         settings = FloodSettings()
         settings.mode = self.paint_mode
         settings.intensity = self.brush_intensity
@@ -67,6 +68,7 @@ class PaintTool(Object):
         settings.fixed_influences_per_vertex = self.fixed_influences_per_vertex
         settings.distribute_to_other_influences = self.redistribute_removed_weight
         settings.limit_to_component_selection = self.limit_to_component_selection
+        settings.use_volume_neighbours = self.use_volume_neighbours
         tools.flood_weights(layer, influence, settings)
 
     brush_projection_mode = internals.make_editable_property('brushProjectionMode')
@@ -84,6 +86,8 @@ class PaintTool(Object):
 
     fixed_influences_per_vertex = internals.make_editable_property('fixedInfluencesPerVertex')
     limit_to_component_selection = internals.make_editable_property('limitToComponentSelection')
+
+    use_volume_neighbours = internals.make_editable_property('useVolumeNeighbours')
 
     weights_display_mode = internals.make_editable_property('weightsDisplayMode')
     display_node_visible = internals.make_editable_property('displayNodeVisible')

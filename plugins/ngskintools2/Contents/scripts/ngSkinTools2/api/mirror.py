@@ -2,10 +2,9 @@ import pymel.core as pm
 import itertools
 
 from ngSkinTools2.python_compatibility import Object
-from ngSkinTools2.api import plugin, influenceMapping, target_info
+from ngSkinTools2.api import plugin, influenceMapping, target_info, internals
 from ngSkinTools2.api.layers import Layers
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.options import config
 
 log = getLogger("mirror")
 
@@ -15,6 +14,10 @@ class Mirror(Object):
     query and configure mirror options for provided target
     """
 
+    axis = internals.make_editable_property('mirrorAxis')
+    seam_width = internals.make_editable_property('mirrorWidth')
+    vertex_transfer_mode = internals.make_editable_property('vertexTransferMode')
+
     def __init__(self, target):
         """
         :type target: skin target (skinCluster or mesh)
@@ -23,42 +26,25 @@ class Mirror(Object):
         self.__skin_cluster__ = None
         self.__data_node__ = None
 
-    def seam_width(self):
-        return plugin.ngst2Layers(self.target, q=True, mirrorWidth=True)
+    # noinspection PyMethodMayBeStatic
+    def __query__(self, **kwargs):
+        return plugin.ngst2Layers(self.target, q=True, **kwargs)
 
-    def set_seam_width(self, seam_width):
-        plugin.ngst2Layers(self.target, configureMirrorMapping=True, mirrorWidth=seam_width)
-
-    def vertex_transfer_mode(self):
-        return plugin.ngst2Layers(self.target, q=True, vertexTransferMode=True)
-
-    def set_vertex_transfer_mode(self, mode):
-        plugin.ngst2Layers(self.target, configureMirrorMapping=True, vertexTransferMode=mode)
-
-    def axis(self):
-        # type: () -> str
-        """
-
-        :return: 'x', 'y', 'z' if layers available, otherwise None
-        """
-        return plugin.ngst2Layers(self.target, q=True, mirrorAxis=True)
-
-    def set_axis(self, axis):
-        plugin.ngst2Layers(self.target, configureMirrorMapping=True, mirrorAxis=axis)
+    # noinspection PyMethodMayBeStatic
+    def __edit__(self, **kwargs):
+        plugin.ngst2Layers(self.target, configureMirrorMapping=True, **kwargs)
         self.recalculate_influences_mapping()
 
     def __mapper_config_attr(self):
         return self.__get_data_node__().attr("influenceMappingOptions")
 
-    def build_influences_mapper(self):
-        from maya import cmds
-
+    def build_influences_mapper(self, defaults=None):
         mapper = influenceMapping.InfluenceMapping()
         layers = Layers(self.target)
         mapper.influences = layers.list_influences()
 
-        mapper.load_config_from_json(self.__mapper_config_attr().get() or config.mirrorInfluencesDefaults)
-        mapper.config.mirror_axis = self.axis()
+        mapper.load_config_from_json(self.__mapper_config_attr().get())
+        mapper.config.mirror_axis = self.axis
 
         return mapper
 
@@ -66,7 +52,10 @@ class Mirror(Object):
         """
         :type mapper: influenceMapping.InfluenceMapping
         """
-        self.__mapper_config_attr().set(mapper.config_as_json())
+        self.set_mirror_config(mapper.config_as_json())
+
+    def set_mirror_config(self, config_as_json):
+        self.__mapper_config_attr().set(config_as_json)
 
     def set_influences_mapping(self, mapping):
         """
