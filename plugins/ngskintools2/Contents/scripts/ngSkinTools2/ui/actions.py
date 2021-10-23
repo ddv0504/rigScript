@@ -115,7 +115,7 @@ class Actions(Object):
         self.add_influences = tools.create_action__add_influences(parent=parent, session=session)
         from ngSkinTools2.ui import influencesview
 
-        self.showUsedInfluencesOnly = influencesview.build_used_influences_action(parent, session.state.influencesViewConfig)
+        self.showUsedInfluencesOnly = influencesview.build_used_influences_action(parent)
         self.randomizeInfluencesColors = layers.build_action_randomize_influences_colors(parent=parent, session=session)
 
         self.select_affected_vertices = tools.create_action__select_affected_vertices(parent=parent, session=session)

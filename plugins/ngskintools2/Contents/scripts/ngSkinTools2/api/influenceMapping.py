@@ -465,6 +465,7 @@ class InfluenceMappingConfig(Object):
         """
         result = InfluenceMappingConfig()
         result.mirror_axis = None
+        result.globs = []
         return result
 
 

@@ -8,7 +8,7 @@ from maya import cmds
 from .. import cleanup, hotkeys, version, signal
 from ..log import getLogger
 from ..observableValue import ObservableValue
-from ..options import config
+from ngSkinTools2.ui.options import config
 from . import tabPaint, targetui, tabMirror, tabTools, dialogs, tabLayerEffects, licensewindow, aboutwindow, updatewindow, qt, tabSetWeights
 from .session import session
 
@@ -115,7 +115,7 @@ def build_ui(parent):
     spacing_h = 5
     spacing_v = 5
 
-    layers_row = targetui.buildTargetUI(window, actions, session)
+    layers_row = targetui.build_target_ui(window, actions, session)
 
     split = QtWidgets.QSplitter(orientation=QtCore.Qt.Vertical, parent=window)
     split.addWidget(layers_row)
@@ -135,7 +135,7 @@ def build_ui(parent):
 
     dialogs.promptsParent = window
 
-    if config.checkForUpdatesAtStartup:
+    if config.checkForUpdatesAtStartup():
         updatewindow.silent_check_and_show_if_available(qt.mainWindow)
 
     return window, options

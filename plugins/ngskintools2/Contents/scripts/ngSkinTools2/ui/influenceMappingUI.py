@@ -2,7 +2,7 @@ from PySide2 import QtWidgets, QtCore, QtGui
 from ngSkinTools2 import cleanup, signal
 from ngSkinTools2.api import mirror, influenceMapping
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.options import config
+from ngSkinTools2.ui.options import config
 from ngSkinTools2.signal import Signal
 from ngSkinTools2.ui import qt, dialogs, widgets
 from ngSkinTools2.ui.dialogs import yesNo
@@ -84,6 +84,8 @@ def build_ui(parent, matcher):
     update_globs = Signal("need recalc")
     reload_ui = Signal("reload_ui")
 
+    mirror_mode = matcher.config.mirror_axis is not None
+
     def build_tree_hierarchy(tree_view):
         tree_items = {}  # mapping of path->treeItem
         influence_items = {}  # same as above, only includes non-intermediate items
@@ -136,7 +138,7 @@ def build_ui(parent, matcher):
     def pattern():
         result = QtWidgets.QTableWidget()
         result.setColumnCount(2)
-        result.setHorizontalHeaderLabels(["Pattern", "Opposite"])
+        result.setHorizontalHeaderLabels(["Pattern", "Opposite"] if mirror_mode else ["Source", "Destination"])
         result.setEditTriggers(QtWidgets.QTableWidget.AllEditTriggers)
 
         result.verticalHeader().setVisible(False)

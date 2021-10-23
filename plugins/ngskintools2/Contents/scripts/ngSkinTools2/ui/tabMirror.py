@@ -1,4 +1,3 @@
-import pymel.core as pm
 from PySide2 import QtWidgets
 from ngSkinTools2 import signal
 from ngSkinTools2.api.mirror import set_reference_mesh_from_selection
@@ -8,16 +7,13 @@ from ngSkinTools2.ui import qt, widgets
 from ngSkinTools2.ui.layout import TabSetup, createTitledRow
 from ngSkinTools2.ui.session import session
 from ngSkinTools2.ui.widgets import NumberSliderGroup
+from ngSkinTools2.ui.options import config, bind_checkbox
 
 log = getLogger("tab paint")
 
 
 def buildUI(parent_window):
-    def build_mirroring_options_group(mirror_options):
-        """
-        :type mirror_options: mirror.MirrorOptions
-        """
-
+    def build_mirroring_options_group():
         def get_mirror_direction():
             mirror_direction = QtWidgets.QComboBox()
             mirror_direction.addItem("Guess from stroke", MirrorOptions.directionGuess)
@@ -25,11 +21,11 @@ def buildUI(parent_window):
             mirror_direction.addItem("Negative to positive", MirrorOptions.directionNegativeToPositive)
             mirror_direction.addItem("Flip", MirrorOptions.directionFlip)
             mirror_direction.setMinimumWidth(1)
+            mirror_direction.setCurrentIndex(mirror_direction.findData(config.mirror_direction()))
 
             @qt.on(mirror_direction.currentIndexChanged)
             def value_changed():
-                mirror_options.direction = mirror_direction.currentData()
-                log.info("new direction: %r", mirror_options.direction)
+                config.mirror_direction.set(mirror_direction.currentData())
 
             return mirror_direction
 
@@ -41,12 +37,12 @@ def buildUI(parent_window):
 
             @qt.on(mirror_axis.currentIndexChanged)
             def value_changed():
-                session.state.mirror().set_axis(mirror_axis.currentData())
+                session.state.mirror().axis = mirror_axis.currentData()
 
             @signal.on(session.events.targetChanged)
             def target_changed():
                 if session.state.layersAvailable:
-                    mirror_axis.setCurrentIndex(mirror_axis.findData(session.state.mirror().axis()))
+                    mirror_axis.setCurrentIndex(mirror_axis.findData(session.state.mirror().axis))
 
             target_changed()
 
@@ -57,32 +53,21 @@ def buildUI(parent_window):
 
             @signal.on(seam_width_ctrl.valueChanged)
             def value_changed():
-                session.state.mirror().set_seam_width(seam_width_ctrl.value())
+                session.state.mirror().seam_width = seam_width_ctrl.value()
 
             @signal.on(session.events.targetChanged)
             def update_values():
                 if session.state.layersAvailable:
-                    seam_width_ctrl.set_value(session.state.mirror().seam_width())
+                    seam_width_ctrl.set_value(session.state.mirror().seam_width)
 
             update_values()
 
             return seam_width_ctrl.layout()
 
         def elements():
-            influences = QtWidgets.QCheckBox("Influence weights")
-            influences.setChecked(mirror_options.mirrorWeights)
-
-            mask = QtWidgets.QCheckBox("Layer mask")
-            mask.setChecked(mirror_options.mirrorMask)
-
-            dq = QtWidgets.QCheckBox("Dual quaternion weights")
-            dq.setChecked(mirror_options.mirrorDq)
-
-            @qt.on(influences.toggled, mask.toggled, dq.toggled)
-            def update_pref():
-                mirror_options.mirrorDq = dq.isChecked()
-                mirror_options.mirrorMask = mask.isChecked()
-                mirror_options.mirrorWeights = influences.isChecked()
+            influences = bind_checkbox(QtWidgets.QCheckBox("Influence weights"), config.mirror_weights)
+            mask = bind_checkbox(QtWidgets.QCheckBox("Layer mask"), config.mirror_mask)
+            dq = bind_checkbox(QtWidgets.QCheckBox("Dual quaternion weights"), config.mirror_dq)
 
             return influences, mask, dq
 
@@ -171,12 +156,12 @@ def buildUI(parent_window):
 
         @qt.on(vertex_mapping_mode.currentIndexChanged)
         def value_changed():
-            session.state.mirror().set_vertex_transfer_mode(vertex_mapping_mode.currentData())
+            session.state.mirror().vertex_transfer_mode = vertex_mapping_mode.currentData()
 
         @signal.on(session.events.targetChanged)
         def target_changed():
             if session.state.layersAvailable:
-                vertex_mapping_mode.setCurrentIndex(vertex_mapping_mode.findData(session.state.mirror().vertex_transfer_mode()))
+                vertex_mapping_mode.setCurrentIndex(vertex_mapping_mode.findData(session.state.mirror().vertex_transfer_mode))
 
         return result
 
@@ -202,10 +187,8 @@ def buildUI(parent_window):
         result.setLayout(layout)
         return result
 
-    mirror_options = MirrorOptions()
-
     tab = TabSetup()
-    tab.innerLayout.addWidget(build_mirroring_options_group(mirror_options))
+    tab.innerLayout.addWidget(build_mirroring_options_group())
     tab.innerLayout.addWidget(vertex_mapping_group())
     tab.innerLayout.addWidget(influence_mapping_group())
     tab.innerLayout.addStretch()
@@ -216,6 +199,12 @@ def buildUI(parent_window):
     @qt.on(btn_mirror.clicked)
     def mirror_clicked():
         if session.state.currentLayer.layer:
+            mirror_options = MirrorOptions()
+            mirror_options.direction = config.mirror_direction()
+            mirror_options.mirrorDq = config.mirror_dq()
+            mirror_options.mirrorMask = config.mirror_mask()
+            mirror_options.mirrorWeights = config.mirror_weights()
+
             session.state.mirror().mirror(mirror_options)
 
     @signal.on(session.events.targetChanged, qtParent=tab.tabContents)

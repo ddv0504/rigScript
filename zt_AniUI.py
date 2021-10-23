@@ -240,7 +240,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         win = cmds.window('zt_pbWin')
         cmds.paneLayout()
         panel = cmds.modelPanel()
-        modelEditor = cmds.modelEditor(mp=panel,camera=cam,pm=True,dtx=True,displayAppearance='smoothShaded',th=True,alo=False)
+        modelEditor = cmds.modelEditor(mp=panel,camera=cam,pm=True,ps=True,dtx=True,displayAppearance='smoothShaded',th=True,alo=False)
         cmds.window(win,e=True,wh=widthHeight)
         cmds.showWindow(win)
         

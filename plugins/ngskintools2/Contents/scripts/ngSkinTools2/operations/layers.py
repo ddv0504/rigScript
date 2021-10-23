@@ -2,6 +2,7 @@ import random
 
 import ngSkinTools2.api
 from PySide2 import QtWidgets, QtCore
+from ngSkinTools2.api import Mirror
 from ngSkinTools2.api.layers import generate_layer_name
 from ngSkinTools2.ui import qt, dialogs
 
@@ -11,6 +12,7 @@ from ngSkinTools2 import signal
 from ngSkinTools2.decorators import undoable
 from ngSkinTools2.log import getLogger
 from ngSkinTools2.ui.action import Action
+from ngSkinTools2.ui.options import config
 from ngSkinTools2.ui.session import session, withSession
 
 logger = getLogger("layer operations")
@@ -29,6 +31,7 @@ def initializeLayers(createFirstLayer=True):
         if createFirstLayer:
             layer = layers.add("Base weights")
             layer.set_current()
+        Mirror(target).set_mirror_config(config.mirrorInfluencesDefaults)
 
     session.events.targetChanged.emitIfChanged()
 

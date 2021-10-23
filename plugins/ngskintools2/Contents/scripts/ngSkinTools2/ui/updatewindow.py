@@ -8,7 +8,8 @@ from . import qt
 import webbrowser
 
 from ..log import getLogger
-from ..options import config
+from ngSkinTools2.ui.options import config, bind_checkbox
+
 
 log = getLogger("plugin")
 
@@ -75,12 +76,7 @@ def show(parent, silent_mode):
         btn_close = QtWidgets.QPushButton("Close")
         btn_close.setMinimumWidth(100 * scale_multiplier)
 
-        check_do_on_startup = QtWidgets.QCheckBox("Check for updates at startup")
-        check_do_on_startup.setChecked(config.checkForUpdatesAtStartup)
-
-        @qt.on(check_do_on_startup.toggled)
-        def update_config():
-            config.checkForUpdatesAtStartup = check_do_on_startup.isChecked()
+        check_do_on_startup = bind_checkbox(QtWidgets.QCheckBox("Check for updates at startup"), config.checkForUpdatesAtStartup)
 
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(check_do_on_startup)

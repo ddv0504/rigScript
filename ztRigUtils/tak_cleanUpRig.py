@@ -25,8 +25,8 @@ reload(tak_lib)
 reload(tak_cleanUpModel)
 
 
-mel.eval('source channelBoxCommand;')
-mel.eval('source cleanUpScene;')
+#mel.eval('source channelBoxCommand;')
+#mel.eval('source cleanUpScene;')
 
 
 def ui():

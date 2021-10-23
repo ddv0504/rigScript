@@ -63,7 +63,7 @@ def build_layers_ui(parent, actions, session):
     layout = QtWidgets.QVBoxLayout()
     layout.setMargin(0)
     layout.setSpacing(3)
-    influences = influencesview.buildView(parent, actions, session, filter=influencesFilter)
+    influences = influencesview.build_view(parent, actions, session, filter=influencesFilter)
     layout.addWidget(influences)
     layout.addLayout(build_infl_filter())
     split.addWidget(qt.wrap_layout_into_widget(layout))
@@ -73,7 +73,7 @@ def build_layers_ui(parent, actions, session):
 
 def build_no_layers_ui(parent, actions, session):
     """
-
+    :param parent: ui parent
     :type actions: ngSkinTools2.ui.actions.Actions
     :type session: Session
     """
@@ -103,7 +103,7 @@ def build_no_layers_ui(parent, actions, session):
 
         result.setStyleSheet("border: 1px solid #938976; background-color: #fcf8e3; " "color: #8a6d3b;")
 
-        @signal.on(session.licenseClient.statusChanged)
+        @signal.on(session.licenseClient.statusChanged, qtParent=parent)
         def update_banner_visibility():
             result.setVisible(not session.licenseClient.current_status().active)
 
@@ -114,66 +114,63 @@ def build_no_layers_ui(parent, actions, session):
     layout = QtWidgets.QVBoxLayout()
     layout.setMargin(30)
 
-    selectionDisplay = QtWidgets.QLabel("pPlane1")
-    selectionDisplay.setStyleSheet("font-weight: bold")
+    selection_display = QtWidgets.QLabel("pPlane1")
+    selection_display.setStyleSheet("font-weight: bold")
 
-    selectionNote = QtWidgets.QLabel("Skinning Layers cannot be attached to this object")
-    selectionNote.setWordWrap(True)
+    selection_note = QtWidgets.QLabel("Skinning Layers cannot be attached to this object")
+    selection_note.setWordWrap(True)
 
     layout.addStretch(1)
-    layout.addWidget(selectionDisplay)
-    layout.addWidget(selectionNote)
+    layout.addWidget(selection_display)
+    layout.addWidget(selection_note)
     layout.addWidget(qt.bind_action_to_button(actions.import_v1, QtWidgets.QPushButton()))
     layout.addWidget(qt.bind_action_to_button(actions.initialize, QtWidgets.QPushButton()))
     layout.addWidget(build_evaluation_banner())
     layout.addStretch(3)
 
-    layoutWidget = qt.wrap_layout_into_widget(layout)
+    layout_widget = qt.wrap_layout_into_widget(layout)
 
     @signal.on(session.events.targetChanged, qtParent=parent)
-    def handleTargetChanged():
+    def handle_target_changed():
         if session.state.layersAvailable:
             return  # no need to update
 
-        isSkinned = session.state.selectedSkinCluster is not None
-        selectionDisplay.setText(session.state.selectedSkinCluster)
-        selectionDisplay.setVisible(isSkinned)
+        is_skinned = session.state.selectedSkinCluster is not None
+        selection_display.setText(session.state.selectedSkinCluster)
+        selection_display.setVisible(is_skinned)
 
         note = "Select a mesh with a skin cluster attached."
-        if isSkinned:
+        if is_skinned:
             note = "Skinning layers are not yet initialized for this mesh."
             if import_v1_actions.can_import(session):
                 note = "Skinning layers from previous ngSkinTools version are initialized on this mesh."
 
-        selectionNote.setText(note)
+        selection_note.setText(note)
 
     if session.active():
-        handleTargetChanged()
+        handle_target_changed()
 
-    return layoutWidget
+    return layout_widget
 
 
-def buildTargetUI(parent, actions, session):
+def build_target_ui(parent, actions, session):
     """
 
     :type session: Session
     """
-    noLayers = build_no_layers_ui(parent, actions, session)
-    layers = build_layers_ui(parent, actions, session)
-
     result = QtWidgets.QStackedWidget()
-    result.addWidget(noLayers)
-    result.addWidget(layers)
+    result.addWidget(build_no_layers_ui(parent, actions, session))
+    result.addWidget(build_layers_ui(parent, actions, session))
     result.setMinimumHeight(300 * scale_multiplier)
 
     @signal.on(session.events.targetChanged, qtParent=parent)
-    def handleTargetChanged():
+    def handle_target_changed():
         if not session.state.layersAvailable:
             result.setCurrentIndex(0)
         else:
             result.setCurrentIndex(1)
 
     if session.active():
-        handleTargetChanged()
+        handle_target_changed()
 
     return result

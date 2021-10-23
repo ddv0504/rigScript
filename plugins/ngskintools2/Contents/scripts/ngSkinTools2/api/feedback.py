@@ -3,7 +3,8 @@ def display_error(message):
 
     if BATCH_MODE:
         import sys
-        sys.stdout.write(message+"\n")
+
+        sys.stdout.write(message + "\n")
     else:
         from ngSkinTools2.ui import dialogs
 
