@@ -373,9 +373,6 @@ def setDefaultMatrix(node,*args):
                     0.0,0.0,0.0,1.0 ]
     cmds.setAttr('%s.offsetParentMatrix' % node,defaultMatrix,type='matrix')
 
-
-
-
 class checkMaxSkinInfluences(object):
     ''' This script takes a mesh with a skinCluster and checks it for N skin weights.
     If it has more than N, it selects the verts, so you can edit them.
@@ -524,7 +521,6 @@ class checkMaxSkinInfluences(object):
         for node in pm.selected(type='transform'):
             self.check_influences(node, self.maxInfluences, self.pruneValue)  # mesh, maxInfluences, pruneValue
 
-
 #Follicle Constraint
 def follicleConstraint(vertex,object,*args):
     #Convert to uv from selected vertex
@@ -558,3 +554,13 @@ def follicleConstraint(vertex,object,*args):
 ######## misc #########
 def printObjectType(*args):
     print(cmds.objectType(cmds.ls(sl=True)[0]))
+
+###### motion path #######
+def motionPathUI(*args):
+    if cmds.window('motionPathUI',ex=True):
+        cmds.deleteUI('motionPathUI')
+    
+    cmds.window('motionPathUI',title='Motion Path Window')
+    cmds.frameLayout(lv=False)
+    cmds.textScrollList()
+    cmds.showWindow()

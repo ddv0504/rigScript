@@ -303,12 +303,12 @@ def createDynamicWheel():
                         #pm.parent(par,parpar)
                         pm.delete(con,dupgrp)
                     except:
-                        print 'Bind Failed. Pass this process'
+                        print('Bind Failed. Pass this process')
             else:
                 try:
                     pm.skinCluster(clist[2],i,sm=0,nw=1,ibp=1,tsb=1,ih=1)
                 except:
-                    print 'Bind Failed'
+                    print('Bind Failed')
         elif pm.checkBox(checkBox4,q=1,v=1):
             if pm.objectType(i,i='joint') or pm.objectType(pm.listRelatives(i)[0],i='nurbsCurve'):
                 #this part is for object with type of joint or nurbscurve
@@ -318,13 +318,13 @@ def createDynamicWheel():
                         #pm.parent(par,parpar)
                         pm.delete(con,dupgrp)
                     except:
-                        print 'Constraint Failed, Pass this process'
+                        print('Constraint Failed, Pass this process')
             else:
                 try:
                     pm.parentConstraint(clist[2],i,mo=1)
                     pm.scaleConstraint(clist[2],i,mo=1)
                 except:
-                    print 'Constraint Failed'
+                    print('Constraint Failed')
         else:
             if pm.objectType(i,i='joint') or pm.objectType(pm.listRelatives(i)[0],i='nurbsCurve'):
                 #this part is for object with type of joint or nurbscurve
@@ -334,12 +334,12 @@ def createDynamicWheel():
                         #pm.parent(par,parpar)
                         pm.delete(con,dupgrp)
                     except:
-                        print 'Pass this process'
+                        print('Pass this process')
                 else:
                     pm.setAttr(clist[0]+'.r',rxyz)
                     pm.delete(dupgrp)
             else:
-                print 'Pass this process'
+                print('Pass this process')
             
         #add dynamic setup to clist
         clist.append(i+'_Dyn_SETUP')
@@ -358,8 +358,8 @@ def createDynamicWheel():
             pm.delete(dmypar)
         
         pm.select(clist[1])
-        print clist
-        print 'done'
+        print(clist)
+        print('done')
         
 def deleteDynamicWheel():
     #check if value box is 1 or not
