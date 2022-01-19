@@ -18,7 +18,7 @@ import maya.OpenMaya as OpenMaya
 from functools import partial
 import tak_cleanUpModel
 import tak_lib
-
+from imp import reload
 
 
 reload(tak_lib)
@@ -156,7 +156,7 @@ def cntLod02AttrToLod03(*args):
         divider = '=' * 30
         joinStr = "\n"
         # cmds.confirmDialog(title = 'Warning', message = "In lod03_GRP\nThe following attributes are don't exists\n%s\n%s\n%s\n\nThe following attributes are locked or connected already\n%s\n%s\n%s" %(divider, str(joinStr.join(notExistsAttrLs)), divider, divider, str(joinStr.join(lockOrCnctedAttrLs)), divider))
-        print "In lod03_GRP\nThe following attributes are don't exists\n%s\n%s\n%s\n\nThe following attributes are locked or connected already\n%s\n%s\n%s" % (
+        print("In lod03_GRP\nThe following attributes are don't exists\n%s\n%s\n%s\n\nThe following attributes are locked or connected already\n%s\n%s\n%s" % 
         divider, str(joinStr.join(notExistsAttrLs)), divider, divider, str(joinStr.join(lockOrCnctedAttrLs)), divider)
 
 
@@ -211,7 +211,7 @@ def rmvRenMdlCnst(*args):
             cmds.select(renMdlCnstLs, r=True)
             cmds.group(p='geometry', n='renMdlCnst_grp')
     else:
-        print '> There is no constraint assigned to geometry.'
+        print('> There is no constraint assigned to geometry.')
 
 
 def addGeoLayer(*args):
@@ -881,7 +881,7 @@ def chkHierOldNewMdl(*args):
 
     difMdlLs = []
     for i in xrange(len(oldMdlLs)):
-        print oldMdlLs[i], newMdlLs[i]
+        print(oldMdlLs[i], newMdlLs[i])
         oldMdlPartialName = oldMdlLs[i].rsplit(':', 1)[-1]
         newMdlPartialName = newMdlLs[i].rsplit(':', 1)[-1]
 
@@ -978,10 +978,10 @@ def chkTrsfIdentity(*args):
         cmds.select(nonIdentityTrsfs, r=True)
         cmds.error('Selected transform nodes are not freezed.')
     else:
-        print 'All transform nodes are freezed.'
+        print('All transform nodes are freezed.')
 
 
-def addSmoothCtrl(*args):
-    ctrl = cmds.ls(sl=True)[0]
-    meshGrp = 'lod03_GRP'
-    trt.lib.component.addSmoothControl(ctrl, meshGrp)
+# def addSmoothCtrl(*args):
+#     ctrl = cmds.ls(sl=True)[0]
+#     meshGrp = 'lod03_GRP'
+    # trt.lib.component.addSmoothControl(ctrl, meshGrp)

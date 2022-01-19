@@ -267,7 +267,7 @@ def rmvEndInt(name):
 
 def printLs(parm_list):
     for item in parm_list:
-        print item
+        print(item)
 
 
 def getOverlappedVertices(source, target, searchRadius=5.0):
@@ -362,7 +362,7 @@ def searchMethods(obj, *args):
         methods = [method for method in methods if re.search(searchStr, method, re.IGNORECASE)]
 
     if origMethods == methods or not methods:
-        print 'Not found'
+        print('Not found')
     else:
         pprint.pprint(methods)
 
@@ -385,7 +385,7 @@ def searchAttributes(obj, *args):
         attributes = [attr for attr in attributes if re.search(searchStr, attr.name(), re.IGNORECASE)]
 
     if origAttributes == attributes or not attributes:
-        print 'Not found'
+        print('Not found')
     else:
         pprint.pprint(attributes)
 
@@ -549,8 +549,8 @@ def copySkinByName(target, prefix="", srchStr="", rplcStr="", copyMatOpt=False):
     for dstGeo in dstGeos:
         srcGeo = prefix + re.sub(srchStr, rplcStr, dstGeo)
 
-        print ">>> Source Geometry: " + srcGeo
-        print ">>> Destination Geometry: " + dstGeo
+        print(">>> Source Geometry: " + srcGeo)
+        print(">>> Destination Geometry: " + dstGeo)
 
         if cmds.objExists(srcGeo):
             copySkin(srcGeo, dstGeo)

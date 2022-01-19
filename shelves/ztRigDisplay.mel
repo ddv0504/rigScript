@@ -122,7 +122,7 @@ global proc ztRigDisplay () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "from ztRigUtils import ztRigUtil\nreload(ztRigUtil)\nztRigUtil.jointDrawUI()" 
+        -command "from imp import reload\nfrom ztRigUtils import ztRigUtil\nreload(ztRigUtil)\nztRigUtil.jointDrawUI()" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1
@@ -152,7 +152,7 @@ global proc ztRigDisplay () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "from ztRigUtils import ztRigUtil\nreload(ztRigUtil)\nztRigUtil.displayType()" 
+        -command "from imp import reload\nfrom ztRigUtils import ztRigUtil\nreload(ztRigUtil)\nztRigUtil.displayType()" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1

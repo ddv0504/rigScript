@@ -15,6 +15,7 @@ import shutil
 import subprocess
 from functools import partial
 from collections import OrderedDict
+from imp import reload
 
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaAnim as OpenMayaAnim
