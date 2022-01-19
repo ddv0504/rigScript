@@ -1,0 +1,54 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+
+global proc selectEveryNEdgeToolCtx(){
+	
+	scriptCtx
+		-title "Select Every N Edge Tool"
+		//-image1 "???.xpm"
+		-showManipulators false
+		//-baseClassName "orientToVertTool"
+		-toolCursorType "tumble"
+		-totalSelectionSets 1
+		
+        -ts ("headsUpMessage -t 4 \"Select two edges to determine -n- spacing for loop or ring.\"")
+		
+		-cumulativeLists false
+		-expandSelectionList true
+		-fcs ("selectEveryNEdge")
+
+		-setNoSelectionPrompt "Select two edges to determine -n- spacing for loop or ring."
+		-setAutoToggleSelection true
+		-setAutoComplete true
+		-setSelectionCount 2
+		-polymeshEdge on
+				
+		-exitUponCompletion true
+		selectEveryNEdgeTool;
+	
+}
+
+
+global proc selectEveryNEdgeTool(){
+		
+    select -cl;
+	if (!`contextInfo -exists selectEveryNEdgeTool`){
+		selectEveryNEdgeToolCtx;
+		setToolTo selectEveryNEdgeTool;
+	}
+
+
+}
+	
+	
+//deleteUI selectEveryNEdgeTool
+
+

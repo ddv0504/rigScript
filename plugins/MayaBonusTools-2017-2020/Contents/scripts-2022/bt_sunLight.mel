@@ -1,0 +1,49 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+//
+//<doc>
+//<name bt_sunLight>
+//
+//<owner "Unsupported Plugin">
+//
+//<synopsis>
+//      sunLight()
+//
+//<returns>
+//      string: The name of the light created.
+//
+//<description>
+//      Create a default sun light, made of a directional light and an
+// orientation constraint node. See 
+// <a HREF="../Nodes/sunDirection.html">sunDirection</A> node
+// documentation for the parameter descriptions
+//
+//<flags>
+//      None.
+//
+//<examples>
+//  sunLight;
+//
+//</doc>
+//
+global proc string bt_sunLight()
+{
+	string $lightName = `shadingNode -asLight directionalLight`;
+	select -r $lightName;
+	$lightName = `rename $lightName sun1`;
+	
+	string $sunDir = `createNode sunDirection`;
+	connectAttr ($sunDir+".r") ($lightName+".r");
+	select -r $sunDir $lightName;
+
+	return $lightName;
+}

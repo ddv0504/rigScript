@@ -1,0 +1,59 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+// Created by Steven T. L. Roselle 
+// Based on original tool by cpam
+// Last updated:      ( 02/01/12 )
+
+proc bt_polyDeleteEdgeToolCtx(){
+
+		
+	scriptCtx
+		-title "Poly Delete Edge"
+		-image1 "polyDelEdgeVertex.png"
+		-totalSelectionSets 1
+        -setSelectionCount	0
+		
+        -ts ("headsUpMessage -t 4 \"Select edges to automatically delete.\"")
+		
+		-expandSelectionList true
+		-finalCommandScript ("polyDelEdge -cv true; headsUpMessage -t 4 \"Select edge to automatically delete.\"")
+
+		-setNoSelectionPrompt "Select edges to automatically delete"
+		-setAutoComplete true
+		-polymeshEdge true
+		-toolCursorType "create"
+		-exitUponCompletion false
+
+		
+		bt_polyDeleteEdgeTool;
+	
+}
+
+
+global proc bt_polyDeleteEdgeTool(){
+	
+	if (!`contextInfo -exists bt_polyDeleteEdgeTool`)
+	{
+	    bt_polyDeleteEdgeToolCtx;
+	}
+    setSelectMode components Components; selectType -smp 0 -sme 1 -smf 0 -smu 0 -pv 0 -pe 1 -pf 0 -puv 0;
+    select -cl;
+	setToolTo bt_polyDeleteEdgeTool;
+    print ("Select edges to automatically delete\n");
+	
+}
+
+
+/*
+deleteUI bt_polyDeleteEdgeTool;
+*/
+

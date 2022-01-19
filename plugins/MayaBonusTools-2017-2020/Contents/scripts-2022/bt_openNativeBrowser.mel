@@ -1,0 +1,40 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+// Last Updated: 2020/10/16
+//
+
+global proc bt_openNativeBrowser(string $folder)
+{
+    //open a native OS file browser to given folder/path
+    if (`filetest -d $folder`)
+    {
+        if (`about -linux`) {
+            system("nautilus " + $folder);
+            print ("\nOpening Nautilus file browser to:  " + $folder);
+            warning("Linux:  Nautilus file manager is required for this feature.");
+
+        } else if (`about -win`) {
+            string $converted = `substituteAllString $folder "/" "\\"`;
+            system("start explorer " + $converted);
+            print ("\nOpening Windows Explorer to:  " + $folder);
+
+        } else if (`about -mac`) {
+            system("open " + $folder);
+            print ("\nOpening Finder to:  " + $folder);
+
+        } else {
+            warning ("Cannot open folder: " + $folder);
+        }
+    } else {
+        error ("Path - " + $folder + " - does not exist\n");
+    }
+}

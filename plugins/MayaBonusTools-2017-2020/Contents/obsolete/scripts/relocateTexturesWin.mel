@@ -1,24 +1,10 @@
-// Copyright (C) 1997-2013 Autodesk, Inc., and/or its licensors.
-// All rights reserved.
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
 //
-// The coded instructions, statements, computer programs, and/or related
-// material (collectively the "Data") in these files contain unpublished
-// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
-// which is protected by U.S. and Canadian federal copyright law and by
-// international treaties.
-//
-// The Data is provided for use exclusively by You. You have the right to use,
-// modify, and incorporate this Data into other products for purposes authorized 
-// by the Autodesk software license agreement, without fee.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
-// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
-// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
-// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
-// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
-// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
-// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
-// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
-
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
 //
 // international treaties.
 //
@@ -292,8 +278,6 @@ global proc relocateTexturesWin()
     
 		    $form = `formLayout -numberOfDivisions 100 mainForm`;
 		    $frame = `frameLayout
-				    -borderVisible true 
-				    -borderStyle "in"
 				    -label "Summary"
 				    -labelVisible false
 				    //-labelAlign "bottom"
@@ -325,7 +309,7 @@ global proc relocateTexturesWin()
 							
 					    setParent ..;
     
-				    separator -height 15 -width 500 -style "in";;
+				    separator -height 15 -width 500;;
 				    text
 					    -label "Path Type" 
 					    -align "left";
@@ -340,7 +324,7 @@ global proc relocateTexturesWin()
 						    -label "Absolute Path" 
 						    -align "left" absolute;
 					    setParent ..;
-				    separator -height 15 -width 500 -style "in";;
+				    separator -height 15 -width 500;;
     
 				    text
 					    -label "Change Path" 
@@ -377,12 +361,10 @@ global proc relocateTexturesWin()
 				    radioButton -edit -onCommand ("optionMenu -edit -enable true " + $optionMenu) $customRadio;
 				    radioButton -edit -offCommand ("optionMenu -edit -enable false " + $optionMenu) $customRadio;
     
-				    separator -height 15 -width 500 -style "in";;
+				    separator -height 15 -width 500;;
     
 				    frameLayout -width 450
 				    //	-height 155
-					    -borderVisible true
-					    -borderStyle "etchedIn"
 					    -labelVisible true 
 					    //-labelAlign "center"
 					    -marginWidth 1 

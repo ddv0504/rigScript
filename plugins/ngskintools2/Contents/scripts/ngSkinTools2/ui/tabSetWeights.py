@@ -128,12 +128,12 @@ def build_ui(parent):
 
         @qt.on(fixed_influences.stateChanged)
         @ui_lock.skip_if_updating
-        def fixed_influences_changed():
+        def fixed_influences_changed(*_):
             model.current_settings.fixed_influences_per_vertex = fixed_influences.isChecked()
 
         @qt.on(limit_to_component_selection.stateChanged)
         @ui_lock.skip_if_updating
-        def limit_to_component_selection_changed():
+        def limit_to_component_selection_changed(*_):
             model.current_settings.limit_to_component_selection = limit_to_component_selection.isChecked()
 
         def update_ui():
@@ -179,7 +179,8 @@ def build_ui(parent):
         layout.addLayout(createTitledRow("", mirror))
 
         @qt.on(mirror.stateChanged)
-        def mirror_changed():
+        @ui_lock.skip_if_updating
+        def mirror_changed(*_):
             for _, v in model.presets.items():
                 v.mirror = mirror.isChecked()
 

@@ -1,0 +1,63 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+//
+// This tool will combine all selected meshes into a single object and stitch (merge) 
+// any adjacent/coincident border edges.
+//
+// It was initially created as a companion to the bonusTool mirrorInstanceMesh but 
+// can be used independently as well.
+//
+// NOTE: The newly created combined mesh will inherit the name of the first selected
+// poly object.
+//
+
+
+global proc bt_mergeCombineMeshes()
+
+{
+	string $selected[], $polyShapes[], $polyXforms[], $firstMesh[] , $current;
+
+	$selected = `ls -sl`;
+
+	$polyShapes = `filterExpand -sm 12 -fp 1`;
+
+	if (`size $polyShapes` < 2)
+		error ("Select two or more mesh objects");
+
+	select -r $polyShapes[0];
+	$firstMesh = `listRelatives -p`;
+
+	select -r $polyShapes;
+	$polyXforms = `listRelatives -ap`;
+
+	//Combine meshes rename result to last selected obj
+	//
+	$newObj = `polyUnite -ch 1 $polyXforms`;
+	
+	//rename result
+	select -r $firstMesh[0];
+	rename ($firstMesh[0]+"_orig");
+	select -r $newObj;
+	rename $firstMesh[0];
+
+	//isolate border
+	ConvertSelectionToEdges;
+	polySelectConstraint -m 2 -t 0x8000 -w 1;
+	resetPolySelectConstraint;           // turn off location constraint
+
+	//stitch border by merging any coincident verts
+	//select -r $firstMesh[0];
+	polyMergeVertex  -d 0.001;
+	select -r $firstMesh[0];
+
+}
+

@@ -1,0 +1,69 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+
+//
+// international treaties.
+//
+
+
+////////////////////////////////
+//  bonusTools userSetup.mel
+////////////////////////////////
+//
+// If you have an existing userSetup.mel file you will need to append this code to have all the 
+// bonusTools available cut and paste the contents of this file into your existing userSetup.mel 
+// and restart maya in order to have the BonusTools menu generated at startup.
+
+
+{
+	string $me =`moduleInfo -p -mn "bonusTools"` ;
+	$me += "/python" ;
+	python ("import sys") ;
+	string $py[] =python ("sys.path") ;
+	if ( stringArrayCount ($me, $py) == 0 ) {
+		python ("sys.path.insert(0, '" + $me + "')") ;
+	}
+}
+
+// build the BonusTools menu at startup
+//
+bonusToolsMenu;
+
+// automatically setup path for python scripts
+//
+{
+    string $os = `about -operatingSystem`;
+
+    string $fmt = "";
+    if ($os == "mac")
+    {
+        $fmt = "sys.path.append('/Users/Shared/Autodesk/maya/^1s/python');";
+    }
+    else if (($os == "win64") || ($os == "nt"))
+    {
+        $fmt = "sys.path.append('C:\\\\Program Files\\\\Autodesk\\\\MayaBonusTools^1s\\\\python');";
+    }
+    else if (($os == "linux") || ($os == "linux64"))
+    {
+        $fmt = "sys.path.append('/usr/autodesk/MayaBonusTools^1s/python');";
+    }
+
+    if (size($fmt) != 0)
+    {
+        string $year = `about -mjv`;
+        string $cmd = `format -s $year $fmt`;
+        python("import sys; " + $cmd);
+    }
+}
+
+///////////////////////////////////
+// end bonusTools userSetUp.mel
+///////////////////////////////////

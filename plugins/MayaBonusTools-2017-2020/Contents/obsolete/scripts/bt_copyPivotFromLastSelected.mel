@@ -1,0 +1,47 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+
+// bt_copyPivotFromLastSelected.mel
+//
+// Copy the pivot fo the last selected object and paste to all other selected transforms
+
+
+global proc bt_copyPivotFromLastSelected ()
+{
+	int $c;
+	string $transforms[] = `ls -sl -type transform`;
+	int $total = `size ($transforms)`;
+	if ($total < 2)
+		error "Two or more objects must be selected.";
+	else
+	{
+		$total -= 1;
+		float $sPivot[3] = `xform -q -ws -sp $transforms[$total]`;
+		float $rPivot[3] = `xform -q -ws -rp $transforms[$total]`;
+
+		for ($c = $total; $c > 0; $c--)
+		{
+			float $sOrig[3] = `xform -q -ws -sp $transforms[$c-1]`;
+			float $rOrig[3] = `xform -q -ws -rp $transforms[$c-1]`;
+			$sOrig[0] = $sPivot[0];
+			$rOrig[0] = $rPivot[0];
+			$sOrig[1] = $sPivot[1];
+			$rOrig[1] = $rPivot[1];
+			$sOrig[2] = $sPivot[2];
+			$rOrig[2] = $rPivot[2];
+
+			xform -ws -sp $sOrig[0] $sOrig[1] $sOrig[2] $transforms[$c-1];
+			xform -ws -rp $rOrig[0] $rOrig[1] $rOrig[2] $transforms[$c-1];
+		}
+	}
+}
+
+

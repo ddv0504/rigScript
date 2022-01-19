@@ -1,11 +1,12 @@
-from PySide2 import QtCore, QtWidgets
+from PySide2 import QtCore, QtWidgets, QtGui
 
 import shiboken2
 
 import maya.OpenMayaUI as omui
 from maya import cmds
+from .layout import scale_multiplier
 
-from .. import cleanup, hotkeys, version, signal
+from .. import cleanup, hotkeys, version, signal, licenseClient
 from ..log import getLogger
 from ..observableValue import ObservableValue
 from ngSkinTools2.ui.options import config
@@ -124,9 +125,47 @@ def build_ui(parent):
     split.setStretchFactor(1, 3)
     split.setContentsMargins(spacing_h, spacing_v, spacing_h, spacing_v)
 
+    def build_icon_label():
+        w = qt.QWidget()
+        w.setStyleSheet("background-color: #dcce87;color: #373737;")
+        l = QtWidgets.QHBoxLayout()
+        icon = QtWidgets.QLabel()
+        icon.setPixmap(QtGui.QIcon(":/error.png").pixmap(16 * scale_multiplier, 16 * scale_multiplier))
+        icon.setFixedSize(16 * scale_multiplier, 16 * scale_multiplier)
+        text = QtWidgets.QLabel("<placeholder>")
+        text.setWordWrap(True)
+        text.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+
+        l.addWidget(icon)
+        l.addWidget(text)
+        w.setContentsMargins(0, 0, 0, 0)
+        w.setLayout(l)
+
+        return w, text.setText
+
+    def build_license_error():
+        label, set_text = build_icon_label()
+
+        @signal.on(session.licenseClient.statusChanged, qtParent=parent)
+        def update_license_error():
+            log.info("updating license status")
+            status = session.licenseClient.current_status()
+            label.setVisible(status.has_errors())
+            if label.isVisible():
+                set_text("There is a problem with your license: " + status.status_description)
+
+        update_license_error()
+
+        return label
+
+    error_section = QtWidgets.QVBoxLayout()
+    error_section.addWidget(build_license_error())
+    error_section.setMargin(0)
+
     layout = QtWidgets.QVBoxLayout(window)
     layout.setMargin(0)
     layout.addWidget(build_menu(window, actions))
+    layout.addLayout(error_section)
     layout.addWidget(split)
 
     window.setLayout(layout)

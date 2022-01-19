@@ -1,0 +1,68 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+proc float bt_nudgeIncrement()
+{
+    float $increment = 0.0005;
+    float $bt_nudgeIncrement = `intField -q -value nudgeIncrementNumber` * $increment;
+    
+    return $bt_nudgeIncrement;
+}
+
+proc bt_nudgeUVs()
+{
+    float $increment = 0.001;
+
+    
+	if( `window -exists bt_nudgeWindow` )
+		{
+		deleteUI bt_nudgeWindow;
+		//windowPref -remove bt_nudgeWindow;
+		}
+		
+    window -w 150 -h 30 -s true -t "Nudge UVs" bt_nudgeWindow;
+    
+        columnLayout;
+ 
+/*
+            rowColumnLayout -numberOfColumns 3 -cw 1 40 -cw 2 100 -cw 3 25;
+
+                separator -st none;
+                text -label "Nudge UVs" -align center -font "boldLabelFont";
+                separator -st none;
+       
+            setParent ..;
+*/
+            rowColumnLayout -numberOfColumns 3 -cw 1 120 -cw 2 5 -cw 3 50;
+    
+                text -label "Nudge Multiplier:  " -align right;
+                separator -st none;
+                intField -minValue 0 -maxValue 100 -step 1 -value 1 nudgeIncrementNumber;
+                
+            setParent ..;
+            
+            gridLayout -nrc 3 3 -cwh 70 25;
+            
+            
+                separator -st none;          
+                button -l "+ V" -c "polyEditUV -v `bt_nudgeIncrement`" up;
+                separator -st none;                
+                button -l "- U" -c "polyEditUV -u (-1 * `bt_nudgeIncrement`)" left;               
+                text -label "nudge" -align center;
+                button -l "+ U" -c "polyEditUV -u `bt_nudgeIncrement`" right;
+                separator -st none;               
+                button -l "- V" -c "polyEditUV -v (-1 * `bt_nudgeIncrement`)" down;
+                separator -st none;    
+    
+            setParent ..;
+    
+    showWindow bt_nudgeWindow;
+
+}
+
+//bt_nudgeUVs;
+

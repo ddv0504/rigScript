@@ -1,0 +1,22 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+// for active mesh, select an inpit node in the channel box and 
+// run the command. Any nodes upstream of the selected input
+// node will be deleted.
+
+global proc bt_polyDeleteUpstreamHistory()
+{
+	insertIntermediatePolyShape;
+	delete -ch;
+	//hide;
+	setAttr ".intermediateObject" 1;
+}

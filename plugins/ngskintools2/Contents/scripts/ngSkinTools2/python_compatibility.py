@@ -5,6 +5,7 @@ PY2 = sys.version_info[0] == 2
 
 def is_string(obj):
     if PY2:
+        # noinspection PyUnresolvedReferences
         return isinstance(obj, basestring)
 
     return isinstance(obj, str)
@@ -21,3 +22,16 @@ else:
 
     class Object:
         pass
+
+
+# different ways to import urlopen
+if PY2:
+    # noinspection PyUnresolvedReferences
+    from urllib2 import urlopen, Request, HTTPError
+else:
+    from urllib.request import urlopen, Request
+    from urllib.error import HTTPError
+
+_ = urlopen
+_ = Request
+_ = HTTPError

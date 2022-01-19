@@ -1,0 +1,40 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+//
+
+global proc assignCheckerShader(){
+	
+	string $selection[] = `ls -selection`;
+	
+	string $shader = `shadingNode -asShader lambert`;
+	string $texture = `shadingNode -asTexture checker`;
+
+	//change shader colour	
+	setAttr ($texture + ".color1") -type double3 .3 .3 .3 ;
+	setAttr ($texture + ".color2") -type double3 .7 .7 .7 ;
+	
+	//adjust 2d texture
+	string $placement = `shadingNode -asUtility place2dTexture`;
+	connectAttr -f ($placement + ".outUV") ($texture + ".uvCoord");
+	connectAttr -f ($placement + ".outUvFilterSize") ($texture + ".uvFilterSize");
+	setAttr ($placement + ".repeatU") 8;
+	setAttr ($placement + ".repeatV") 8;
+
+
+	//connect to shader
+	connectAttr -force ($texture + ".outColor") ($shader + ".color");
+
+	//select object
+	select -replace $selection;
+	hyperShade -assign $shader;
+	
+}

@@ -1,0 +1,65 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+
+//
+// international treaties.
+//
+
+
+// Created by Steven T. L. Roselle 
+// Last updated:      ( 03/21/13 )
+// Tool now deletes all connected edges to the selected component
+//
+
+proc bt_polyDeleteVertEdgeToolCtx(){
+
+		
+	scriptCtx
+		-title "Poly Delete Connected Edges"
+		-image1 "polyDelEdgeVertex.png"
+		-totalSelectionSets 1
+        -setSelectionCount	0
+		
+        -ts ("headsUpMessage -t 4 \"Select a vertex, edge or face and all connected edges will be deleted.\"")
+		
+		-expandSelectionList true
+		-finalCommandScript ("ConvertSelectionToVertices; ConvertSelectionToEdges; delete; headsUpMessage -t 4 \"Select a vertex, edge or face and all connected edges will be deleted.\"")
+
+		-setNoSelectionPrompt "Select a vertex, edge or face and all connected edges will be deleted"
+		-setAutoComplete true
+		-polymeshEdge true
+		-toolCursorType "create"
+		-exitUponCompletion false
+
+		
+		bt_polyDeleteVertEdgeTool;
+	
+}
+
+
+global proc bt_polyDeleteVertEdgeTool(){
+	
+	if (!`contextInfo -exists bt_polyDeleteVertEdgeTool`)
+	{
+	    bt_polyDeleteVertEdgeToolCtx;
+	}
+	setSelectMode components Components; selectType -smp 0 -sme 1 -smf 0 -smu 0 -pv 1 -pe 1 -pf 1 -puv 0;
+	select -cl;
+	setToolTo bt_polyDeleteVertEdgeTool;
+    print ("Select a vertex, edge or face and all connected edges will be deleted\n");
+	
+}
+
+
+/*
+deleteUI bt_polyDeleteVertEdgeTool;
+*/
+

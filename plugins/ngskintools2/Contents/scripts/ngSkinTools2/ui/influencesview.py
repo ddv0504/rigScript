@@ -124,7 +124,8 @@ def build_view(parent, actions, session, filter):
             return name
 
     def build_items(view, items, layer):
-        # type: (QtWidgets.QTreeWidget, list[InfluenceInfo], ngSkinTools2.api.layers.Layer) -> None
+        # type: (QtWidgets.QTreeWidget, list[InfluenceInfo], Layer) -> None
+        is_group_layer = layer is not None and layer.num_children != 0
 
         used = set([] if layer is None else (layer.get_used_influences() or []))
         for i in items:
@@ -132,6 +133,9 @@ def build_view(parent, actions, session, filter):
 
         if config.influences_show_used_influences_only() and layer is not None:
             items = [i for i in items if i.used]
+
+        if is_group_layer:
+            items = []
 
         log.info("rebuilding influences items")
 
@@ -142,7 +146,7 @@ def build_view(parent, actions, session, filter):
 
         def wanted_tree_items():
             yield "mask", "[Mask]", icon_mask
-            if session.state.skin_cluster_dq_channel_used:
+            if not is_group_layer and session.state.skin_cluster_dq_channel_used:
                 yield "dq", "[DQ Weights]", icon_dq
 
             for i in items:

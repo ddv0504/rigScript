@@ -5,24 +5,17 @@ import base64
 import json
 import platform
 
-import time
-from threading import Thread
+from threading import Thread, Event
 
 from maya import cmds, utils as mu
 from ngSkinTools2 import cleanup, signal
 from ngSkinTools2.ui import options
 from ngSkinTools2.api import plugin
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.python_compatibility import Object, urlopen, Request, HTTPError
 from ngSkinTools2.ui.parallel import ParallelTask
 
 log = getLogger("license client")
-
-try:
-    from urllib2 import urlopen, Request, HTTPError
-except:
-    from urllib.request import urlopen, Request
-    from urllib.error import HTTPError
 
 
 # noinspection PyClassHasNoInit
@@ -34,7 +27,7 @@ class Status:
     invalidHostId = 101
 
     @classmethod
-    def asStr(cls, status):
+    def status_description(cls, status):
         return {
             Status.ok: "",
             Status.unknown: "unknown error",
@@ -44,7 +37,24 @@ class Status:
         }[status]
 
 
-# noinspection PyAttributeOutsideInit
+class MainThreadWrapper:
+    def __init__(self, thread_mode):
+        self.thread_mode = thread_mode
+
+    def execute(self, fn, *args):
+        if self.thread_mode:
+            return mu.executeInMainThreadWithResult(fn, *args)
+
+        return fn(*args)
+
+    def execute_deferred(self, fn, *args):
+        if self.thread_mode:
+            return mu.executeDeferred(fn, *args)
+
+        return fn(*args)
+
+
+# noinspection PyAttributeOutsideInit,HttpUrlsUsage
 class LicenseServerClient(Object):
     """
     this client helps c++ plugin communicate with the license server.
@@ -53,72 +63,105 @@ class LicenseServerClient(Object):
     """
 
     def __init__(self, timeout=30):
+        import ngSkinTools2
+
         self.serverUrl = "http://127.0.0.1:9050"
         self.sleepPeriod = 60 * 2  # amount of seconds
         self.timeout = timeout
-        # indirectly referencing a function to call main thread to be able to have different behavior in tests
-        self.mainThreadFunc = mu.executeInMainThreadWithResult
+
+        if ngSkinTools2.DEBUG_MODE:
+            self.sleepPeriod = 5
+
         self.lastError = None
-        self.is_running = False
+        self.current_thread = None  # type: StoppableThread
 
-        self.debug_num_thread_restarts = 0
+        self.reservation_cycle_finished_handler = None
 
-    def refresh_reservation(self):
+    def refresh_reservation(self, thread=None):
         """
         Called periodically to synchronize with license server
         :return:
         """
 
-        req = Request(self.serverUrl + "/seat-reservations")
+        log.info("refreshing reservation...")
 
         def checkout_request():
             return plugin.ngst2License(serverRequest=True, hostName=platform.node())
 
+        # noinspection PyShadowingNames
         def checkin_response(resp):
             return plugin.ngst2License(serverResponse=resp)
 
-        reqContents = self.mainThreadFunc(checkout_request)
+        def should_abort():
+            return thread is not None and thread.should_stop()
 
-        req.data = reqContents.encode()
-        req.add_header("content-type", "application/json")
+        main_thread = MainThreadWrapper(thread_mode=thread is not None)
 
+        communication_error = None
         try:
+            req_contents = main_thread.execute(checkout_request)
+
+            req = Request(self.serverUrl + "/seat-reservations")
+            req.data = req_contents.encode()
+            req.add_header("content-type", "application/json")
+
             resp = urlopen(req, timeout=self.timeout).read()
+            if should_abort():
+                return
+
             self.lastError = None
-            self.mainThreadFunc(checkin_response, resp)
+            main_thread.execute(checkin_response, resp)
+        except HTTPError as err:
+            code = err.getcode()
+
+            message = str(err)
+            try:
+                message = json.load(err)['message']
+            except:
+                pass
+            communication_error = "{0} ({1})".format(message, code)
+
         except IOError as err:
-            raise Exception("ngSkinTools: error communicating with license server ({0}): {1}".format(self.serverUrl, err))
+            communication_error = str(err)
 
-    def stop(self):
-        self.lastError = None
-        self.should_stop = True
-
-    def run_license_reservation_thread(self):
-        self.should_stop = False
-
-        # only start new thread if previous one finished running, otherwise we just need to tell the currently running one there's no need to stop
-        if self.is_running:
+        if should_abort():
             return
 
-        self.is_running = True
+        if communication_error:
+            err = "error communicating with license server: " + communication_error
+            log.error(err)
+            self.lastError = err
 
-        def thread_func():
+        main_thread.execute_deferred(self.reservation_cycle_finished_handler)
+
+        log.info("reservation refreshed")
+
+    def stop(self):
+        log.info("stopping license thread...")
+        self.lastError = None
+
+        if self.current_thread is not None:
+            self.current_thread.stop()
+            self.current_thread = None
+
+    def run_license_reservation_thread(self):
+        # stop previous thread
+        self.stop()
+
+        def thread_func(t):
+            """
+            :type t: StoppableThread
+            """
             log.info("license thread started")
-            while not self.should_stop:
-                log.info("refreshing reservation...")
-                try:
-                    self.refresh_reservation()
-                    log.info("reservation refreshed")
-                except Exception as err:
-                    log.error(err)
-                    self.lastError = str(err)
 
-                time.sleep(self.sleepPeriod)
+            while not t.should_stop():
+                self.refresh_reservation(thread=t)
+
+                t.wait(self.sleepPeriod)
+
             log.info("license thread stopped")
-            self.is_running = False
 
-        self.debug_num_thread_restarts += 1
-        self.current_thread = Thread(target=thread_func)
+        self.current_thread = StoppableThread(target=thread_func)
         self.current_thread.start()
 
         cleanup.registerCleanupHandler(self.stop)
@@ -127,14 +170,39 @@ class LicenseServerClient(Object):
         """
         :type conf: Configuration
         """
-        if conf.license_server_url:
-            server_address = conf.license_server_url.strip()
-            if not server_address.lower().startswith('http://') and not server_address.lower().startswith('https://'):
-                server_address = 'http://' + server_address
+        self.stop()
+        if not conf.license_server_url:
+            return
 
-            self.serverUrl = server_address
-            self.refresh_reservation()
-            self.run_license_reservation_thread()
+        server_address = conf.license_server_url.strip()
+        if not server_address.lower().startswith('http://') and not server_address.lower().startswith('https://'):
+            server_address = 'http://' + server_address
+
+        self.serverUrl = server_address
+        self.run_license_reservation_thread()
+
+
+class StoppableThread(Thread):
+    def __init__(self, target):
+        super(StoppableThread, self).__init__()
+        self.__target = target
+        self.finished = Event()
+
+    def should_stop(self):
+        return self.finished.is_set()
+
+    def wait(self, timeout):
+        """
+        wait for specified timeout in this thread, but don't block the "stop" event
+        """
+        self.finished.wait(timeout=timeout)
+
+    def stop(self):
+        self.finished.set()
+
+    def run(self):
+        self.__target(self)
+        self.finished.set()
 
 
 def parse_license_contents(contents):
@@ -183,23 +251,37 @@ def parse_license_contents(contents):
     return result
 
 
+def _is_license_key_valid(license_key):
+    """
+    checks if given key is in UUID format
+
+    UUID format:  8-4-4-4-12 hexadecimal strings,
+    e.g. 12345678-abcd-ef09-1234-56789abcdef0
+    """
+    key_format = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+    return re.match(key_format, license_key)
+
+
+def _get_host_id():
+    result = plugin.ngst2License(q=True, hostid=True)
+    return result
+
+
+def _configuration_for_license_file(license_file):
+    parsed_license_contents = parse_license_contents(license_file)
+    if parsed_license_contents is None:
+        raise Exception
+
+    conf = Configuration()
+    conf.license_files = [parsed_license_contents]
+    return conf
+
+
 class LicenseFileHandler:
     def __init__(self):
         self.licenseServer = 'https://licensing.ngskintools.com/api/projects/ngskintools2/licenses/'
 
-    def get_host_id(self):
-        result = plugin.ngst2License(q=True, hostid=True)
-        return result
-
-    def __configuration_for_license_file(self, license_file):
-        parsed_license_contents = parse_license_contents(license_file)
-        if parsed_license_contents is None:
-            raise Exception
-
-        conf = Configuration()
-        conf.license_files = [parsed_license_contents]
-        return conf
-
+    # noinspection PyMethodMayBeStatic
     def apply_configuration(self, conf):
         """
         :type conf: Configuration
@@ -261,7 +343,7 @@ class LicenseFileHandler:
         """
         :param basestring license_key:
         """
-        host_id = self.get_host_id()
+        host_id = _get_host_id()
 
         def run(context):
             context.error = ""
@@ -270,12 +352,12 @@ class LicenseFileHandler:
             try:
                 context.license_file = self.download_license_file(license_key, host_id)
             except Exception as err:
-                context.error = err.message
+                context.error = str(err)
 
         def done(context):
             context.conf = None
             if context.license_file is not None:
-                context.conf = self.__configuration_for_license_file(context.license_file)
+                context.conf = _configuration_for_license_file(context.license_file)
 
         task = ParallelTask()
         task.add_run_handler(run)
@@ -283,31 +365,27 @@ class LicenseFileHandler:
 
         return task
 
-    def __is_license_key_valid(self, license_key):
-        # UUID format:  8-4-4-4-12 hexadecimal strings
-        # e.g. 12345678-abcd-ef09-1234-56789abcdef0
-        format = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-        return re.match(format, license_key)
-
+    # noinspection PyMethodMayBeStatic
     def generate_activation_code_link(self, license_key):
         # sample key
-        if not self.__is_license_key_valid(license_key):
+        if not _is_license_key_valid(license_key):
             raise Exception("Invalid license key format")
 
         return (
             "https://licensing.ngskintools.com/#/self-service/"
             + base64.b64encode(
-                json.dumps({'type': 'activationCode', 'product': 'ngskintools2', 'licenseKey': license_key, 'hostId': self.get_host_id()}).encode()
+                json.dumps({'type': 'activationCode', 'product': 'ngskintools2', 'licenseKey': license_key, 'hostId': _get_host_id()}).encode()
             ).decode()
         )
 
+    # noinspection PyMethodMayBeStatic
     def configuration_for_activation_code(self, activation_code):
         try:
             contents = json.loads(base64.b64decode(activation_code))
         except:
             raise Exception("Invalid activation code: could not parse contents")
 
-        return self.__configuration_for_license_file(contents['licenseFile'])
+        return _configuration_for_license_file(contents['licenseFile'])
 
 
 class Configuration:
@@ -429,6 +507,10 @@ class LicenseData:
         self.active = False
         self.status_description = ""
         self.licensed_to = ''
+        self.errors = []
+
+    def has_errors(self):
+        return bool(self.errors)
 
 
 class LicenseClient:
@@ -436,6 +518,7 @@ class LicenseClient:
         self.serverClient = LicenseServerClient()
         self.licenseFileHandler = LicenseFileHandler()
         self.statusChanged = signal.Signal("license status changed")
+        self.serverClient.reservation_cycle_finished_handler = self.statusChanged.emitDeferred
         self.conf = Configuration()
         self.errors = []
 
@@ -480,6 +563,7 @@ class LicenseClient:
         if self.serverClient.lastError is not None:
             errors.append(self.serverClient.lastError)
         data.status_description = None if not errors else "\n".join(errors)
+        data.errors = errors
         return data
 
     def current_configuration(self):
@@ -518,3 +602,4 @@ class LicenseClient:
         conf.license_server_url = server_address
 
         self.__apply_and_save_configuration(conf)
+        self.serverClient.refresh_reservation()

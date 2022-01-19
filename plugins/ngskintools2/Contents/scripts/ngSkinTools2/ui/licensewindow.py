@@ -195,6 +195,8 @@ def show(parent, license_info=None):
         message_label = QtWidgets.QLabel()
         layout.addWidget(message_label)
         message_label.setVisible(False)
+        message_label.setWordWrap(True)
+        message_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
         @signal.on(model.message.changed)
         def update_message():
@@ -366,7 +368,14 @@ def show(parent, license_info=None):
         btn_activate.setDefault(True)
         btn_activate.setMinimumWidth(100 * scale_multiplier)
 
-        qt.on(btn_activate.clicked)(model.activate)
+        @qt.on(btn_activate.clicked)
+        def activate():
+            prev_cursor = window.cursor()
+            window.setCursor(Qt.WaitCursor)
+            try:
+                model.activate()
+            finally:
+                window.setCursor(prev_cursor)
 
         btn_close = QtWidgets.QPushButton("Cancel")
         btn_close.setMinimumWidth(100 * scale_multiplier)

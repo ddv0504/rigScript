@@ -10,7 +10,7 @@ def pluginVersion():
     Unique version of plugin, e.g. "1.0beta.680". Also represents
     required version of mll plugin. Automatically set at build time
     """
-    pluginVersion_doNotEdit = "2.0.34"
+    pluginVersion_doNotEdit = "2.0.35"
     return pluginVersion_doNotEdit
 
 

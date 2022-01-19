@@ -1,0 +1,20 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+global proc bt_convertSelectionToPerimeterEdges()
+	{
+	$origFaces = `ls -sl`;
+	ConvertSelectionToEdges;
+	$allEdges = `ls -sl`;
+	select -r $origFaces;
+	ConvertSelectionToContainedEdges;
+	$innerEdges = `ls -sl`;
+	select -r $allEdges;
+	select -d $innerEdges;
+}
+bt_convertSelectionToPerimeterEdges;
+

@@ -1,0 +1,28 @@
+// ===========================================================================
+// Copyright 2021 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+//
+// bgSelectClusterMembers.mel
+//
+// for selected clusters, convert the selection to cluster members
+
+
+global proc bgSelectClusterMembers(){
+
+	string $clusterHandles[] = `ls -sl`;
+	select -clear;
+
+	for ($clusterHandle in $clusterHandles){
+		string $cluster[] = `listConnections -s 0 -d 1 -t "cluster" $clusterHandle`;
+		string $set[] = `listConnections -s 0 -d 1 -t "objectSet" $cluster[0]`;
+		select -add $set[0];
+	}
+}
