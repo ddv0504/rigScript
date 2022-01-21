@@ -186,7 +186,41 @@ def constraint(src,trg,translate=False,rotate=False,scale=False,mo=False):
         cmds.select([i for i in cmds.listRelatives(src,p=True)][0])        
     else:
         cmds.select(src,r=True)
+def setOrientKeyable(jnt,axis,*args):
+    if not cmds.objectType(jnt) == 'joint':
+        print('%s is not joint object.' % jnt)
+    cmds.setAttr('%s.jointOrient%s' % (jnt,axis),keyable=True,e=True)
 
+def setJointsOrientKeyable(jnts,*args):
+    attrs = ['jointOrientX','jointOrientY','jointOrientZ']
+    for jnt in jnts:
+        for attr in attrs:
+            print(attr)
+            cmds.setAttr('%s.%s' % (jnt,attr),e=True,keyable=True)
+
+def setJointsOrientUnkeyable(jnts,*args):
+    attrs = ['jointOrientX','jointOrientY','jointOrientZ']
+    for jnt in jnts:
+        for attr in attrs:
+            cmds.setAttr('%s.%s' % (jnt,attr),e=True,keyable=False)
+
+def jointToPath(curve,jntLst=None):
+    value = 0
+    step = 1/len(jntLst)
+    cmds.select(cl=True)
+    for jnt in jntLst:
+        
+        cmds.select([jnt,curve],r=True)
+        node = cmds.pathAnimation(n='%s_motionPath' % jnt,fractionMode=True,follow=True,followAxis='x',upAxis='y',worldUpType="vector",worldUpVector=(0,1,0),inverseUp=False,inverseFront=False,bank=False)
+        cmds.setAttr('%s.uValue' % node,value)
+        value += step
+
+def createJntToTarget(lst):
+    for l in lst:
+        cmds.select(cl=True)
+        point = cmds.xform(l,ws=True,q=True,t=True)
+        jnt = cmds.joint(n='%s_jnt' % l,p=point)
+     
 ###### Group ########
 def addOffsetGroup(obj,name=None):
     parent = cmds.listRelatives(obj,p=True)[0] if cmds.listRelatives(obj,p=True) else None
@@ -255,24 +289,7 @@ def unlockInf(mesh,jnt):
     cmds.skinCluster(mesh,e=True,lw=False,inf=jnt)
 
 ###### Joint ######
-def setOrientKeyable(jnt,axis,*args):
-    if not cmds.objectType(jnt) == 'joint':
-        print('%s is not joint object.' % jnt)
-    cmds.setAttr('%s.jointOrient%s' % (jnt,axis),keyable=True,e=True)
-
-def setJointsOrientKeyable(jnts,*args):
-    attrs = ['jointOrientX','jointOrientY','jointOrientZ']
-    for jnt in jnts:
-        for attr in attrs:
-            print(attr)
-            cmds.setAttr('%s.%s' % (jnt,attr),e=True,keyable=True)
-
-def setJointsOrientUnkeyable(jnts,*args):
-    attrs = ['jointOrientX','jointOrientY','jointOrientZ']
-    for jnt in jnts:
-        for attr in attrs:
-            cmds.setAttr('%s.%s' % (jnt,attr),e=True,keyable=False)
-
+       
 ###### blenShape #######
 '''
 Get connected blendshape node 
@@ -555,7 +572,10 @@ def follicleConstraint(vertex,object,*args):
 def printObjectType(*args):
     print(cmds.objectType(cmds.ls(sl=True)[0]))
 
+
+###### Tools UI #######
 ###### motion path #######
+
 def motionPathUI(*args):
     if cmds.window('motionPathUI',ex=True):
         cmds.deleteUI('motionPathUI')
