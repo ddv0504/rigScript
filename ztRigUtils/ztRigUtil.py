@@ -204,16 +204,48 @@ def setJointsOrientUnkeyable(jnts,*args):
         for attr in attrs:
             cmds.setAttr('%s.%s' % (jnt,attr),e=True,keyable=False)
 
-def jointToPath(curve,jntLst=None):
-    value = 0
-    step = 1/len(jntLst)
-    cmds.select(cl=True)
-    for jnt in jntLst:
-        
-        cmds.select([jnt,curve],r=True)
-        node = cmds.pathAnimation(n='%s_motionPath' % jnt,fractionMode=True,follow=True,followAxis='x',upAxis='y',worldUpType="vector",worldUpVector=(0,1,0),inverseUp=False,inverseFront=False,bank=False)
-        cmds.setAttr('%s.uValue' % node,value)
-        value += step
+def animPathJnt(curve,jntLst=None,auto=False,target=None):
+    if jntLst:
+        value = 0
+        step = 1/len(jntLst)
+        cmds.select(cl=True)
+        if jntLst:
+            for jnt in jntLst:            
+                cmds.select([jnt,curve],r=True)
+                node = cmds.pathAnimation(n='%s_motionPath' % jnt,fractionMode=True,follow=True,followAxis='x',upAxis='y',worldUpType="vector",worldUpVector=(0,1,0),inverseUp=False,inverseFront=False,bank=False)
+                cmds.setAttr('%s.uValue' % node,value)
+                value += step
+        return
+    curve = pm.ls(curve)[0]
+    curveShape = curve.getShape()
+    curveShape.getCVs()
+    if auto:
+        value = 0
+        step = 1.0/curveShape.numEPs()
+        for ep in range(curveShape.numEPs()):
+            cmds.select(cl=True)
+            jntIndex = str(ep).zfill(3)
+            jnt = cmds.joint(n='curve_%s' % jntIndex)
+            cmds.select([jnt,curve.name()],r=True)
+            node = cmds.pathAnimation(n='%s_motionPath' % jnt,fractionMode=True,follow=True,followAxis='x',upAxis='y',worldUpType="vector",worldUpVector=(0,1,0),inverseUp=False,inverseFront=False,bank=False)
+            cmds.setAttr('%s.uValue' % node,value)
+            if target:
+                cmds.connectAttr('%s.worldMatrix' % target, '%s.worldUpMatrix' % node,f=True)
+            value+=step
+            
+def createJntToCurve(curve):
+
+    curve = pm.ls(sl=True)[0]
+    curveShape = curve.getShape()
+    curveShape.getCVs()
+
+    for ep in range(curveShape.numEPs()):
+        cmds.select(cl=True)
+        editPoint = '%s.ep[%s]' % (curve.name(),ep)
+        point = cmds.xform(editPoint,ws=True,t=True,q=True)    
+        jnt = cmds.joint()
+        cmds.xform(jnt,t=point,ws=True)
+        cmds.connectAttr(editPoint,'%s.translate' % jnt,f=True)
 
 def createJntToTarget(lst):
     for l in lst:
