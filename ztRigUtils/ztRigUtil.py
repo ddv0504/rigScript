@@ -605,7 +605,90 @@ def printObjectType(*args):
     print(cmds.objectType(cmds.ls(sl=True)[0]))
 
 
+def mirrorSDK(srcDriveAttr,srcDrivenAttr,trgDriveObj,trgDrivenObj,inverse=False,*args):
+    animCurves = cmds.listConnections(srcDrivenAttr,s=True,d=False,type='animCurve')
+    driveAttr = srcDriveAttr.split('.')[-1]
+    drivenAttr = srcDrivenAttr.split('.')[-1]
+    if animCurves:
+        animCurve  = animCurves[0]
+        trgCurve = cmds.duplicate(animCurve)
+        trgCurve = cmds.rename(trgCurve,'%s_%s' % (trgDrivenObj,drivenAttr))
+        trgAttr = '%s.%s' % (trgDriveObj,driveAttr)
+        
+        cmds.connectAttr('%s.%s' % (trgDriveObj,driveAttr),'%s.input' % trgCurve,f=True)
+        cmds.connectAttr('%s.output' % trgCurve,'%s.%s' % (trgDrivenObj,drivenAttr),f=True)
+
+        if inverse:
+            # print(trgCurve)
+            animCurve = pm.ls(trgCurve)[0]
+            count = animCurve.numKeys()
+            
+            for index in range(count):
+                value = animCurve.getValue(index)
+                animCurve.setValue(index,value*-1)
+            # cmds.lockNode('__pymelUndoNode',lock=False)
+            # cmds.delete('__pymelUndoNode')
+            
+
+
+
 ###### Tools UI #######
+
+###### Set Driven Keys UI #######
+class SetDrivenKeysUI(object):
+    def __init__(self):
+        self.win = 'mirrorDrivenKeysUI'
+        self.title = 'Mirror Driven Keys'
+        self.width = 300
+        self.height = 300
+        self.create_ui()
+
+    def create_ui(self):
+        if cmds.window(self.win, exists=True):
+            cmds.deleteUI(self.win)
+        cmds.window(self.win, title=self.title, width=self.width, height=self.height)
+        cmds.columnLayout(adj=True)
+        cmds.textFieldButtonGrp('srcDriveAttr',label='Source Attribute:',text='',buttonLabel='Select',bc=lambda: self.select_attr('srcDriveAttr'))
+        cmds.textFieldButtonGrp('srcDrivenAttr',label='Driven Attribute:',text='',buttonLabel='Select' ,bc=lambda: self.select_attr('srcDrivenAttr'))
+        cmds.textFieldButtonGrp('trgDriveObj',label='Target Object:',text='',buttonLabel='Select',bc=lambda: self.select_obj('trgDriveObj'))
+        cmds.textFieldButtonGrp('trgDrivenObj',label='Driven Object:',text='',buttonLabel='Select',bc=lambda: self.select_obj('trgDrivenObj'))
+        cmds.checkBox('inverse',label='Inverse')
+        cmds.button(label='Set Driven Keys',command=self.setDrivenKeys)
+        cmds.showWindow()
+    
+    def setDrivenKeys(self,*args):
+        srcDriveAttr = cmds.textFieldButtonGrp('srcDriveAttr',q=True,text=True)
+        srcDrivenAttr = cmds.textFieldButtonGrp('srcDrivenAttr',q=True,text=True)
+        trgDriveObj = cmds.textFieldButtonGrp('trgDriveObj',q=True,text=True)
+        trgDrivenObj = cmds.textFieldButtonGrp('trgDrivenObj',q=True,text=True)
+        inverse = cmds.checkBox('inverse',q=True,v=True)
+        mirrorSDK(srcDriveAttr,srcDrivenAttr,trgDriveObj,trgDrivenObj,inverse)
+
+    def select_attr(self,*args):
+        objs = cmds.ls(sl=True)
+        attrs = mel.eval('channelBox -q -selectedMainAttributes mainChannelBox;')
+        
+        if not attrs:
+            try:
+                attrs = mel.eval('channelBox -q -sha mainChannelBox;')
+            except:
+                return
+        attrFullNames = []
+        for obj in objs:
+            for attr in attrs:
+                attrFullNames.append('%s.%s' % (obj,attr))
+        if attrFullNames:
+            cmds.textFieldButtonGrp(args[0],e=True,text=attrFullNames[0])
+            # return attrFullNames[0] 
+    def select_obj(self,*args):
+        objs = cmds.ls(sl=True)
+        if objs:
+            cmds.textFieldButtonGrp(args[0],e=True,text=objs[0])
+            # return objs[0]
+def mirrorSDKUI(*args):
+    UI = SetDrivenKeysUI()
+    UI.create_ui()
+
 ###### motion path #######
 
 def motionPathUI(*args):
