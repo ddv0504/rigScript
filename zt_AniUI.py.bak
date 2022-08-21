@@ -225,7 +225,7 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         print(cam)
         movFile = self.setMovFileName(fileName)
         widthHeight = [cmds.getAttr('defaultResolution.%s' % i) for i in ["width","height"]]
-        widthHeight = [1280,720]
+
         timeRange = mel.eval('timeControl -q -ra $gPlayBackSlider;')
         timeControl = mel.eval('$tmpVar = $gPlayBackSlider')
         sound = cmds.timeControl(timeControl,q=True,sound=True)
