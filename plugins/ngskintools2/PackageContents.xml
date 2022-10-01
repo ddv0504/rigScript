@@ -5,7 +5,7 @@
 	AutodeskProduct="Maya"
 	Name="ngskintools2"
 	Description="ngSkinTools2 - advanced skinning"
-	AppVersion="2.0.35"
+	AppVersion="2.0.39"
 	Author="ngSkinTools.com"
 	AppNameSpace="com.ngskintools.ngskintools2"
 	HelpFile="./Contents/docs/index.html"
@@ -51,6 +51,13 @@
             <RuntimeRequirements SupportPath="./Contents/docs/" OS="win64" Platform="Maya" SeriesMin="2022" SeriesMax="2022" />
             <MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/2022" />
             <ComponentEntry ModuleName="./Contents/plug-ins/2022/ngSkinTools2.mll" />
+        </Components>
+        
+
+        <Components>
+            <RuntimeRequirements SupportPath="./Contents/docs/" OS="win64" Platform="Maya" SeriesMin="2023" SeriesMax="2023" />
+            <MayaEnv expr="MAYA_PLUG_IN_PATH+:=plug-ins/2023" />
+            <ComponentEntry ModuleName="./Contents/plug-ins/2023/ngSkinTools2.mll" />
         </Components>
         
 

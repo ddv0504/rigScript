@@ -1,6 +1,7 @@
+from PySide2 import QtCore, QtWidgets
+
 from ngSkinTools2.api import PaintMode
 from ngSkinTools2.python_compatibility import Object
-from PySide2 import QtWidgets, QtCore
 from ngSkinTools2.signal import Signal
 from ngSkinTools2.ui import qt
 from ngSkinTools2.ui.layout import scale_multiplier

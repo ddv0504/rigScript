@@ -1,16 +1,16 @@
-from maya import cmds
-
-from ngSkinTools2.api.layers import Layer
-from ngSkinTools2.api.influenceMapping import InfluenceInfo
-from ngSkinTools2.api.target_info import list_influences
-from ngSkinTools2.python_compatibility import Object
 import re
 
-from PySide2 import QtWidgets, QtCore, QtGui
+from maya import cmds
+from PySide2 import QtCore, QtGui, QtWidgets
+
 from ngSkinTools2 import signal
+from ngSkinTools2.api.influenceMapping import InfluenceInfo
+from ngSkinTools2.api.layers import Layer
+from ngSkinTools2.api.target_info import list_influences
 from ngSkinTools2.log import getLogger
+from ngSkinTools2.python_compatibility import Object
 from ngSkinTools2.signal import Signal
-from ngSkinTools2.ui import qt, options
+from ngSkinTools2.ui import qt
 from ngSkinTools2.ui.layout import scale_multiplier
 
 log = getLogger("influencesView")
@@ -145,6 +145,8 @@ def build_view(parent, actions, session, filter):
             return icon_joint_disabled if is_joint else icon_transform_disabled
 
         def wanted_tree_items():
+            if layer is None:
+                return
             yield "mask", "[Mask]", icon_mask
             if not is_group_layer and session.state.skin_cluster_dq_channel_used:
                 yield "dq", "[DQ Weights]", icon_dq
@@ -185,12 +187,15 @@ def build_view(parent, actions, session, filter):
 
         new_current_item = tree_items.get(current_id, None)
         if new_current_item is None:
-            view.setCurrentItem(None, QtCore.QItemSelectionModel.Clear)
+            clear_selection()
         else:
             view.setCurrentItem(new_current_item)
             new_current_item.setSelected(True)
 
         update_selected_influences()
+
+    def clear_selection():
+        view.setCurrentItem(None, QtCore.QItemSelectionModel.Clear)
 
     view = QtWidgets.QTreeWidget(parent)
     view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -221,6 +226,7 @@ def build_view(parent, actions, session, filter):
         else:
             log.info("current layer changed to %s", session.state.currentLayer.layer)
             refresh_items()
+            current_influence_changed()
 
     @signal.on(session.events.currentInfluenceChanged, qtParent=view)
     def current_influence_changed():
@@ -238,7 +244,9 @@ def build_view(parent, actions, session, filter):
                 with qt.signals_blocked(view):
                     log.info("setting current item rofl")
                     view.setCurrentItem(item)
-                update_selected_influences()
+            else:
+                clear_selection()
+            update_selected_influences()
 
     @qt.on(view.currentItemChanged)
     def current_item_changed(curr, prev):

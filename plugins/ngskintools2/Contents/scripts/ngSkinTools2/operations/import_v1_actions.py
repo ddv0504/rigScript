@@ -1,11 +1,9 @@
-from maya import cmds
-from ngSkinTools2 import api
-from ngSkinTools2 import signal
+from ngSkinTools2 import api, signal
 
 
 def can_import(session):
     """
-    :type session: ngSkinTools2.ui.session.Session
+    :type session: ngSkinTools2.api.session.Session
     """
 
     if not session.state.selection:
@@ -20,7 +18,7 @@ def can_import(session):
 def build_action_import_v1(session, parent):
     """
     :type parent: PySide2.QtWidgets.QWidget
-    :type session: ngSkinTools2.ui.session.Session
+    :type session: ngSkinTools2.api.session.Session
     """
     from ngSkinTools2.ui import actions
 

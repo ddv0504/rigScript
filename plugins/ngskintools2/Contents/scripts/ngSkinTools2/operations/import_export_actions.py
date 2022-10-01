@@ -1,6 +1,6 @@
 from PySide2 import QtWidgets
-from ngSkinTools2 import api
-from ngSkinTools2 import signal
+
+from ngSkinTools2 import api, signal
 
 
 def buildAction_export(session, parent):
@@ -33,7 +33,7 @@ def buildAction_export(session, parent):
 
 def buildAction_import(session, parent, fileDialogFunc=None):
     from ngSkinTools2.ui import actions
-    from ngSkinTools2.ui.transferDialog import UiModel, open, LayersTransfer
+    from ngSkinTools2.ui.transferDialog import LayersTransfer, UiModel, open
 
     def defaultFileDialogFunc():
         file_name, _ = QtWidgets.QFileDialog.getOpenFileName(parent, "Import from Json", filter="JSON files(*.json)")

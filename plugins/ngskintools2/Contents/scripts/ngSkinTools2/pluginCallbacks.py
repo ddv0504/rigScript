@@ -1,15 +1,16 @@
 """
 these are methods that are called by plugin when corresponding events happen
 """
-from ngSkinTools2.log import getLogger
 from ngSkinTools2 import api
-
-from ngSkinTools2.ui.session import session
+from ngSkinTools2.api import eventtypes as et
+from ngSkinTools2.api.session import session
+from ngSkinTools2.log import getLogger
+from ngSkinTools2.ui import hotkeys_setup
 
 log = getLogger("plugin callbacks")
 
 
-def currentPaintTargetChanged():
+def current_paint_target_changed():
     # log.info("current paint target changed")
     if session.active():
         if session.state.currentLayer.layer is not None:
@@ -18,28 +19,30 @@ def currentPaintTargetChanged():
 
 
 def tool_settings_changed():
-    if session.active():
-        session.events.tool_settings_changed.emit()
+    et.tool_settings_changed.emit()
 
 
-def paintToolStarted():
+def paint_tool_started():
     api.paint.tabletEventFilter.install()
+    hotkeys_setup.toggle_paint_hotkey_set(enabled=True)
 
 
-def paintToolStopped():
+def paint_tool_stopped():
     api.paint.tabletEventFilter.uninstall()
+    hotkeys_setup.toggle_paint_hotkey_set(enabled=False)
 
 
-def getStylusIntensity():
+def get_stylus_intensity():
     return api.paint.tabletEventFilter.pressure
 
 
-def initializeInfluencesMirrorMapping(mesh):
+def initialize_influences_mirror_mapping(mesh):
     """
     gets called by plugin when influences mirror mapping is not set yet
     :return:
     """
     from ngSkinTools2.api.mirror import Mirror
+
     Mirror(mesh).recalculate_influences_mapping()
 
 

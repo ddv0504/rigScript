@@ -1,16 +1,14 @@
-from ngSkinTools2 import licenseClient
-from ngSkinTools2.licenseClient import LicenseData
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object
-
-from PySide2 import QtWidgets, QtGui
+from PySide2 import QtGui, QtWidgets
 from PySide2.QtCore import Qt
 
-from ngSkinTools2 import cleanup, signal
+from ngSkinTools2 import cleanup, licenseClient, signal
+from ngSkinTools2.api.session import session, withSession
+from ngSkinTools2.licenseClient import LicenseData
+from ngSkinTools2.log import getLogger
 from ngSkinTools2.observableValue import ObservableValue
-from ngSkinTools2.ui import qt, dialogs
+from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.ui import dialogs, qt
 from ngSkinTools2.ui.layout import scale_multiplier
-from ngSkinTools2.ui.session import withSession, session
 
 log = getLogger("license window")
 
@@ -329,7 +327,7 @@ def show(parent, license_info=None):
 
         @qt.on(license_key.textChanged)
         def update_license_key():
-            model.license_key = license_key.text()
+            model.license_key = (license_key.text() or "").strip()
 
         return result
 

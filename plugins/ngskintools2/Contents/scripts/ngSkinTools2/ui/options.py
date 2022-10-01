@@ -1,11 +1,11 @@
 import json
 
 from maya import cmds
+
 from ngSkinTools2 import signal
 from ngSkinTools2.log import getLogger
 from ngSkinTools2.observableValue import ObservableValue
-from ngSkinTools2.python_compatibility import Object
-from ngSkinTools2.python_compatibility import is_string
+from ngSkinTools2.python_compatibility import Object, is_string
 
 log = getLogger("plugin")
 

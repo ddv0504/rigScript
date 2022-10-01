@@ -1,6 +1,10 @@
 from maya import cmds
+
 from ngSkinTools2.api import PaintTool
+from ngSkinTools2.log import getLogger
 from ngSkinTools2.ui.action import Action
+
+log = getLogger("operations/paint")
 
 
 class FloodAction(Action):

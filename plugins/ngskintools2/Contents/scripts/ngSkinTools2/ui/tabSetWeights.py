@@ -1,14 +1,14 @@
 from PySide2 import QtWidgets
+
 from ngSkinTools2 import signal
+from ngSkinTools2.api import PaintMode, flood_weights
+from ngSkinTools2.api.session import session
 from ngSkinTools2.api.tools import FloodSettings
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.api import PaintMode, flood_weights
-from ngSkinTools2.observableValue import ObservableValue
 from ngSkinTools2.python_compatibility import Object
 from ngSkinTools2.signal import Signal
 from ngSkinTools2.ui import qt, widgets
-from ngSkinTools2.ui.layout import createTitledRow, TabSetup
-from ngSkinTools2.ui.session import session
+from ngSkinTools2.ui.layout import TabSetup, createTitledRow
 from ngSkinTools2.ui.ui_lock import UiLock
 
 log = getLogger("tab set weights")

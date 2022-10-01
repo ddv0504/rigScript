@@ -1,15 +1,20 @@
-from ngSkinTools2.python_compatibility import Object
 import itertools
 
+from ngSkinTools2.decorators import undoable
+from ngSkinTools2.python_compatibility import Object
+
+from . import plugin
 from .influenceMapping import InfluenceMapping, InfluenceMappingConfig
 from .layers import init_layers, target_info
-from ngSkinTools2.decorators import undoable
-from . import plugin
 from .mirror import Mirror
 from .suspend_updates import suspend_updates
 
 
 class VertexTransferMode(Object):
+    """
+    Constants for vertex_transfer_mode argument
+    """
+
     closestPoint = 'closestPoint'  #: When vertices from two surface are matched, each destination mesh vertex finds a closest point on source mesh, and weights are calculated based on the triangle weights of that closest point.
     uvSpace = 'uvSpace'  #: Similar to closestPoint strategy, but matching is done in UV space instead of XYZ space.
     vertexId = 'vertexId'  #: Vertices are matched by ID. Not usable for mirroring; this is used for transfer/import cases where meshes are known to be identical

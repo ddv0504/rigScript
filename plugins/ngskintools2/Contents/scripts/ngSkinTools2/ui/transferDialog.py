@@ -1,11 +1,12 @@
-from PySide2 import QtWidgets, QtCore
-from ngSkinTools2 import cleanup, api, signal
+from PySide2 import QtCore, QtWidgets
+
+from ngSkinTools2 import api, cleanup, signal
 from ngSkinTools2.api import VertexTransferMode
+from ngSkinTools2.api.session import session
 from ngSkinTools2.api.transfer import LayersTransfer
 from ngSkinTools2.decorators import undoable
-from ngSkinTools2.ui import qt, widgets, influenceMappingUI
+from ngSkinTools2.ui import influenceMappingUI, qt, widgets
 from ngSkinTools2.ui.layout import createTitledRow, scale_multiplier
-from ngSkinTools2.ui.session import session
 
 
 class UiModel:
@@ -108,11 +109,11 @@ def open(parent, model):
 
         def update_settings_to_model():
             keep_layers.setChecked(model.transfer.keep_existing_layers)
-            vertexMappingMode.setCurrentIndex(vertexMappingMode.findData(model.transfer.vertex_transfer_mode))
-            sourceTitle = model.transfer.source
+            qt.select_data(vertexMappingMode, model.transfer.vertex_transfer_mode)
+            source_title = model.transfer.source
             if model.transfer.source_file is not None:
-                sourceTitle = 'file ' + model.transfer.source_file
-            sourceLabel.setText("<strong>" + sourceTitle + "</strong>")
+                source_title = 'file ' + model.transfer.source_file
+            sourceLabel.setText("<strong>" + source_title + "</strong>")
             destinationLabel.setText("<strong>" + model.transfer.target + "</strong>")
             keep_layers_row.setEnabled(model.destination_has_layers())
 
@@ -158,8 +159,9 @@ def open(parent, model):
 
 
 def build_transfer_action(session, parent):
-    from .actions import define_action
     from maya import cmds
+
+    from .actions import define_action
 
     targets = []
 

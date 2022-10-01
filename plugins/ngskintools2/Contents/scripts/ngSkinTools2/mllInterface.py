@@ -1,11 +1,10 @@
-from ngSkinTools2.python_compatibility import Object
 import json
 
 import maya.cmds as cmds
 import maya.mel as mel
-from ngSkinTools2 import log
 
-from _functools import partial
+from ngSkinTools2 import log
+from ngSkinTools2.python_compatibility import Object
 
 
 class NamedPaintTarget(Object):

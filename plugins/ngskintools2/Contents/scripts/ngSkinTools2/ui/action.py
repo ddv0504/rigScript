@@ -51,6 +51,6 @@ def qt_action(action_class, session, parent):
 
 
 def do_action_hotkey(action_class):
-    from ngSkinTools2.ui import session
+    from ngSkinTools2.api import session
 
     action_class(session.session).run_if_enabled()

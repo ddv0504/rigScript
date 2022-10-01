@@ -1,13 +1,14 @@
-from PySide2 import QtGui
-from PySide2 import QtWidgets
+from PySide2 import QtGui, QtWidgets
+
 from ngSkinTools2 import signal
+from ngSkinTools2.api import BrushShape, PaintMode, PaintTool, WeightsDisplayMode
+from ngSkinTools2.api import eventtypes as et
 from ngSkinTools2.api.paint import BrushProjectionMode
+from ngSkinTools2.api.session import session
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.api import PaintMode, BrushShape, PaintTool
 from ngSkinTools2.ui import qt, widgets
-from ngSkinTools2.ui.layout import createTitledRow, TabSetup
+from ngSkinTools2.ui.layout import TabSetup, createTitledRow
 from ngSkinTools2.ui.qt import bind_action_to_button
-from ngSkinTools2.ui.session import session
 
 log = getLogger("tab paint")
 
@@ -15,6 +16,8 @@ log = getLogger("tab paint")
 # noinspection PyShadowingNames
 def build_ui(parent, globalActions):
     paint = PaintTool()
+
+    on_signal = session.signal_hub.on
 
     def build_brush_settings_group():
         def brush_mode_row3():
@@ -36,7 +39,6 @@ def build_ui(parent, globalActions):
                 def toggled(checked):
                     if checked and paint.paint_mode != mode:
                         paint.paint_mode = mode
-                        session.events.tool_settings_changed.emit()
 
                 t.addAction(a)
 
@@ -51,7 +53,7 @@ def build_ui(parent, globalActions):
             create_brush_mode_button(t, PaintMode.sharpen, "Sharpen", "")
             row.addWidget(t)
 
-            @signal.on(session.events.tool_settings_changed, qtParent=row)
+            @on_signal(et.tool_settings_changed, scope=row)
             def update_current_brush_mode():
                 actions[paint.paint_mode].setChecked(True)
 
@@ -80,9 +82,12 @@ def build_ui(parent, globalActions):
                         paint.brush_shape = shape
                         update_ui()
 
-                @signal.on(session.events.tool_settings_changed, qtParent=a)
-                def tool_settings_changed():
+                # noinspection PyShadowingNames
+                @on_signal(et.tool_settings_changed, scope=a)
+                def update_to_tool():
                     a.setChecked(paint.brush_shape == shape)
+
+                update_to_tool()
 
             add_brush_shape_action(':/circleSolid.png', 'Solid', BrushShape.solid, checked=True)
             add_brush_shape_action(':/circlePoly.png', 'Smooth', BrushShape.smooth)
@@ -113,11 +118,14 @@ def build_ui(parent, globalActions):
                         paint.use_volume_neighbours = use_volume
                         update_ui()
 
-                @signal.on(session.events.tool_settings_changed, qtParent=a)
-                def tool_settings_changed():
+                # noinspection PyShadowingNames
+                @on_signal(et.tool_settings_changed, scope=a)
+                def update_to_tool():
                     a.setChecked(
                         paint.brush_projection_mode == mode and (mode != BrushProjectionMode.surface or paint.use_volume_neighbours == use_volume)
                     )
+
+                update_to_tool()
 
             add(
                 'Surface',
@@ -140,6 +148,7 @@ def build_ui(parent, globalActions):
                 use_volume=False,
                 checked=False,
             )
+
             return result
 
         def stylus_pressure_selection():
@@ -218,7 +227,7 @@ def build_ui(parent, globalActions):
         stylus = stylus_pressure_selection()
         layout.addLayout(createTitledRow("Stylus pressure:", stylus))
 
-        @signal.on(session.events.tool_settings_changed, qtParent=layout)
+        @on_signal(et.tool_settings_changed, scope=layout)
         def update_ui():
             log.info("updated paint settings ui")
             intensity.set_value(paint.brush_intensity)
@@ -268,9 +277,9 @@ def build_ui(parent, globalActions):
         layout = QtWidgets.QVBoxLayout()
 
         influences_display = QtWidgets.QComboBox()
-        influences_display.addItem("All influences, multiple colors")
-        influences_display.addItem("Current influence, grayscale")
-        influences_display.addItem("Current influence, colored")
+        influences_display.addItem("All influences, multiple colors", WeightsDisplayMode.allInfluences)
+        influences_display.addItem("Current influence, grayscale", WeightsDisplayMode.currentInfluence)
+        influences_display.addItem("Current influence, colored", WeightsDisplayMode.currentInfluenceColored)
         influences_display.setMinimumWidth(1)
         influences_display.setCurrentIndex(paint.weights_display_mode)
 
@@ -279,7 +288,7 @@ def build_ui(parent, globalActions):
 
         @qt.on(influences_display.currentIndexChanged)
         def influences_display_changed():
-            paint.weights_display_mode = influences_display.currentIndex()
+            paint.weights_display_mode = influences_display.currentData()
             update_ui_to_tool()
 
         display_layout = QtWidgets.QVBoxLayout()
@@ -322,10 +331,11 @@ def build_ui(parent, globalActions):
         def update_ui_to_tool():
             toggle_original_mesh.setChecked(paint.is_painting() and not paint.display_node_visible)
 
+            qt.select_data(influences_display, paint.weights_display_mode)
             show_effects.setChecked(paint.layer_effects_display)
             show_masked.setChecked(paint.display_masked)
             show_selected_verts_only.setChecked(paint.show_selected_verts_only)
-            globalActions.randomizeInfluencesColors.setEnabled(influences_display.currentIndex() == 0)
+            globalActions.randomizeInfluencesColors.setEnabled(paint.weights_display_mode == WeightsDisplayMode.allInfluences)
             display_toolbar.setVisible(globalActions.randomizeInfluencesColors.isEnabled())
 
         layout.addLayout(createTitledRow("", mesh_toolbar))
@@ -353,7 +363,5 @@ def build_ui(parent, globalActions):
 
     update_to_tool()
     update_tab_enabled()
-
-    session.events.tool_settings_changed.emit()
 
     return tab.tabContents

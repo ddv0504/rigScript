@@ -14,18 +14,12 @@ For usage details, see unit test examples.
 """
 from __future__ import division
 
-from ngSkinTools2.python_compatibility import Object
 import itertools
 import json
 import re
 
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import is_string
-
-
-def isChildOf(a, b):
-    return b.startswith(a + "|")
-
+from ngSkinTools2.python_compatibility import Object, is_string
 
 log = getLogger("influenceMapping")
 
@@ -56,18 +50,6 @@ def convertGlobToRegexp(glob):
 class InfluenceInfo(Object):
     """
     Metadata about an influence in a skin cluster
-
-    .. py:attribute:: pivot
-
-        influence pivot in world-space coordinates
-
-    .. py:attribute:: path
-
-        influence node path
-
-    .. py:attribute:: logicalIndex
-
-        influence logical index in the skin cluster.
     """
 
     SIDE_LEFT = "left"
@@ -82,12 +64,12 @@ class InfluenceInfo(Object):
     oppositeSides = {SIDE_LEFT: SIDE_RIGHT, SIDE_RIGHT: SIDE_LEFT}
 
     def __init__(self, pivot=None, path=None, name=None, logicalIndex=None, labelSide=None, labelText=None):
-        self.pivot = pivot
-        self.path = path
-        self.name = name
-        self.logicalIndex = logicalIndex
-        self.labelSide = labelSide
-        self.labelText = labelText
+        self.pivot = pivot  #: influence pivot in world-space coordinates
+        self.path = path  #: influence node path
+        self.name = name  #: influence node name (if influence is not a DAG node, like )
+        self.logicalIndex = logicalIndex  #: influence logical index in the skin cluster.
+        self.labelSide = labelSide  #: joint label "side" attribute
+        self.labelText = labelText  #: joint label text
 
     def path_name(self):
         """
@@ -468,29 +450,49 @@ class InfluenceMappingConfig(Object):
         result.globs = []
         return result
 
+    def as_json(self):
+        """
+        serializes config as JSON string
+        """
+        return json.dumps(self.__dict__)
+
+    def load_json(self, json_string):
+        """
+        loads configuration from previously saved `as_json` output
+        """
+        try:
+            self.__dict__ = json.loads(json_string)
+        except:
+            pass
+
 
 def default_dg_resolver(dg_attribute):
-    import pymel.core as pm
+    from maya import cmds
 
     def resolver(input_path):
         try:
-            n = pm.PyNode(input_path)
-            a = n.attr(dg_attribute)
+            sources = cmds.listConnections(input_path + "." + dg_attribute, source=True)
+            if sources:
+                return cmds.ls(sources[0], long=True)[0]
         except:
-            return None
-
-        for i in a.inputs():
-            return i.longName()
+            pass
         return None
 
     return resolver
 
 
 class InfluenceMapping(Object):
-    def __init__(self):
-        self.config = InfluenceMappingConfig()
+    """
+    this class serves as a hub to calculate influences mapping, given a mapping config and source/destination influences
+    """
 
-        self.influences = []
+    def __init__(self):
+        self.config = InfluenceMappingConfig()  # type:InfluenceMappingConfig
+        "assigned config"
+
+        self.influences = []  # type: list[InfluenceInfo]
+        "Source influences list. Can be assigned to result of :py:meth:`Layers.list_influences`"
+
         self.destinationInfluences = None
         self.calculatedMapping = None
         self.dg_resolver = lambda: default_dg_resolver(self.config.dg_destination_attribute)
@@ -534,15 +536,11 @@ class InfluenceMapping(Object):
 
         return result
 
-    def config_as_json(self):
-        return json.dumps(self.config.__dict__)
-
-    def load_config_from_json(self, json_string):
-        try:
-            self.config.__dict__ = json.loads(json_string)
-        except:
-            pass
-
     @staticmethod
     def asIntIntMapping(mapping):
+        """
+
+
+        :meta private:
+        """
         return {k.logicalIndex: v['infl'].logicalIndex for k, v in mapping.items()}

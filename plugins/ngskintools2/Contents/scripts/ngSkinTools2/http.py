@@ -7,10 +7,11 @@ defer_func = maya.utils.executeDeferred
 
 try:
     from urllib import urlencode
-    from urllib2 import urlopen, Request
+
+    from urllib2 import Request, urlopen
 except:
-    from urllib.request import urlopen, Request
     from urllib.parse import urlencode
+    from urllib.request import Request, urlopen
 
 
 def encode_url(base_url, args):

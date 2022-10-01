@@ -1,6 +1,7 @@
 from PySide2 import QtWidgets
+
 from ngSkinTools2 import signal
-from ngSkinTools2.ui import widgets, qt
+from ngSkinTools2.ui import qt, widgets
 
 
 def bind(ui, model):

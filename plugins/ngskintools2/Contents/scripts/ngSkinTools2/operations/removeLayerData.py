@@ -1,10 +1,11 @@
 import itertools
 
+from maya import cmds
+
 from ngSkinTools2.api import PaintTool
+from ngSkinTools2.api.session import Session
 from ngSkinTools2.decorators import undoable
 from ngSkinTools2.mllInterface import MllInterface
-from maya import cmds
-from ngSkinTools2.ui.session import Session
 
 
 def asList(arg):

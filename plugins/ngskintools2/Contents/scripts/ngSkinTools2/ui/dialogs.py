@@ -1,6 +1,5 @@
 from maya import OpenMaya as om
-from ngSkinTools2.ui import qt
-from PySide2 import QtWidgets, QtCore
+from PySide2 import QtCore, QtWidgets
 
 openDialogs = []
 messagesCallbacks = []

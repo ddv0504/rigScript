@@ -1,6 +1,7 @@
 import json
 
 from maya import cmds, mel
+
 from ngSkinTools2.api import feedback
 from ngSkinTools2.log import getLogger
 
@@ -31,11 +32,6 @@ def ngst2License(**kwargs):
     return cmds.ngst2License(**kwargs)
 
 
-def ngst2License(**kwargs):
-    log.debug("ngst2license [%r]", kwargs)
-    return cmds.ngst2License(**kwargs)
-
-
 def ngst2PaintContext():
     log.debug("ngst2PaintContext()")
     return cmds.ngst2PaintContext()
@@ -44,6 +40,11 @@ def ngst2PaintContext():
 def ngst2PaintSettingsCmd(**kwargs):
     log.debug("ngst2PaintSettingsCmd [%r]", kwargs)
     return cmds.ngst2PaintSettingsCmd(**kwargs)
+
+
+def ngst2_hotkey(**kwargs):
+    log.debug("ngst2Hotkey [%r]", kwargs)
+    return cmds.ngst2Hotkey(**kwargs)
 
 
 pluginBinary = 'ngSkinTools2'

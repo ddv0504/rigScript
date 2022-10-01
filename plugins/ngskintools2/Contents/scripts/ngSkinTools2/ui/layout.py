@@ -1,7 +1,8 @@
-from ngSkinTools2.python_compatibility import Object
-from PySide2 import QtWidgets, QtCore
-from ngSkinTools2.ui import qt
 from maya import cmds
+from PySide2 import QtCore, QtWidgets
+
+from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.ui import qt
 
 try:
     scale_multiplier = cmds.mayaDpiSetting(q=True, realScaleValue=True)

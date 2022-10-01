@@ -1,17 +1,29 @@
-from PySide2 import QtCore, QtWidgets, QtGui
-
-import shiboken2
-
 import maya.OpenMayaUI as omui
+import shiboken2
 from maya import cmds
-from .layout import scale_multiplier
+from PySide2 import QtCore, QtGui, QtWidgets
 
-from .. import cleanup, hotkeys, version, signal, licenseClient
+from ngSkinTools2.api.session import session
+from ngSkinTools2.ui.options import config
+
+from .. import cleanup, signal, version
 from ..log import getLogger
 from ..observableValue import ObservableValue
-from ngSkinTools2.ui.options import config
-from . import tabPaint, targetui, tabMirror, tabTools, dialogs, tabLayerEffects, licensewindow, aboutwindow, updatewindow, qt, tabSetWeights
-from .session import session
+from . import (
+    aboutwindow,
+    dialogs,
+    hotkeys_setup,
+    licensewindow,
+    qt,
+    tabLayerEffects,
+    tabMirror,
+    tabPaint,
+    tabSetWeights,
+    tabTools,
+    targetui,
+    updatewindow,
+)
+from .layout import scale_multiplier
 
 log = getLogger("main window")
 
@@ -170,7 +182,7 @@ def build_ui(parent):
 
     window.setLayout(layout)
 
-    hotkeys.installHotkeys()
+    hotkeys_setup.install_hotkeys()
 
     dialogs.promptsParent = window
 

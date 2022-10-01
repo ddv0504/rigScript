@@ -1,10 +1,12 @@
-import pymel.core as pm
 import itertools
 
-from ngSkinTools2.python_compatibility import Object
-from ngSkinTools2.api import plugin, influenceMapping, target_info, internals
+from maya import cmds
+
+from ngSkinTools2.api import influenceMapping, internals, plugin, target_info
+from ngSkinTools2.api.cmd_wrappers import get_source_node
 from ngSkinTools2.api.layers import Layers
 from ngSkinTools2.log import getLogger
+from ngSkinTools2.python_compatibility import Object
 
 log = getLogger("mirror")
 
@@ -36,14 +38,14 @@ class Mirror(Object):
         self.recalculate_influences_mapping()
 
     def __mapper_config_attr(self):
-        return self.__get_data_node__().attr("influenceMappingOptions")
+        return self.__get_data_node__() + ".influenceMappingOptions"
 
     def build_influences_mapper(self, defaults=None):
         mapper = influenceMapping.InfluenceMapping()
         layers = Layers(self.target)
         mapper.influences = layers.list_influences()
 
-        mapper.load_config_from_json(self.__mapper_config_attr().get())
+        mapper.config.load_json(cmds.getAttr(self.__mapper_config_attr()))
         mapper.config.mirror_axis = self.axis
 
         return mapper
@@ -52,10 +54,10 @@ class Mirror(Object):
         """
         :type mapper: influenceMapping.InfluenceMapping
         """
-        self.set_mirror_config(mapper.config_as_json())
+        self.set_mirror_config(mapper.config.as_json())
 
     def set_mirror_config(self, config_as_json):
-        self.__mapper_config_attr().set(config_as_json)
+        cmds.setAttr(self.__mapper_config_attr(), config_as_json, type='string')
 
     def set_influences_mapping(self, mapping):
         """
@@ -86,28 +88,24 @@ class Mirror(Object):
         )
 
     def set_reference_mesh(self, mesh_shape):
-        dest = self.__get_data_node__().mirrorMesh
-
+        dest = self.__get_data_node__() + ".mirrorMesh"
         if mesh_shape:
-            shape = pm.PyNode(mesh_shape)
-            shape.outMesh >> dest
+            cmds.connectAttr(mesh_shape + ".outMesh", dest)
         else:
-            pm.disconnectAttr(dest)
+            for i in cmds.listConnections(dest, source=True, plugs=True):
+                cmds.disconnectAttr(i, dest)
 
     def get_reference_mesh(self):
-        existing_inputs = self.__get_data_node__().attr('mirrorMesh').inputs()
-        if existing_inputs:
-            return existing_inputs[0]
-        return None
+        return get_source_node(self.__get_data_node__() + '.mirrorMesh')
 
     def __get_skin_cluster__(self):
         if self.__skin_cluster__ is None:
-            self.__skin_cluster__ = pm.PyNode(target_info.get_related_skin_cluster(self.target))
+            self.__skin_cluster__ = target_info.get_related_skin_cluster(self.target)
         return self.__skin_cluster__
 
     def __get_data_node__(self):
         if self.__data_node__ is None:
-            self.__data_node__ = pm.PyNode(target_info.get_related_data_node(self.target))
+            self.__data_node__ = target_info.get_related_data_node(self.target)
         return self.__data_node__
 
     # noinspection PyStatementEffect
@@ -120,41 +118,45 @@ class Mirror(Object):
 
         existing_ref_mesh = self.get_reference_mesh()
         if existing_ref_mesh:
-            pm.select(existing_ref_mesh)
-            raise Exception("symmetry mesh already configured for %s: %s" % (str(sc), existing_ref_mesh.longName()))
+            cmds.select(existing_ref_mesh)
+            raise Exception("symmetry mesh already configured for %s: %s" % (str(sc), existing_ref_mesh))
 
-        g = pm.group(empty=True, name="ngskintools_mirror_mesh_setup")
-        result, _ = pm.polyCube()
-        pm.parent(result, g)
-        result.rename("mirrorSymmetryMesh")
+        def get_shape(node):
+            return cmds.listRelatives(node, shapes=True)[0]
 
-        pm.delete(result, ch=True)
-        sc.input[0].inputGeometry >> result.getShape().inMesh
-        pm.delete(result, ch=True)
+        result, _ = cmds.polyCube()
+        g = cmds.group(empty=True, name="ngskintools_mirror_mesh_setup")
+        cmds.parent(result, g)
+        result = cmds.rename(g + "|" + result, "mirror_reference_mesh")
 
-        (mirrored,) = pm.duplicate(result)
-        mirrored.rename('flipped_preview')
-        mirrored_shape = mirrored.getShape()
+        cmds.delete(result, ch=True)
+        cmds.connectAttr(sc + ".input[0].inputGeometry", get_shape(result) + ".inMesh")
+        cmds.delete(result, ch=True)
 
-        mirrored.sx.set(-1)
-        mirrored.overrideEnabled.set(1)
-        mirrored.overrideDisplayType.set(2)
-        mirrored.overrideShading.set(0)
-        mirrored.overrideTexturing.set(1)
+        (mirrored,) = cmds.duplicate(result)
+        mirrored = cmds.rename(g + "|" + mirrored, 'flipped_preview')
+        mirrored_shape = get_shape(mirrored)
 
-        (blend,) = pm.blendShape(result, mirrored_shape)
-        blend.weight[0].set(1.0)
+        cmds.setAttr(mirrored + ".sx", -1)
+        cmds.setAttr(mirrored + ".overrideEnabled", 1)
+        cmds.setAttr(mirrored + ".overrideDisplayType", 2)
+        cmds.setAttr(mirrored + ".overrideShading", 0)
+        cmds.setAttr(mirrored + ".overrideTexturing", 1)
+
+        (blend,) = cmds.blendShape(result, mirrored_shape)
+        cmds.setAttr(blend + ".weight[0]", 1.0)
 
         # lock accidental transformations
         for c, t, m in itertools.product('xyz', 'trs', (result, mirrored)):
-            m.attr(t + c).lock()
+            cmds.setAttr(m + "." + t + c, lock=True)
 
         # shift setup to the right by slightly more than bounding box width
-        bb = pm.exactWorldBoundingBox(g)
-        pm.move((bb[3] - bb[0]) * 1.2, 0, 0, g, r=True)
+
+        bb = cmds.exactWorldBoundingBox(g)
+        cmds.move((bb[3] - bb[0]) * 1.2, 0, 0, g, r=True)
 
         self.set_reference_mesh(str(result))
-        pm.select(result)
+        cmds.select(result)
         return result
 
 
@@ -172,11 +174,11 @@ class MirrorOptions(Object):
 
 
 def set_reference_mesh_from_selection():
-    selection = pm.ls(sl=True)
+    selection = cmds.ls(sl=True, long=True)
 
     if len(selection) != 2:
         log.debug("wrong selection size")
         return
 
-    m = Mirror(selection[1].longName())
-    m.set_reference_mesh(selection[0].longName())
+    m = Mirror(selection[1])
+    m.set_reference_mesh(selection[0])

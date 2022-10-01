@@ -1,9 +1,9 @@
-from PySide2 import QtWidgets, QtCore, QtGui
+from PySide2 import QtCore, QtGui, QtWidgets
+
 from ngSkinTools2.api import PaintTool
 from ngSkinTools2.api.paint import popups
 from ngSkinTools2.ui import qt, widgets
 from ngSkinTools2.ui.layout import scale_multiplier
-from ngSkinTools2.ui.session import session
 
 
 def brush_settings_popup(paint):
@@ -30,7 +30,6 @@ def brush_settings_popup(paint):
 
     def close_with_intensity(value):
         paint.brush_intensity = value
-        session.events.tool_settings_changed.emit()
         window.close()
 
     def create_intensity_button(intensity):

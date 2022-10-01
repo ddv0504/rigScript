@@ -1,6 +1,6 @@
 from ngSkinTools2 import api, signal
 from ngSkinTools2.api import Layer, PasteOperation
-from ngSkinTools2.ui.session import Session
+from ngSkinTools2.api.session import Session
 
 
 def action_copy_cut(session, parent, cut):

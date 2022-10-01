@@ -1,11 +1,10 @@
-from PySide2 import QtWidgets, QtCore
-from ngSkinTools2 import signal
-from ngSkinTools2 import api
+from PySide2 import QtCore, QtWidgets
+
+from ngSkinTools2 import api, signal
+from ngSkinTools2.api.session import session
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.observableValue import Undefined
 from ngSkinTools2.ui import qt, widgets
-from ngSkinTools2.ui.layout import createTitledRow, TabSetup
-from ngSkinTools2.ui.session import session
+from ngSkinTools2.ui.layout import TabSetup, createTitledRow
 
 log = getLogger("tab layer effects")
 

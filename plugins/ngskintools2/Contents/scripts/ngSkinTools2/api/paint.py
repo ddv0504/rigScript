@@ -1,9 +1,10 @@
-from ngSkinTools2.api.tools import FloodSettings
-from ngSkinTools2.python_compatibility import Object
-from PySide2 import QtCore
 from maya import cmds
+from PySide2 import QtCore
+
 from ngSkinTools2.api import internals, plugin, tools
+from ngSkinTools2.api.tools import FloodSettings
 from ngSkinTools2.log import getLogger
+from ngSkinTools2.python_compatibility import Object
 
 log = getLogger("api/paint")
 

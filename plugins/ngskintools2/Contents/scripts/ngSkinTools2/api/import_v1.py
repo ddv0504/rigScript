@@ -1,5 +1,6 @@
 # for same mesh, convert from v1 layers to v2
 from maya import cmds, mel
+
 from ngSkinTools2.decorators import undoable
 from ngSkinTools2.log import getLogger
 

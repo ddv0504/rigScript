@@ -26,7 +26,6 @@ def workspace_control_main_window():
     this function is used permanently by Maya's "workspace control", and acts as an alternative top-level entry point to open UI
     """
     from ngSkinTools2.ui import mainwindow
-
     from ngSkinTools2.ui.paintContextCallbacks import definePaintContextCallbacks
 
     definePaintContextCallbacks()

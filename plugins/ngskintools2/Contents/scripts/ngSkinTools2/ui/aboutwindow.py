@@ -1,12 +1,13 @@
-from PySide2 import QtWidgets
-from xml.sax.saxutils import escape as escape
-from PySide2.QtCore import Qt
 import os
+from xml.sax.saxutils import escape as escape
+
+from PySide2 import QtWidgets
+from PySide2.QtCore import Qt
 
 from ngSkinTools2 import cleanup, version
+from ngSkinTools2.api.session import session
 from ngSkinTools2.ui import qt
 from ngSkinTools2.ui.layout import scale_multiplier
-from ngSkinTools2.ui.session import session
 
 
 def show(parent):

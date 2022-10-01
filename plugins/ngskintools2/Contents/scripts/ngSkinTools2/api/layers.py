@@ -1,13 +1,13 @@
-from ngSkinTools2.api.config import Config
-from ngSkinTools2.decorators import undoable
-from ngSkinTools2.python_compatibility import Object
 import json
 
 from maya import mel
+
 from ngSkinTools2.api import internals, plugin, target_info
+from ngSkinTools2.api.config import Config
 from ngSkinTools2.api.suspend_updates import suspend_updates
+from ngSkinTools2.decorators import undoable
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import is_string
+from ngSkinTools2.python_compatibility import Object, is_string
 
 logger = getLogger("api/layers")
 
@@ -19,10 +19,7 @@ class NamedPaintTarget(Object):
 
 class LayerEffects(Object):
     def __init__(self, layer, state=None):
-        """
-        :type layer: Layer
-        """
-        self.layer = layer
+        self.__layer = layer  # type: Layer
         if state is not None:
             self.__set_state__(state)
 
@@ -32,17 +29,26 @@ class LayerEffects(Object):
         self.mirror_dq = state.get("mirrorDq", False)
 
     def configure_mirror(self, everything=None, mirror_mask=None, mirror_weights=None, mirror_dq=None):
+        """
+        Enable/disable components for mirror effect:
+
+        >>> layer.effects.configure_mirror(mirror_mask=True)
+        >>> layer.effects.configure_mirror(mirror_dq=False)
+        >>> # equivalent of setting all flags to False
+        >>> layer.effects.configure_mirror(everything=False)
+
+        """
         if everything is not None:
             mirror_mask = mirror_dq = mirror_weights = everything
 
-        logger.info("configure mirror: layer %s mask %r weights %r dq %r", self.layer.name, mirror_mask, mirror_weights, mirror_dq)
+        logger.info("configure mirror: layer %s mask %r weights %r dq %r", self.__layer.name, mirror_mask, mirror_weights, mirror_dq)
 
         args = {'mirrorLayerDq': mirror_dq, 'mirrorLayerMask': mirror_mask, 'mirrorLayerWeights': mirror_weights}
 
-        self.layer.__edit__(configureMirrorEffect=True, **{k: v for k, v in list(args.items()) if v is not None})
+        self.__layer.__edit__(configureMirrorEffect=True, **{k: v for k, v in list(args.items()) if v is not None})
 
 
-def build_layer_property(name, doc, editName=None):
+def _build_layer_property(name, doc, editName=None):
     if editName is None:
         editName = name
     return property(lambda self: self.__get_state__(name), lambda self, val: self.__edit__(**{editName: val}), doc=doc)
@@ -51,13 +57,13 @@ def build_layer_property(name, doc, editName=None):
 class Layer(Object):
     """ """
 
-    name = build_layer_property('name', "str: Layer name")  # type: str
-    enabled = build_layer_property('enabled', "bool: is layer enabled or disabled")  # type: bool
-    opacity = build_layer_property('opacity', "float: value between 1.0 and 0")  # type: float
-    paint_target = build_layer_property(
+    name = _build_layer_property('name', "str: Layer name")  # type: str
+    enabled = _build_layer_property('enabled', "bool: is layer enabled or disabled")  # type: bool
+    opacity = _build_layer_property('opacity', "float: value between 1.0 and 0")  # type: float
+    paint_target = _build_layer_property(
         'paintTarget', "str or int: currently active paint target for this layer (either an influence or one of named targets)"
     )  # type: Union(str, int)
-    index = build_layer_property('index', editName='layerIndex', doc="int: layer index in parent's child list; set to reorder")  # type: int
+    index = _build_layer_property('index', editName='layerIndex', doc="int: layer index in parent's child list; set to reorder")  # type: int
 
     @classmethod
     def load(cls, mesh, layerId):
@@ -70,7 +76,9 @@ class Layer(Object):
     def __init__(self, mesh, id, state=None):
         self.mesh = mesh
         self.id = id
-        self.effects = LayerEffects(self)
+        self.effects = LayerEffects(self)  # type: LayerEffects
+        "configure effects for this layer"
+
         self.__state = None
         if state is not None:
             self.__set_state(state)
@@ -199,6 +207,12 @@ class Layer(Object):
 
 
 def as_layer_id(layer):
+    """
+    converts given input to layer ID. If input is a Layer object, returns it's ID, otherwise assumes that input is already a layer ID
+
+    Returns:
+        int: layer ID
+    """
     if isinstance(layer, Layer):
         return layer.id
 
@@ -206,10 +220,25 @@ def as_layer_id(layer):
 
 
 def as_layer_id_list(layers):
+
+    """
+    maps a given layer list with `as_layer_id`
+
+    Args:
+        layers (list[Any]): objects representing a list of layers
+
+    :rtype: list[int]
+    """
     return (as_layer_id(i) for i in layers)
 
 
 def generate_layer_name(existing_layers, base_name):
+    """
+    A little utility to generate a unique layer name. For example, if base_name="test", it will try to use values in sequence "test", "test (1)",
+    "test (2)" and will return first value that is not a name for any layer in the given layers list.
+
+    :arg existing_layers Layer: whatever
+    """
     name = base_name
     currentLayerNames = [i.name for i in existing_layers]
     index = 1
@@ -223,14 +252,16 @@ def generate_layer_name(existing_layers, base_name):
 class Layers(Object):
     """
     Layers manages skinning layers on provided target (skinCluster or a mesh)
-
-        :param target: name of skin cluster node or skinned mesh.
     """
 
     prune_weights_filter_threshold = internals.make_editable_property('pruneWeightsFilterThreshold')
     influence_limit_per_vertex = internals.make_editable_property('influenceLimitPerVertex')
 
     def __init__(self, target):
+        """
+
+        :param str target:  name of skin cluster node or skinned mesh.
+        """
         if not target:
             raise Exception("target must be specified")
 
@@ -254,6 +285,7 @@ class Layers(Object):
         """
 
         returns all layers as Layer objects.
+        :rtype list[Layer]
         """
         data = json.loads(plugin.ngst2Layers(self.mesh, q=True, listLayers=True))
         return [Layer(self.mesh, id=l['id'], state=l) for l in data]
@@ -269,6 +301,9 @@ class Layers(Object):
                     self.delete(i)
 
     def list_influences(self):
+        """
+        Wraps :py:meth:`target_info.list_influences`
+        """
         return target_info.list_influences(self.mesh)
 
     def current_layer(self):
@@ -318,10 +353,9 @@ class Layers(Object):
 def init_layers(target):
     """Attach ngSkinTools data node to given target. Does nothing if layers are already attached.
 
-    Args:
-        target (str): skin cluster or mesh node to attach layers to
-    Returns:
-        Layers: `Layers` instance to further query/modify layers data.
+
+    :arg str target: skin cluster or mesh node to attach layers to
+    :rtype: Layers
     """
     if not get_layers_enabled(target):
         plugin.ngst2Layers(target, layerDataAttach=True)

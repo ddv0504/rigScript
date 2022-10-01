@@ -1,9 +1,10 @@
 from PySide2 import QtWidgets
+
 from ngSkinTools2 import signal
-from ngSkinTools2.ui import qt, widgets, model_binds
+from ngSkinTools2.api.session import Session
+from ngSkinTools2.ui import model_binds, qt, widgets
 from ngSkinTools2.ui.actions import Actions
 from ngSkinTools2.ui.layout import TabSetup, createTitledRow
-from ngSkinTools2.ui.session import Session
 
 
 def build_ui(actions, session):

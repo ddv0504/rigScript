@@ -1,12 +1,13 @@
-from PySide2 import QtWidgets, QtCore, QtGui
+from PySide2 import QtCore, QtGui, QtWidgets
+
 from ngSkinTools2 import cleanup, signal
-from ngSkinTools2.api import mirror, influenceMapping
+from ngSkinTools2.api import influenceMapping, mirror
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.ui.options import config
 from ngSkinTools2.signal import Signal
-from ngSkinTools2.ui import qt, dialogs, widgets
+from ngSkinTools2.ui import dialogs, qt, widgets
 from ngSkinTools2.ui.dialogs import yesNo
 from ngSkinTools2.ui.layout import scale_multiplier
+from ngSkinTools2.ui.options import config
 from ngSkinTools2.ui.widgets import NumberSliderGroup
 
 log = getLogger("influence mapping UI")
@@ -24,6 +25,10 @@ def open_ui_for_mesh(ui_parent, mesh):
 
 
 def open_as_dialog(parent, matcher, result_callback):
+    """
+
+    :type matcher: ngSkinTools2.api.influenceMapping.InfluenceMapping
+    """
     main_layout, reload_ui, recalc_matches = build_ui(parent, matcher)
 
     def button_row(window):
@@ -34,10 +39,10 @@ def open_as_dialog(parent, matcher, result_callback):
         def save_defaults():
             if not yesNo("Save current settings as default?"):
                 return
-            config.mirrorInfluencesDefaults = matcher.config_as_json()
+            config.mirrorInfluencesDefaults = matcher.config.as_json()
 
         def load_defaults():
-            matcher.load_config_from_json(config.mirrorInfluencesDefaults)
+            matcher.config.load_json(config.mirrorInfluencesDefaults)
             reload_ui()
             recalc_matches()
 

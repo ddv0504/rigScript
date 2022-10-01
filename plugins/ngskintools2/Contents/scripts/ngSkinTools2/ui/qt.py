@@ -1,10 +1,11 @@
 import os
-from ngSkinTools2.python_compatibility import Object
+
 from maya import OpenMayaUI as omui
+from PySide2 import QtGui, QtWidgets
 from PySide2.QtWidgets import QWidget
 from shiboken2 import wrapInstance
 
-from PySide2 import QtWidgets, QtGui
+from ngSkinTools2.python_compatibility import Object
 
 
 def wrap_layout_into_widget(layout):
@@ -116,6 +117,13 @@ images_path = os.path.join(os.path.dirname(__file__), "images")
 
 def image_icon(file_name):
     return QtGui.QIcon(os.path.join(images_path, file_name))
+
+
+def select_data(combo, data):
+    """
+    set combo box index to data index
+    """
+    combo.setCurrentIndex(combo.findData(data))
 
 
 mainWindow = wrapInstance(int(omui.MQtUtil.mainWindow()), QWidget)

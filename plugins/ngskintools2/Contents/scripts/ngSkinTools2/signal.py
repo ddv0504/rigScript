@@ -1,8 +1,18 @@
-from ngSkinTools2.python_compatibility import Object
+"""
+Signal is the previous method of emiting/subscribing to signals.
+* Subscribers are dependant on emiter's instances
+* There's only one global queue
+
+New system is changing to allow decoupling subscribers and receivers, and allowing the code to work even when there's no need to process signals
+* Subscribers need to be able to subsribe prior to instantiation of emitters
+
+
+"""
 from functools import partial
 
-from ngSkinTools2.log import getLogger
 from ngSkinTools2 import cleanup
+from ngSkinTools2.log import getLogger
+from ngSkinTools2.python_compatibility import Object
 
 log = getLogger("signal")
 
@@ -134,3 +144,105 @@ def on(*signals, **kwargs):
         return fn
 
     return decorator
+
+
+# --------------------------------------
+# rework:
+#  * decoupled emitters and subscribers
+#  * subscribers are resolved only at the time of event
+#  * can emit events even when there's no active sessions (acts as no-op)
+
+
+class Event(Object):
+    def __init__(self, name):
+        self.name = name
+
+    def __or__(self, other):
+        return EventList() | self | other
+
+    def __iter__(self):
+        yield self
+
+    def emit(self, *args, **kwargs):
+        for hub in SignalHub.active_hubs:
+            hub.emit(self, *args, **kwargs)
+
+
+class EventList(Object):
+    """
+    helper to build and iterate over a list of "or"-ed events
+    """
+
+    def __init__(self):
+        self.items = []
+
+    def __or__(self, other):
+        self.items.append(other)
+        return self
+
+    def __iter__(self):
+        return iter(self.items)
+
+
+class SignalHub(Object):
+    active_hubs = set()
+
+    def __init__(self):
+        self.handlers = {}
+        self.queue = SignalQueue()
+
+    def activate(self):
+        self.active_hubs.add(self)
+
+    def deactivate(self):
+        self.active_hubs.remove(self)
+
+    def subscribe(self, event, handler):
+        """
+        :param Event event: event to subscribe to
+        :param Callable handler: callback which will be called when event is emitted
+        :return: unsubscribe function: call it to terminate this subscription
+        """
+        self.handlers.setdefault(event, []).append(handler)
+
+        def unsubscribe():
+            try:
+                self.handlers[event].remove(handler)
+            except ValueError:
+                # not found in list? no biggie.
+                pass
+
+        return unsubscribe
+
+    def emit(self, event):
+        if not event in self.handlers:
+            return
+
+        for i in self.handlers[event]:
+            self.queue.emit(i)
+
+    def on(self, events, scope=None):
+        """
+        decorator for function: bind function to signals
+
+        @hub.on(event1 | event2, scope=qt_object)
+        def something():
+            ...
+        """
+
+        def decorator(fn):
+            unsubscribe_handlers = []
+            try:
+                unsubscribe_handlers.append(scope.destroyed.connect)
+            except:
+                pass
+
+            for e in events:
+                unsub = self.subscribe(e, fn)
+                if unsubscribe_handlers:
+                    for i in unsubscribe_handlers:
+                        i(unsub)
+
+            return fn
+
+        return decorator

@@ -17,7 +17,6 @@ if PY2:
     class Object(object):
         pass
 
-
 else:
 
     class Object:
@@ -27,10 +26,10 @@ else:
 # different ways to import urlopen
 if PY2:
     # noinspection PyUnresolvedReferences
-    from urllib2 import urlopen, Request, HTTPError
+    from urllib2 import HTTPError, Request, urlopen
 else:
-    from urllib.request import urlopen, Request
     from urllib.error import HTTPError
+    from urllib.request import Request, urlopen
 
 _ = urlopen
 _ = Request

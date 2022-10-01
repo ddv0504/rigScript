@@ -1,19 +1,18 @@
 import random
 
+from maya import cmds
+from PySide2 import QtCore, QtWidgets
+
 import ngSkinTools2.api
-from PySide2 import QtWidgets, QtCore
+from ngSkinTools2 import signal
 from ngSkinTools2.api import Mirror
 from ngSkinTools2.api.layers import generate_layer_name
-from ngSkinTools2.ui import qt, dialogs
-
-from maya import cmds
-
-from ngSkinTools2 import signal
+from ngSkinTools2.api.session import session, withSession
 from ngSkinTools2.decorators import undoable
 from ngSkinTools2.log import getLogger
+from ngSkinTools2.ui import dialogs, qt
 from ngSkinTools2.ui.action import Action
 from ngSkinTools2.ui.options import config
-from ngSkinTools2.ui.session import session, withSession
 
 logger = getLogger("layer operations")
 
@@ -68,6 +67,7 @@ def addLayer():
 
 def build_action_initialize_layers(session, parent):
     from ngSkinTools2.ui import actions
+
     from . import import_v1_actions
 
     def do_initialize():
@@ -207,7 +207,7 @@ class ToggleEnabledAction(Action):
 def build_action_randomize_influences_colors(session, parent):
     """
     builds a UI action for randomly choosing new colors for influences
-    :type session: ngSkinTools2.ui.session.Session
+    :type session: ngSkinTools2.api.session.Session
     """
 
     result = QtWidgets.QAction("Randomize colors", parent)

@@ -1,6 +1,7 @@
 from functools import wraps
 
 from maya import cmds
+
 from ngSkinTools2.log import getLogger
 from ngSkinTools2.python_compatibility import Object
 

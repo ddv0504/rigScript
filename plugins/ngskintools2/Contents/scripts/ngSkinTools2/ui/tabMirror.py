@@ -1,13 +1,14 @@
 from PySide2 import QtWidgets
+
 from ngSkinTools2 import signal
+from ngSkinTools2.api import Mirror, MirrorOptions, VertexTransferMode
 from ngSkinTools2.api.mirror import set_reference_mesh_from_selection
+from ngSkinTools2.api.session import session
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.api import MirrorOptions, VertexTransferMode, target_info, Mirror
-from ngSkinTools2.ui import qt, widgets
+from ngSkinTools2.ui import qt
 from ngSkinTools2.ui.layout import TabSetup, createTitledRow
-from ngSkinTools2.ui.session import session
+from ngSkinTools2.ui.options import bind_checkbox, config
 from ngSkinTools2.ui.widgets import NumberSliderGroup
-from ngSkinTools2.ui.options import config, bind_checkbox
 
 log = getLogger("tab paint")
 
@@ -21,7 +22,7 @@ def buildUI(parent_window):
             mirror_direction.addItem("Negative to positive", MirrorOptions.directionNegativeToPositive)
             mirror_direction.addItem("Flip", MirrorOptions.directionFlip)
             mirror_direction.setMinimumWidth(1)
-            mirror_direction.setCurrentIndex(mirror_direction.findData(config.mirror_direction()))
+            qt.select_data(mirror_direction, config.mirror_direction())
 
             @qt.on(mirror_direction.currentIndexChanged)
             def value_changed():
@@ -42,7 +43,7 @@ def buildUI(parent_window):
             @signal.on(session.events.targetChanged)
             def target_changed():
                 if session.state.layersAvailable:
-                    mirror_axis.setCurrentIndex(mirror_axis.findData(session.state.mirror().axis))
+                    qt.select_data(mirror_axis, session.state.mirror().axis)
 
             target_changed()
 
@@ -104,7 +105,7 @@ def buildUI(parent_window):
                     return
 
                 mesh = Mirror(session.state.selectedSkinCluster).get_reference_mesh()
-                mesh_name_edit.setText("" if mesh is None else mesh.name())
+                mesh_name_edit.setText(mesh or "")
 
             def select_mesh(m):
                 if m is None:
@@ -114,8 +115,8 @@ def buildUI(parent_window):
 
                 cmds.setToolTo("moveSuperContext")
                 cmds.selectMode(component=True)
-                cmds.select(m.longName() + ".vtx[*]", r=True)
-                cmds.hilite(m.longName(), replace=True)
+                cmds.select(m + ".vtx[*]", r=True)
+                cmds.hilite(m, replace=True)
                 cmds.viewFit()
 
             @qt.on(select_button.clicked)
@@ -161,7 +162,7 @@ def buildUI(parent_window):
         @signal.on(session.events.targetChanged)
         def target_changed():
             if session.state.layersAvailable:
-                vertex_mapping_mode.setCurrentIndex(vertex_mapping_mode.findData(session.state.mirror().vertex_transfer_mode))
+                qt.select_data(vertex_mapping_mode, session.state.mirror().vertex_transfer_mode)
 
         return result
 

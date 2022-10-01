@@ -1,18 +1,19 @@
-import os
 import ast
-import re
 import base64
 import json
+import os
 import platform
+import re
+from threading import Event, Thread
 
-from threading import Thread, Event
+from maya import cmds
+from maya import utils as mu
 
-from maya import cmds, utils as mu
 from ngSkinTools2 import cleanup, signal
-from ngSkinTools2.ui import options
 from ngSkinTools2.api import plugin
 from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object, urlopen, Request, HTTPError
+from ngSkinTools2.python_compatibility import HTTPError, Object, Request, urlopen
+from ngSkinTools2.ui import options
 from ngSkinTools2.ui.parallel import ParallelTask
 
 log = getLogger("license client")
@@ -414,18 +415,21 @@ class Configuration:
         """
 
         if path is None:
-            return []
+            return
 
         if os.path.isfile(path):
             with open(path) as f:
-                contents = f.read(7)
-                if contents != 'LICENSE':
-                    return []
-                contents += f.read()
+                try:
+                    contents = f.read(7)
+                    if contents != 'LICENSE':
+                        return
+                    contents += f.read()
+                except:
+                    return
 
             parsed_contents = parse_license_contents(contents)
             if parsed_contents is None:
-                return []
+                return
 
             parsed_contents['source_file'] = path
             return [parsed_contents]
@@ -435,11 +439,13 @@ class Configuration:
             for i in os.listdir(path):
                 file_name = os.path.join(path, i)
                 if os.path.isfile(file_name):
-                    result.extend(self.__discover_license_files__(file_name))
+                    files = self.__discover_license_files__(file_name)
+                    if files:
+                        result.extend(files)
 
             return result
 
-        return []
+        return
 
     def load(self):
         config_contents = os.getenv(self.CONFIGURATION_ENV_VAR, None)
@@ -449,7 +455,7 @@ class Configuration:
             return
 
         # discover valid ngskintools2 licenses
-        self.license_files = self.__discover_license_files__(cmds.internalVar(userAppDir=True))
+        self.license_files = self.__discover_license_files__(cmds.internalVar(userAppDir=True)) or []
         path = os.getenv(self.CONFIGURATION_PATH_ENV_VAR, None)
         if path:
             self.license_files.extend(self.__discover_license_files__(path))

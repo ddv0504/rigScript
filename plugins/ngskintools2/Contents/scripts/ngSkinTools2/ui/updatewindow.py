@@ -1,15 +1,14 @@
-from PySide2 import QtWidgets
-from PySide2.QtCore import Qt
-from .layout import scale_multiplier
-
-from .. import cleanup, version, versioncheck
-from .. import signal
-from . import qt
 import webbrowser
 
-from ..log import getLogger
-from ngSkinTools2.ui.options import config, bind_checkbox
+from PySide2 import QtWidgets
+from PySide2.QtCore import Qt
 
+from ngSkinTools2.ui.options import bind_checkbox, config
+
+from .. import cleanup, signal, version, versioncheck
+from ..log import getLogger
+from . import qt
+from .layout import scale_multiplier
 
 log = getLogger("plugin")
 

@@ -1,5 +1,6 @@
 import json
-import pymel.core as pm
+
+from maya import cmds
 
 from ngSkinTools2.api import plugin
 
@@ -56,37 +57,30 @@ def list_influences(target):
 def add_influences(influences, target):
     """
     A shortcut for adding additional influences to a skincluster, without impacting existing weights
+
     :param list[str] influences: list of influence paths
     :param str target: target mesh or skin cluster
     """
 
-    skin_cluster = get_related_skin_cluster(pm.PyNode(target).longName())
+    skin_cluster = get_related_skin_cluster(target)
 
-    def as_pynode(infl):
-        try:
-            return pm.PyNode(infl.path)
-        except:
-            return pm.PyNode(infl.name)  # non-DAG nodes don't have a path
+    def long_names(names):
+        result = set(cmds.ls(names, long=True))
+        if len(result) != len(names):
+            raise Exception("could not convert to a list of influences names: " + str(names))
+        return result
 
-    existing = [as_pynode(i) for i in list_influences(skin_cluster)]
+    existing = long_names([i.name if not i.path else i.path for i in list_influences(skin_cluster)])
 
-    def already_added(i):
-        for e in existing:
-            if e == i:
-                return True
-        return False
-
-    influences = [pm.PyNode(i) for i in influences]
-    new_influences = [i for i in influences if not already_added(i)]
-
-    for i in new_influences:
-        pm.skinCluster(skin_cluster, edit=True, addInfluence=i, weight=0)
+    for i in long_names(influences) - existing:
+        cmds.skinCluster(skin_cluster, edit=True, addInfluence=i, weight=0)
 
 
 def is_slow_mode_skin_cluster(target):
     """
     returns true, if ngSkinTools chose to use slow ngSkinTools api for this target. Right now this only happens when skinCluster has non-transform
     nodes as influences (e.g. inverseMatrix node).
+
     :param str target: target mesh or skin cluster
     """
     return plugin.ngst2Layers(target, q=True, skinClusterWriteMode=True) == "plug"

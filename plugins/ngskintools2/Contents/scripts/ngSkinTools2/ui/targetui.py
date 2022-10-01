@@ -1,12 +1,11 @@
-import os
+from PySide2 import QtCore, QtWidgets
 
-from PySide2 import QtCore, QtWidgets, QtGui
 from ngSkinTools2 import signal
+from ngSkinTools2.api.session import Session
 from ngSkinTools2.operations import import_v1_actions
-from ngSkinTools2.ui import layersview, influencesview, qt
+from ngSkinTools2.ui import influencesview, layersview, qt
 from ngSkinTools2.ui.influencesview import InfluenceNameFilter
 from ngSkinTools2.ui.layout import scale_multiplier
-from ngSkinTools2.ui.session import Session
 
 
 def build_layers_ui(parent, actions, session):

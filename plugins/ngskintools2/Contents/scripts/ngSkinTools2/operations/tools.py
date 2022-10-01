@@ -1,18 +1,18 @@
 from maya import cmds
-import pymel.core as pm
+
 from ngSkinTools2 import api, signal
-from ngSkinTools2.decorators import undoable, preserveSelection
+from ngSkinTools2.api.session import Session
+from ngSkinTools2.decorators import undoable
 from ngSkinTools2.log import getLogger
 from ngSkinTools2.observableValue import ObservableValue
 from ngSkinTools2.operations import layers
 from ngSkinTools2.python_compatibility import Object
 from ngSkinTools2.ui import dialogs
-from ngSkinTools2.ui.session import Session
 
 logger = getLogger("operation/tools")
 
 
-def __create_tool_action__(parent, session, action_name, action_tooltip, exec_handler):
+def __create_tool_action__(parent, session, action_name, action_tooltip, exec_handler, enabled_handler=None):
     """
     :type session: Session
     """
@@ -29,7 +29,12 @@ def __create_tool_action__(parent, session, action_name, action_tooltip, exec_ha
 
     @signal.on(session.events.targetChanged, session.events.currentLayerChanged)
     def update_state():
-        result.setEnabled(session.state.layersAvailable and session.state.currentLayer.layer is not None)
+        enabled = session.state.layersAvailable and session.state.currentLayer.layer is not None
+        if enabled and enabled_handler is not None:
+            enabled = enabled_handler(session.state.currentLayer.layer)
+        result.setEnabled(enabled)
+
+    update_state()
 
     return result
 
@@ -119,12 +124,16 @@ def create_action__merge_layers(parent, session):
         session.events.layerListChanged.emitIfChanged()
         session.events.currentLayerChanged.emitIfChanged()
 
+    def enabled_handler(layer):
+        return layer is not None and layer.index > 0
+
     return __create_tool_action__(
         parent,
         session,
         action_name=u"Merge",
         action_tooltip="Merge contents of this layer into underlying layer. Pre-effects weights will be used for this",
         exec_handler=exec_handler,
+        enabled_handler=enabled_handler,
     )
 
 
@@ -218,12 +227,12 @@ def create_action__add_influences(parent, session):
     """
 
     def exec_handler():
-        selection = pm.ls(sl=True)
+        selection = cmds.ls(sl=True, l=True)
         if len(selection) < 2:
             logger.info("invalid selection: %s", selection)
             return
         api.add_influences(selection[:-1], selection[-1])
-        pm.select(selection[-1])
+        cmds.select(selection[-1])
         session.events.influencesListUpdated.emit()
 
     return __create_tool_action__(

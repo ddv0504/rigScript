@@ -1,13 +1,17 @@
+from PySide2 import QtGui, QtWidgets
+
 from ngSkinTools2 import signal
-from ngSkinTools2.operations.layers import build_action_initialize_layers, ToggleEnabledAction
+from ngSkinTools2.api import PasteOperation
+from ngSkinTools2.api.session import Session
+from ngSkinTools2.operations import import_export_actions, import_v1_actions
+from ngSkinTools2.operations.layers import (
+    ToggleEnabledAction,
+    build_action_initialize_layers,
+)
 from ngSkinTools2.operations.paint import FloodAction, PaintAction
 from ngSkinTools2.operations.website_links import WebsiteLinksActions
 from ngSkinTools2.python_compatibility import Object
-from PySide2 import QtWidgets, QtGui, QtCore
-from ngSkinTools2.operations import import_export_actions, import_v1_actions
 from ngSkinTools2.ui import action
-from ngSkinTools2.ui.session import Session
-from ngSkinTools2.api import PasteOperation
 from ngSkinTools2.ui.updatewindow import build_action_check_for_updates
 
 
@@ -56,7 +60,7 @@ class Actions(Object):
         :type session: Session
         """
         qt_action = lambda a: action.qt_action(a, session, parent)
-        from ngSkinTools2.operations import layers, tools, removeLayerData
+        from ngSkinTools2.operations import layers, removeLayerData, tools
         from ngSkinTools2.ui.transferDialog import build_transfer_action
 
         self.initialize = build_action_initialize_layers(session, parent)

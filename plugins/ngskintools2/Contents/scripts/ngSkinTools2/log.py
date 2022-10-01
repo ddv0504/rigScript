@@ -1,6 +1,7 @@
-from ngSkinTools2.python_compatibility import Object
 import logging
 import sys
+
+from ngSkinTools2.python_compatibility import Object
 
 
 class DummyLogger(Object):

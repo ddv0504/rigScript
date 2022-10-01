@@ -1,5 +1,6 @@
-from ngSkinTools2.api import plugin, Layers
-from ngSkinTools2.api import layers as api_layers, Layer
+from ngSkinTools2.api import Layer, Layers
+from ngSkinTools2.api import layers as api_layers
+from ngSkinTools2.api import plugin
 from ngSkinTools2.api.layers import generate_layer_name
 from ngSkinTools2.api.target_info import list_influences
 from ngSkinTools2.decorators import undoable
@@ -11,6 +12,15 @@ log = getLogger("tools")
 
 def assign_from_closest_joint(target, layer, influences=None):
     # type: (str, Layer, List[int]) -> None
+    """
+    For each selected vertex, picks a nearest joint and assigns 1.0 weight to that joint.
+
+    Operates on the currently active component selection, or whole mesh, depending on selection.
+
+    :param str target: skinned mesh or skin cluster node name;
+    :param Layer layer: int or :py:class:`Layer` object to apply weights to;
+    :param List[int] influences: selects only from provided subset of skinCluster influences.
+    """
 
     if influences is None:
         influences = [i.logicalIndex for i in list_influences(target)]
@@ -28,6 +38,17 @@ def assign_from_closest_joint(target, layer, influences=None):
 
 
 def unify_weights(target, layer, overall_effect, single_cluster_mode):
+    """
+    For all selected vertices, calculates average weights and assigns that value to each vertice. The effect is that all vertices end up having same weights.
+
+    Operates on the currently active component selection, or whole mesh, depending on selection.
+
+    :param str target: skinned mesh or skin cluster node name;
+    :param Layer layer: int or :py:class:`Layer` object to apply weights to;
+    :param float overall_effect: value between `0.0` and `1.0`, intensity of the operation. When applying newly calculated weights to the skin cluster,
+       the formula is `weights = lerp(originalWeights, newWeights, overallEffect)`.
+    :param bool single_cluster_mode: if `true`, all weights will receive the same average. If `false`, each connected mesh shell will be computed independently.
+    """
     plugin.ngst2tools(
         tool="unifyWeights",
         target=target,
@@ -38,23 +59,32 @@ def unify_weights(target, layer, overall_effect, single_cluster_mode):
 
 
 class FloodSettings(Object):
+    """
+    Settings for the :py:func:`flood_weights` operation
+    """
+
+    mode = None  #: Tool mode. One of the :py:class:`paint.PaintMode` values.
+    intensity = 1.0  #: tool intensity;
+    iterations = 1  #: iterations; repeats the same smooth operation given number of times - using this parameter instead of caling `flood_weights` multiple times.
+    influences_limit = 0  #: influences limit per vertex to ensure while smoothing
+    mirror = False  #: is automatic mirroring on or off
+    fixed_influences_per_vertex = False
+    distribute_to_other_influences = False
+    limit_to_component_selection = False
+    use_volume_neighbours = False
+
     def __init__(self):
         from ngSkinTools2.api import paint
 
         self.mode = paint.PaintMode.replace
-        self.intensity = 1.0
-        self.iterations = 1
-        self.influences_limit = 0
-        self.mirror = False
-        self.fixed_influences_per_vertex = False
-        self.distribute_to_other_influences = False
-        self.limit_to_component_selection = False
-        self.use_volume_neighbours = False
 
 
 def flood_weights(layer, influence=None, settings=None):
     """
-    :type layer: Layer
+    Apply paint tool in the layer with the given settings.
+
+    :param Layer layer: layer to set the weights in.
+    :param influence: influence: either an int for the logical index of the influence, or one of :py:class:`NamedPaintTarget` constants. Can be skipped if tool mode is Smooth or Sharpen.
     :type settings: FloodSettings
     """
 

@@ -21,7 +21,9 @@ def download_update_info(success_callback, failure_callback):
     """
 
     import platform
+
     from maya import cmds
+
     from . import http
 
     os = platform.system()

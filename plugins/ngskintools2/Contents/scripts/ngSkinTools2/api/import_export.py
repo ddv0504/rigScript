@@ -1,4 +1,5 @@
 from ngSkinTools2.api import plugin
+
 from . import transfer
 from .influenceMapping import InfluenceMappingConfig
 
