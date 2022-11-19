@@ -77,7 +77,7 @@ def ui():
     cmds.setParent('mainColLo')
     cmds.frameLayout(label="Extra Functions", collapsable=True, collapse=True)
     cmds.columnLayout(adj=True)
-    cmds.button(label='Add Smooth Control', annotation='Select a controller to add smooth control. Smooth will add to meshes under the lod03_GRP.', c=addSmoothCtrl)
+    # cmds.button(label='Add Smooth Control', annotation='Select a controller to add smooth control. Smooth will add to meshes under the lod03_GRP.', c=addSmoothCtrl)
     cmds.button(label='Make Rig Group UI', c=rigGrpUI)
     cmds.button(label="Show Joints", c=showJoints)
     cmds.button(label="Unlock lod01/02/03 Transform in Channelbox", c=unlockGeoTrsf)

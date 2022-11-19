@@ -320,9 +320,12 @@ class toolBox(QMainWindow):
         srcLayout = QVBoxLayout()
         trgLayout = QVBoxLayout()
 
+        self.srcCountLabel = QLabel('0')
         srcWidget = QListWidget()
         srcWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         srcWidget.setFocusPolicy(Qt.NoFocus)
+
+        self.trgCountLabel = QLabel('0')
         trgWidget = QListWidget()
         trgWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         trgWidget.setFocusPolicy(Qt.NoFocus)
@@ -334,6 +337,7 @@ class toolBox(QMainWindow):
         srcRemBtn = QPushButton('Remove Source')
         srcClsBtn = QPushButton('Clear')
 
+        srcLayout.addWidget(self.srcCountLabel)
         srcLayout.addWidget(srcWidget)
         srcLayout.addLayout(srcBtnLayout)
         srcBtnLayout.addWidget(srcAddBtn)
@@ -344,6 +348,7 @@ class toolBox(QMainWindow):
         trgRemBtn = QPushButton('Remove Target')
         trgClsBtn = QPushButton('Clear')
 
+        trgLayout.addWidget(self.trgCountLabel)
         trgLayout.addWidget(trgWidget)
         trgLayout.addLayout(trgBtnLayout)
         trgBtnLayout.addWidget(trgAddBtn)
@@ -353,13 +358,18 @@ class toolBox(QMainWindow):
         topLayout.addLayout(srcLayout)
         topLayout.addLayout(trgLayout)
 
+        self.connectOptionCB = QCheckBox('1:1')
         drivenConnectBtn = QPushButton('SetDrivenKey==>')
         connectBtn = QPushButton('<==Connect==>')
 
         mainLayout.addLayout(topLayout)
+        mainLayout.addWidget(self.connectOptionCB)
         mainLayout.addWidget(connectBtn)
         mainLayout.addWidget(drivenConnectBtn)
 
+
+        srcWidget.itemSelectionChanged.connect(lambda:(self.srcCountLabel.setText(str(len(srcWidget.selectedItems())))))
+        trgWidget.itemSelectionChanged.connect(lambda:(self.trgCountLabel.setText(str(len(trgWidget.selectedItems())))))
 
         srcAddBtn.clicked.connect(lambda:(srcWidget.addItems(getObjAttrs())))
         srcRemBtn.clicked.connect(lambda:(removeItems(srcWidget)))
@@ -369,8 +379,20 @@ class toolBox(QMainWindow):
         trgRemBtn.clicked.connect(lambda:(removeItems(trgWidget)))
         trgClsBtn.clicked.connect(lambda:trgWidget.clear())
         
-        connectBtn.clicked.connect(lambda:connectAttrs(srcWidget.selectedItems()[0].text(),[i.text() for i in trgWidget.selectedItems()]))
+        self.connectOptionCB.stateChanged.connect(lambda:self.onebyoneConnect(srcWidget,trgWidget,connectBtn))
         drivenConnectBtn.clicked.connect(lambda:setDrivenKey(srcWidget.selectedItems()[0].text(),[i.text() for i in trgWidget.selectedItems()]))
+    
+    def onebyoneConnect(self,srcWidget,trgWidget,btn):
+        try:
+            btn.clicked.disconnect()
+        except Exception as e:
+            pass
+        if self.connectOptionCB.isChecked():
+            btn.clicked.connect(lambda:multiConnectAttrs([i.text() for i in srcWidget.selectedItems()],[i.text() for i in trgWidget.selectedItems()]))
+        else:
+            btn.clicked.connect(lambda:connectAttrs(srcWidget.selectedItems()[0].text(),[i.text() for i in trgWidget.selectedItems()]))
+        return
+
     def aimconstraint(self):
         skip = self.skipChannel()
         if self.offsetCheckBox.checkState() == Qt.Checked:
@@ -402,13 +424,24 @@ class utilBtn(QPushButton):
         module.main()
 
 def setDrivenKey(driver,drivens):
+    cmds.undoInfo(ock=True)
     for dri in drivens:
         cmds.setDrivenKeyframe(dri,currentDriver=driver)  
+    cmds.undoInfo(cck=True)
 
 def connectAttrs(srcAttr,trgAttrs):
+    cmds.undoInfo(ock=True)
     for trgAttr in trgAttrs:        
         cmds.connectAttr(srcAttr,trgAttr,f=True)
+    cmds.undoInfo(cck=True)
 
+def multiConnectAttrs(srcAttrs,trgAttrs):
+    if not len(srcAttrs) == len(trgAttrs):
+        return
+    cmds.undoInfo(ock=True)
+    for srcAttr,trgAttr in zip(srcAttrs,trgAttrs):
+        cmds.connectAttr(srcAttr,trgAttr,f=True)
+    cmds.undoInfo(cck=True)
 def removeItems(listWidget):      #Remove items from QListWidget
         indexes = listWidget.selectedIndexes()
         indexLst = sorted([index.row() for index in indexes],reverse=True)

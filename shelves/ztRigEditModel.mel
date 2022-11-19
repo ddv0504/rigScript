@@ -209,7 +209,7 @@ global proc ztRigEditModel () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "from ztModel import ztModelTool\nreload(ztModelTool)\nztModelTool.main()" 
+        -command "import ztModelTool\nreload(ztModelTool)\nztModelTool.main()" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1
