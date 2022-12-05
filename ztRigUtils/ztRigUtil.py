@@ -700,3 +700,47 @@ def motionPathUI(*args):
     cmds.frameLayout(lv=False)
     cmds.textScrollList()
     cmds.showWindow()
+
+###### expression #######
+
+def addExpression(n=None,string=None):
+    cmds.expression(n=n,s=string)
+
+def sinExp(obj,attr):
+    '''
+    obj: string,controller name
+    attr: tx or ty or tz or rx or ry or rz
+    '''
+    
+    name = '{0}_{1}_sin_Exp'.format(obj,attr)
+    if cmds.objExists(name):
+        cmds.delete(name)
+
+    grps = cmds.listRelatives(obj,p=True)
+    if not grps:
+        print('Object %s has not group' % obj)
+        return
+    else:
+        if cmds.getAttr('%s.%s' % (grps[0],attr)):
+            print('Group attribute value must be 0')
+            return
+    grp = grps[0]
+    
+    sinScale = '%s.sinScale' % obj
+    sinScaleOffset = '%s.sinScaleOffset' % obj
+    sinTimeOffset = '%s.sinTimeOffset' % obj
+    sinFrequency = '%s.sinFrequency' % obj
+    for attribute in [sinScale,sinScaleOffset,sinFrequency]:
+        if cmds.objExists(attribute):
+            cmds.deleteAttr(attribute.split('.')[0],at=attribute.split('.')[1])
+            print(cmds.objExists(attribute))
+    
+    cmds.addAttr(obj,k=True,at='float',ln='sinScale',dv=1)
+    cmds.addAttr(obj,k=True,at='float',ln='sinScaleOffset',dv=1)
+    cmds.addAttr(obj,k=True,at='float',ln='sinTimeOffset',dv=0)
+    cmds.addAttr(obj,k=True,at='float',ln='sinFrequency',dv=1)
+    
+    string = '{0}.{1} = sin((frame + {2})*{3}) * {4} + {5}'.format(grp,attr,sinTimeOffset,sinFrequency,sinScale,sinScaleOffset)
+    
+    
+    addExpression(name,string)
