@@ -8,8 +8,8 @@ global proc startup(){
     loadPlugin -qt "AbcExport.mll";
     
     // python User setup.
-    python("import pyUserSetup");
-    //python("reload(pyUserSetup)");
+    python("import ztPyUserSetup");
+    //python("reload(ztPyUserSetup)");
 
     print "Import pyUserSetup.py success.";
 
