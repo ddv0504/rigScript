@@ -23,7 +23,6 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "AS5.png" 
@@ -57,7 +56,6 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "JointOnCurve" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -92,7 +90,6 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "ringRivetSkin" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -127,7 +124,6 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "kinJoint.png" 
@@ -161,7 +157,6 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "ReSample" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -196,7 +191,6 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "orientJoint.png" 
@@ -212,7 +206,7 @@ global proc ztRigBuild () {
     shelfButton
         -enableCommandRepeat 1
         -flexibleWidthType 3
-        -flexibleWidthValue 32
+        -flexibleWidthValue 31
         -enable 1
         -width 32
         -height 32
@@ -230,7 +224,6 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "JTT" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -247,7 +240,7 @@ global proc ztRigBuild () {
     shelfButton
         -enableCommandRepeat 1
         -flexibleWidthType 3
-        -flexibleWidthValue 38
+        -flexibleWidthValue 37
         -enable 1
         -width 32
         -height 32
@@ -265,7 +258,6 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "renamer" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 

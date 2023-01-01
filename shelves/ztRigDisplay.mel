@@ -23,7 +23,6 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "LRAO" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -56,7 +55,6 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "LRAF" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -89,7 +87,6 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "JS" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -122,7 +119,6 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "jointStyle.bmp" 
@@ -154,7 +150,6 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "displayType.png" 
@@ -186,7 +181,6 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "xRay.bmp" 
@@ -220,7 +214,6 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "objType" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 

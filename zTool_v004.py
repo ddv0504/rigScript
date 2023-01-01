@@ -321,7 +321,7 @@ class zTool(MayaQWidgetDockableMixin,QWidget):
         self.setParent(maya_main_window())
         self.setWindowTitle('zTool_V004')
         self.setObjectName('zTool_V004')
-
+        self.setMaximumSize(260,1920)
         self.resize(120,800)
         self.setUI()
         self.btnConnect()

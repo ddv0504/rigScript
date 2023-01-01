@@ -23,7 +23,6 @@ global proc ztView () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "VtxId" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -56,7 +55,6 @@ global proc ztView () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "CVs" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -89,7 +87,6 @@ global proc ztView () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "Vert" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -124,7 +121,6 @@ global proc ztView () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "Jnt" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -157,7 +153,6 @@ global proc ztView () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "Poly" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 

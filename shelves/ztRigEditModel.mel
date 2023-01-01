@@ -25,7 +25,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "Sculpt.png" 
@@ -60,7 +59,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "Grab.png" 
@@ -95,7 +93,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "Smooth.png" 
@@ -130,7 +127,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "Relax.png" 
@@ -165,7 +161,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "putty.png" 
@@ -200,7 +195,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "modelTools" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -235,7 +229,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -imageOverlayLabel "AriSymmetryChecker" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
@@ -268,7 +261,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "cleanUpMesh.bmp" 
@@ -302,7 +294,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "paintBlendshape.png" 
@@ -336,7 +327,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "QuadRemesher.png" 
@@ -368,7 +358,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "dupMatAssign.png" 
@@ -400,7 +389,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "lambertWithSelectedTexture.png" 
@@ -432,7 +420,6 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
-        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "solColorMat.bmp" 
