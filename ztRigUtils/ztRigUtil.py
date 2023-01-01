@@ -320,8 +320,6 @@ def unlockInf(mesh,jnt):
         return
     cmds.skinCluster(mesh,e=True,lw=False,inf=jnt)
 
-###### Joint ######
-
 ###### blenShape #######
 '''
 Get connected blendshape node 
@@ -421,7 +419,16 @@ def setDefaultMatrix(node,*args):
                     0.0,0.0,1.0,0.0,
                     0.0,0.0,0.0,1.0 ]
     cmds.setAttr('%s.offsetParentMatrix' % node,defaultMatrix,type='matrix')
-
+##### Curve operation ######
+def makeCurveToTargets(curveName = None,*args):
+    lst = cmds.ls(sl=True)
+    pointLst = []
+    for l in lst:
+        point = cmds.xform(l,q=True,rp=True,ws=True)
+        pointLst.append(point)
+        # print(point)
+    
+    cmds.curve(curveName,d=1,p=pointLst)
 class checkMaxSkinInfluences(object):
     ''' This script takes a mesh with a skinCluster and checks it for N skin weights.
     If it has more than N, it selects the verts, so you can edit them.
