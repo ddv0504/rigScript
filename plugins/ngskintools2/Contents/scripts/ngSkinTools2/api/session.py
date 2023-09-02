@@ -5,11 +5,11 @@ UI session is running as long as any of the ngSkinTools UI windows are open.
 import functools
 
 from ngSkinTools2 import cleanup, signal
-from ngSkinTools2.api import Layers, events, mirror, plugin
+from ngSkinTools2.api import Layers, PaintTool, events, mirror, plugin
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object
 from ngSkinTools2.licenseClient import LicenseClient
-from ngSkinTools2.log import getLogger
 from ngSkinTools2.observableValue import ObservableValue
-from ngSkinTools2.python_compatibility import Object
 from ngSkinTools2.signal import SignalHub
 
 log = getLogger("events")
@@ -27,7 +27,7 @@ class CurrentPaintTargetState(Object):
     def __init__(self):
         self.skinCluster = None
         self.layerId = None
-        self.target = None
+        self.targets = None
 
 
 class State(Object):
@@ -52,21 +52,7 @@ class State(Object):
 
 class Context(Object):
     def __init__(self):
-        self.selectedInfluences = ObservableValue()  # [] logicalIndex
         self.selected_layers = ObservableValue()  # [] layerId
-
-    def get_selected_influences(self):
-        """
-        filter out only influences (skipping mask or qt)
-        """
-        if self.selectedInfluences() is None:
-            return
-
-        for i in self.selectedInfluences():
-            try:
-                yield int(i)
-            except:
-                pass
 
 
 class Session(Object):
@@ -86,8 +72,11 @@ class Session(Object):
 
     def start(self):
         log.info("STARTING SESSION")
-
         plugin.load_plugin()
+
+        self.paint_tool = PaintTool()
+        self.paint_tool.setup_maya_option_var_persistence()
+        self.paint_tool.load_settings()
 
         self.licenseClient.load_deferred()
 
@@ -102,9 +91,6 @@ class Session(Object):
         def on_target_change():
             log.info("clearing target context")
             self.context.selected_layers.set([])
-            self.context.selectedInfluences.set([])
-
-        # licenseClient.runLicenseUpdateThread()
 
         self.events.nodeSelectionChanged.emit()
 
@@ -131,7 +117,6 @@ class Session(Object):
         return self.referenceId
 
     def removeReference(self, referenceId):
-
         try:
             self.references.remove(referenceId)
         except KeyError:

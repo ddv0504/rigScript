@@ -2,7 +2,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 
 from ngSkinTools2 import cleanup, signal
 from ngSkinTools2.api import influenceMapping, mirror
-from ngSkinTools2.log import getLogger
+from ngSkinTools2.api.log import getLogger
 from ngSkinTools2.signal import Signal
 from ngSkinTools2.ui import dialogs, qt, widgets
 from ngSkinTools2.ui.dialogs import yesNo
@@ -123,7 +123,7 @@ def build_ui(parent, matcher):
         return influence_items
 
     def tolerance():
-        result = NumberSliderGroup(minimum=0.001, maximum=10)
+        result = NumberSliderGroup(min_value=0.001, max_value=10)
         result.spinner.setDecimals(3)
 
         @signal.on(reload_ui)
@@ -195,7 +195,6 @@ def build_ui(parent, matcher):
                 item.setText(influenceMapping.illegalCharactersRegexp.sub("", item.text()))
 
             if item.row() != result.rowCount() - 1:
-
                 if item.text().strip() == "":
                     result.removeRow(item.row())
 

@@ -2,11 +2,11 @@ from PySide2 import QtGui, QtWidgets
 from PySide2.QtCore import Qt
 
 from ngSkinTools2 import cleanup, licenseClient, signal
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object
 from ngSkinTools2.api.session import session, withSession
 from ngSkinTools2.licenseClient import LicenseData
-from ngSkinTools2.log import getLogger
 from ngSkinTools2.observableValue import ObservableValue
-from ngSkinTools2.python_compatibility import Object
 from ngSkinTools2.ui import dialogs, qt
 from ngSkinTools2.ui.layout import scale_multiplier
 
@@ -20,6 +20,9 @@ class Message(Object):
     def __init__(self, text, msg_type=None):
         self.type = msg_type if msg_type is not None else self.type_info
         self.text = text
+
+    def __repr__(self):
+        return "Message(type:{self.type}, text: {self.text!r})".format(self=self)
 
 
 class LicenseWindowModel(Object):
@@ -43,17 +46,22 @@ class LicenseWindowModel(Object):
 
         self.server_address = ''
 
+        @signal.on(session.licenseClient.statusChanged)
+        def on_license_client_status_change():
+            self.update_status()
+
         self.update_status()
 
     def update_status(self):
-        self.license_status.set(self.__license_info.current_status())
-        log.info("status updated to %s", self.license_status())
-        descr = self.license_status().status_description
+        status = self.__license_info.current_status()  # type:LicenseData
+        self.license_status.set(status)
+        log.info("status updated to %s", status)
+        descr = status.status_description
         if descr is None:
             self.message.set(None)
         else:
-            self.message.set(Message(descr, msg_type=Message.type_info if self.license_is_active() else Message.type_error))
-            log.info("setting mesage to %s", self.message())
+            self.message.set(Message(descr, msg_type=Message.type_info if not status.errors else Message.type_error))
+            log.info("setting message to %s", self.message())
 
     def activate(self):
         def do_license_key_online():
@@ -149,12 +157,19 @@ class LicenseWindowModel(Object):
         return not c.active_license_file and not c.license_server_url
 
 
+class UI:
+    def __init__(self):
+        self.status_label = None
+
+
 @withSession
 def show(parent, license_info=None):
     """
     :type license_info: object
     :type parent: QWidget
     """
+
+    ui = UI()
 
     if license_info is None:
         license_info = session.licenseClient
@@ -183,14 +198,14 @@ def show(parent, license_info=None):
         result.setLayout(layout)
 
         layout.addWidget(QtWidgets.QLabel("<b>License status:</b>"))
-        status_label = QtWidgets.QLabel("Licensed to debug mode")
+        ui.status_label = status_label = QtWidgets.QLabel("Licensed to debug mode")
         layout.addWidget(status_label)
 
         @signal.on(model.license_status.changed)
         def update_license_status():
             status_label.setText(model.describe_license_status())
 
-        message_label = QtWidgets.QLabel()
+        ui.message_label = message_label = QtWidgets.QLabel()
         layout.addWidget(message_label)
         message_label.setVisible(False)
         message_label.setWordWrap(True)
@@ -199,14 +214,15 @@ def show(parent, license_info=None):
         @signal.on(model.message.changed)
         def update_message():
             msg = model.message()
-            message_label.setVisible(msg is not None and msg != "")
-            if not message_label.isVisible():
+            if msg is None:
+                message_label.setVisible(False)
                 return
 
             escaped_msg = msg.text.replace("<", "&lt;").replace(">", "&gt;")
 
             color = {Message.type_error: '#FF0000', Message.type_info: '#5cb85c'}[msg.type]
             message_label.setText('<b><font color="{color}">{msg}</font></b>'.format(color=color, msg=escaped_msg))
+            message_label.setVisible(True)
 
         update_license_status()
         update_message()
@@ -416,7 +432,7 @@ def show(parent, license_info=None):
     def configuration():
         result = QtWidgets.QVBoxLayout()
         result.setContentsMargins(25, 10, 25, 10)
-        descr = QtWidgets.QLabel()
+        ui.configuration_descr = descr = QtWidgets.QLabel()
         descr.setTextInteractionFlags(Qt.TextSelectableByMouse)
         result.addWidget(descr)
 
@@ -446,3 +462,5 @@ def show(parent, license_info=None):
     window.show()
 
     cleanup.registerCleanupHandler(window.close)
+
+    return ui

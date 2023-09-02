@@ -4,10 +4,10 @@ from maya import mel
 
 from ngSkinTools2.api import internals, plugin, target_info
 from ngSkinTools2.api.config import Config
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object, is_string
 from ngSkinTools2.api.suspend_updates import suspend_updates
 from ngSkinTools2.decorators import undoable
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object, is_string
 
 logger = getLogger("api/layers")
 
@@ -24,11 +24,14 @@ class LayerEffects(Object):
             self.__set_state__(state)
 
     def __set_state__(self, state):
+        from ngSkinTools2.api import MirrorOptions
+
         self.mirror_mask = state.get("mirrorMask", False)
         self.mirror_weights = state.get("mirrorWeights", False)
         self.mirror_dq = state.get("mirrorDq", False)
+        self.mirror_direction = state.get("mirrorDirection", MirrorOptions.directionPositiveToNegative)
 
-    def configure_mirror(self, everything=None, mirror_mask=None, mirror_weights=None, mirror_dq=None):
+    def configure_mirror(self, everything=None, mirror_mask=None, mirror_weights=None, mirror_dq=None, mirror_direction=None):
         """
         Enable/disable components for mirror effect:
 
@@ -37,13 +40,31 @@ class LayerEffects(Object):
         >>> # equivalent of setting all flags to False
         >>> layer.effects.configure_mirror(everything=False)
 
+        Mirroring direction must be set explicitly.
+
+        >>> from ngSkinTools2.api import MirrorOptions
+        >>> layer.effects.configure_mirror(mirror_mask=True,mirror_direction=MirrorOptions.directionPositiveToNegative)
+
+
+        :arg bool mirror_mask: should mask be mirrored with this effect?
+        :arg bool mirror_weights: should influence weights be mirrored with this effect?
+        :arg bool mirror_dq: should dq weights be mirrored with this effect?
+        :arg int mirror_direction: mirroring direction. Use `MirrorOptions.directionPositiveToNegative`, `MirrorOptions.directionNegativeToPositive`
+          or `MirrorOptions.directionFlip`
         """
         if everything is not None:
             mirror_mask = mirror_dq = mirror_weights = everything
 
-        logger.info("configure mirror: layer %s mask %r weights %r dq %r", self.__layer.name, mirror_mask, mirror_weights, mirror_dq)
+        logger.info(
+            "configure mirror: layer %s mask %r weights %r dq %r direction %r",
+            self.__layer.name,
+            mirror_mask,
+            mirror_weights,
+            mirror_dq,
+            mirror_direction,
+        )
 
-        args = {'mirrorLayerDq': mirror_dq, 'mirrorLayerMask': mirror_mask, 'mirrorLayerWeights': mirror_weights}
+        args = {'mirrorLayerDq': mirror_dq, 'mirrorLayerMask': mirror_mask, 'mirrorLayerWeights': mirror_weights, "mirrorDirection": mirror_direction}
 
         self.__layer.__edit__(configureMirrorEffect=True, **{k: v for k, v in list(args.items()) if v is not None})
 
@@ -127,6 +148,17 @@ class Layer(Object):
         return "[Layer #{id}]".format(id=self.id)
 
     @property
+    def paint_targets(self):
+        """
+        list[str or int]: list of paint targets to be set as current for this layer
+        """
+        return self.__get_state__("paintTargets")
+
+    @paint_targets.setter
+    def paint_targets(self, targets):
+        self.__edit__(**{"paintTarget": ",".join([str(target) for target in targets])})
+
+    @property
     def parent(self):
         """
         Layer: layer parent, or None, if layer is at root level.
@@ -181,12 +213,11 @@ class Layer(Object):
         """
         Modify weights in the layer.
 
-        Attributes:
-            influence: either index of an influence, or named paint target
-            weights_list: weights for each vertex (must match number of vertices in skin cluster)
-            undo_enabled: set to False if you don't need undo, for slight performance boost
+        :arg int/str influence: either index of an influence, or named paint target (one of :py:class:`NamedPaintTarget` values)
+        :arg list[int] weights_list: weights for each vertex (must match number of vertices in skin cluster)
+        :arg bool undo_enabled: set to False if you don't need undo, for slight performance boost
         """
-        self.__edit__(paintTarget=influence, vertexWeights=internals.floatListAsString(weights_list), undoEnabled=undo_enabled)
+        self.__edit__(paintTarget=influence, vertexWeights=internals.float_list_as_string(weights_list), undoEnabled=undo_enabled)
 
     def get_weights(self, influence):
         """
@@ -220,7 +251,6 @@ def as_layer_id(layer):
 
 
 def as_layer_id_list(layers):
-
     """
     maps a given layer list with `as_layer_id`
 
@@ -326,7 +356,7 @@ class Layers(Object):
         return plugin.ngst2Layers(self.mesh, q=True, **kwargs)
 
     def set_influences_mirror_mapping(self, influencesMapping):
-        plugin.ngst2Layers(self.mesh, configureMirrorMapping=True, influencesMapping=internals.influencesMapToList(influencesMapping))
+        plugin.ngst2Layers(self.mesh, configureMirrorMapping=True, influencesMapping=internals.influences_map_to_list(influencesMapping))
 
     @property
     def mesh(self):

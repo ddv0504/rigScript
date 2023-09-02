@@ -7,9 +7,9 @@ import ngSkinTools2.api
 from ngSkinTools2 import signal
 from ngSkinTools2.api import Mirror
 from ngSkinTools2.api.layers import generate_layer_name
+from ngSkinTools2.api.log import getLogger
 from ngSkinTools2.api.session import session, withSession
 from ngSkinTools2.decorators import undoable
-from ngSkinTools2.log import getLogger
 from ngSkinTools2.ui import dialogs, qt
 from ngSkinTools2.ui.action import Action
 from ngSkinTools2.ui.options import config

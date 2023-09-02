@@ -14,7 +14,9 @@ def action_copy_cut(session, parent, cut):
     def cut_copy_callback():
         if session.state.selectedSkinCluster is None:
             return
-        influences = session.context.selectedInfluences()
+        if session.state.currentLayer.layer is None:
+            return
+        influences = session.state.currentLayer.layer.paint_targets
         operation = api.copy_weights  # type: Callable[[Layer, list], None]
         if cut:
             operation = api.cut_weights
@@ -24,9 +26,10 @@ def action_copy_cut(session, parent, cut):
     operation_name = "Cut" if cut else "Copy"
     result = actions.define_action(parent, operation_name + " weights to clipboard", callback=cut_copy_callback)
 
-    @signal.on(session.context.selectedInfluences.changed, qtParent=parent)
+    @signal.on(session.events.currentLayerChanged, qtParent=parent)
     def on_selection_changed():
-        result.setEnabled(len(session.context.selectedInfluences()) > 0)
+        layer = session.state.currentLayer.layer
+        result.setEnabled(layer is not None and len(layer.paint_targets) > 0)
 
     return result
 
@@ -42,7 +45,7 @@ def action_paste(session, parent, operation):
     def paste_callback():
         if session.state.currentLayer.layer is None:
             return
-        influences = session.context.selectedInfluences()
+        influences = session.state.currentLayer.layer.paint_targets
         api.paste_weights(session.state.currentLayer.layer, operation, influences=influences)
 
     labels = {

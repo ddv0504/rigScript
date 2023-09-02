@@ -2,8 +2,8 @@ import json
 
 from maya import cmds
 
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object
 
 log = getLogger("api/layers")
 

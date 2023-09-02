@@ -2,9 +2,9 @@ from PySide2 import QtWidgets
 
 from ngSkinTools2 import signal
 from ngSkinTools2.api import Mirror, MirrorOptions, VertexTransferMode
+from ngSkinTools2.api.log import getLogger
 from ngSkinTools2.api.mirror import set_reference_mesh_from_selection
 from ngSkinTools2.api.session import session
-from ngSkinTools2.log import getLogger
 from ngSkinTools2.ui import qt
 from ngSkinTools2.ui.layout import TabSetup, createTitledRow
 from ngSkinTools2.ui.options import bind_checkbox, config
@@ -50,7 +50,7 @@ def buildUI(parent_window):
             return mirror_axis
 
         def mirror_seam_width():
-            seam_width_ctrl = NumberSliderGroup(maximum=100)
+            seam_width_ctrl = NumberSliderGroup(max_value=100)
 
             @signal.on(seam_width_ctrl.valueChanged)
             def value_changed():
@@ -85,7 +85,6 @@ def buildUI(parent_window):
     def vertex_mapping_group():
         # noinspection PyShadowingNames
         def mirror_mesh_group():
-
             mesh_name_edit = QtWidgets.QLineEdit("mesh1")
             mesh_name_edit.setReadOnly(True)
             select_button = QtWidgets.QPushButton("Select")

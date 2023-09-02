@@ -23,13 +23,14 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "LRAO" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "commandButton.png" 
         -image1 "commandButton.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "toggle -state on -localAxis;" 
         -sourceType "mel" 
@@ -55,13 +56,14 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "LRAF" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "commandButton.png" 
         -image1 "commandButton.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "toggle -state off -localAxis;" 
         -sourceType "mel" 
@@ -87,13 +89,14 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "JS" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconDisplay.png" 
         -image1 "menuIconDisplay.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "jdsWin" 
         -sourceType "mel" 
@@ -119,12 +122,13 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "jointStyle.bmp" 
         -image1 "jointStyle.bmp" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from imp import reload\nfrom ztRigUtils import ztRigUtil\nreload(ztRigUtil)\nztRigUtil.jointDrawUI()" 
         -sourceType "python" 
@@ -150,12 +154,13 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "displayType.png" 
         -image1 "displayType.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from imp import reload\nfrom ztRigUtils import ztRigUtil\nreload(ztRigUtil)\nztRigUtil.displayType()" 
         -sourceType "python" 
@@ -181,12 +186,13 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "xRay.bmp" 
         -image1 "xRay.bmp" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "{\n    string $selection[] = `ls -sl`;  \n    \n    for ($cur in $selection){\n        \n        int $result[] = `displaySurface -q -x $cur `;\n        if ( $result[0] )\n            displaySurface -x 0 $cur ;\n        else\n            displaySurface -x 1 $cur ;\n            \n    }    \n}" 
         -sourceType "mel" 
@@ -214,13 +220,14 @@ global proc ztRigDisplay () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "objType" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "Objects.png" 
         -image1 "Objects.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from ztRigUtils import ztRigUtil\nztRigUtil.printObjectType()" 
         -sourceType "python" 

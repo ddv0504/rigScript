@@ -3,11 +3,11 @@ import shiboken2
 from maya import cmds
 from PySide2 import QtCore, QtGui, QtWidgets
 
+from ngSkinTools2.api.log import getLogger
 from ngSkinTools2.api.session import session
 from ngSkinTools2.ui.options import config
 
 from .. import cleanup, signal, version
-from ..log import getLogger
 from ..observableValue import ObservableValue
 from . import (
     aboutwindow,

@@ -3,7 +3,7 @@ import json
 from maya import cmds, mel
 
 from ngSkinTools2.api import feedback
-from ngSkinTools2.log import getLogger
+from ngSkinTools2.api.log import getLogger
 
 log = getLogger("plugin")
 

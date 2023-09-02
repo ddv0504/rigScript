@@ -1,11 +1,10 @@
 from PySide2 import QtWidgets
 
 from ngSkinTools2 import signal
-from ngSkinTools2.api import PaintMode, flood_weights
+from ngSkinTools2.api import PaintMode, PaintModeSettings, flood_weights
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object
 from ngSkinTools2.api.session import session
-from ngSkinTools2.api.tools import FloodSettings
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object
 from ngSkinTools2.signal import Signal
 from ngSkinTools2.ui import qt, widgets
 from ngSkinTools2.ui.layout import TabSetup, createTitledRow
@@ -15,7 +14,7 @@ log = getLogger("tab set weights")
 
 
 def make_presets():
-    presets = {m: FloodSettings() for m in PaintMode.all()}
+    presets = {m: PaintModeSettings() for m in PaintMode.all()}
     for k, v in presets.items():
         v.mode = k
 
@@ -39,7 +38,7 @@ class Model(Object):
         self.mode_changed.emit()
 
     def apply(self):
-        flood_weights(session.state.currentLayer.layer, session.state.currentInfluence.target, self.current_settings)
+        flood_weights(session.state.currentLayer.layer, influences=session.state.currentLayer.layer.paint_targets, settings=self.current_settings)
 
 
 def build_ui(parent):
@@ -86,7 +85,7 @@ def build_ui(parent):
 
             return row
 
-        influences_limit = widgets.NumberSliderGroup(value_type=int, minimum=0, maximum=10)
+        influences_limit = widgets.NumberSliderGroup(value_type=int, min_value=0, max_value=10)
 
         @signal.on(influences_limit.valueChanged)
         @ui_lock.skip_if_updating
@@ -103,7 +102,7 @@ def build_ui(parent):
             model.current_settings.intensity = intensity.value()
             update_ui()
 
-        iterations = widgets.NumberSliderGroup(value_type=int, minimum=1, maximum=100)
+        iterations = widgets.NumberSliderGroup(value_type=int, min_value=1, max_value=100)
 
         @signal.on(iterations.valueChanged, qtParent=parent)
         @ui_lock.skip_if_updating

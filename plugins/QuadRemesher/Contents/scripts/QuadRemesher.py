@@ -85,7 +85,10 @@ class QuadRemesherWindow(QWidget):
 		super(QuadRemesherWindow, self).__init__(*args, **kwargs)
 		
 		mayaMainWindowPtr = OpenMayaUI_1.MQtUtil.mainWindow()
-		mayaMainWindow = wrapInstance(long(mayaMainWindowPtr), QMainWindow)
+		if mayaMajorVersion >= 2022:
+			mayaMainWindow = wrapInstance(int(mayaMainWindowPtr), QMainWindow)
+		else:
+			mayaMainWindow = wrapInstance(long(mayaMainWindowPtr), QMainWindow)
 		#print(" mayaMainWindow = %s..\n" % str(mayaMainWindow))
 
 		try:
@@ -387,7 +390,7 @@ class QuadRemesherWindow(QWidget):
 			# 0 -- it need fbxplugin loaded:
 			fbxWasLoaded = mel.eval('pluginInfo -q -loaded "fbxmaya.mll"')
 			if (fbxWasLoaded == 0) :
-				print "Loading FBX plugin for QuadRemesher...\n"
+				print("Loading FBX plugin for QuadRemesher...\n")
 				mel.eval('loadPlugin "fbxmaya.mll"')
 
 			''' start testing/using ExoMesh loader 				

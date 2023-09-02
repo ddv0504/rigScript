@@ -104,7 +104,7 @@ def build_no_layers_ui(parent, actions, session):
 
         @signal.on(session.licenseClient.statusChanged, qtParent=parent)
         def update_banner_visibility():
-            result.setVisible(not session.licenseClient.current_status().active)
+            result.setVisible(session.licenseClient.should_show_evaluation_banner())
 
         update_banner_visibility()
 

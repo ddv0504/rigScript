@@ -22,14 +22,14 @@ def brush_settings_popup(paint):
 
     intensity_slider = widgets.NumberSliderGroup()
     widgets.set_paint_expo(intensity_slider, paint.paint_mode)
-    intensity_slider.set_value(paint.brush_intensity)
+    intensity_slider.set_value(paint.intensity)
 
     @qt.on(intensity_slider.slider.sliderReleased, intensity_slider.spinner.editingFinished)
     def close_with_slider_intensity():
         close_with_intensity(intensity_slider.value())
 
     def close_with_intensity(value):
-        paint.brush_intensity = value
+        paint.intensity = value
         window.close()
 
     def create_intensity_button(intensity):

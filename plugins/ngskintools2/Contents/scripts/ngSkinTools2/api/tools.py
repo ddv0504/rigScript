@@ -2,10 +2,10 @@ from ngSkinTools2.api import Layer, Layers
 from ngSkinTools2.api import layers as api_layers
 from ngSkinTools2.api import plugin
 from ngSkinTools2.api.layers import generate_layer_name
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.paint import PaintModeSettings
 from ngSkinTools2.api.target_info import list_influences
 from ngSkinTools2.decorators import undoable
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object
 
 log = getLogger("tools")
 
@@ -58,54 +58,39 @@ def unify_weights(target, layer, overall_effect, single_cluster_mode):
     )
 
 
-class FloodSettings(Object):
-    """
-    Settings for the :py:func:`flood_weights` operation
-    """
-
-    mode = None  #: Tool mode. One of the :py:class:`paint.PaintMode` values.
-    intensity = 1.0  #: tool intensity;
-    iterations = 1  #: iterations; repeats the same smooth operation given number of times - using this parameter instead of caling `flood_weights` multiple times.
-    influences_limit = 0  #: influences limit per vertex to ensure while smoothing
-    mirror = False  #: is automatic mirroring on or off
-    fixed_influences_per_vertex = False
-    distribute_to_other_influences = False
-    limit_to_component_selection = False
-    use_volume_neighbours = False
-
-    def __init__(self):
-        from ngSkinTools2.api import paint
-
-        self.mode = paint.PaintMode.replace
-
-
-def flood_weights(layer, influence=None, settings=None):
+def flood_weights(target, influence=None, influences=None, settings=None):
     """
     Apply paint tool in the layer with the given settings.
 
-    :param Layer layer: layer to set the weights in.
-    :param influence: influence: either an int for the logical index of the influence, or one of :py:class:`NamedPaintTarget` constants. Can be skipped if tool mode is Smooth or Sharpen.
-    :type settings: FloodSettings
+    :param target: layer or mesh to set the weights in.
+    :param influence: target influence: either an int for the logical index of the influence, or one of :py:class:`NamedPaintTarget` constants. Can be skipped if tool mode is Smooth or Sharpen.
+    :param influences: if specified, overrides "influence" and allows passing multiple influences instead. Only supported by flood and sharpen at the moment.
+    :type settings: PaintModeSettings
     """
 
     if settings is None:
-        settings = FloodSettings()  # just use default settings
+        settings = PaintModeSettings()  # just use default settings
 
-    plugin.ngst2tools(
-        tool="floodWeights",
-        target=layer.mesh,
-        influence=influence,
-        layer=api_layers.as_layer_id(layer),
-        mode=settings.mode,
-        intensity=settings.intensity,
-        iterations=int(settings.iterations),
-        influencesLimit=int(settings.influences_limit),
-        mirror=bool(settings.mirror),
-        distributeRemovedWeight=settings.distribute_to_other_influences,
-        limitToComponentSelection=settings.limit_to_component_selection,
-        useVolumeNeighbours=settings.use_volume_neighbours,
-        fixedInfluencesPerVertex=bool(settings.fixed_influences_per_vertex),
-    )
+    args = {
+        'tool': "floodWeights",
+        'influences': influences if influences is not None else [influence],
+        'mode': settings.mode,
+        'intensity': settings.intensity,
+        'iterations': int(settings.iterations),
+        'influencesLimit': int(settings.influences_limit),
+        'mirror': bool(settings.mirror),
+        'distributeRemovedWeight': settings.distribute_to_other_influences,
+        'limitToComponentSelection': settings.limit_to_component_selection,
+        'useVolumeNeighbours': settings.use_volume_neighbours,
+        'fixedInfluencesPerVertex': bool(settings.fixed_influences_per_vertex),
+    }
+    layer = None if not isinstance(target, Layer) else target  # type: Layer
+    if layer:
+        args['layer'] = api_layers.as_layer_id(layer)
+
+    args['target'] = target if layer is None else layer.mesh
+
+    plugin.ngst2tools(**args)
 
 
 @undoable

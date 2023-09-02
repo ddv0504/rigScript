@@ -5,8 +5,8 @@ from maya import cmds
 from ngSkinTools2.api import influenceMapping, internals, plugin, target_info
 from ngSkinTools2.api.cmd_wrappers import get_source_node
 from ngSkinTools2.api.layers import Layers
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object
 
 log = getLogger("mirror")
 

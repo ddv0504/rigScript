@@ -1,8 +1,9 @@
 from PySide2 import QtCore, QtWidgets
 
 from ngSkinTools2 import api, signal
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.mirror import MirrorOptions
 from ngSkinTools2.api.session import session
-from ngSkinTools2.log import getLogger
 from ngSkinTools2.ui import qt, widgets
 from ngSkinTools2.ui.layout import TabSetup, createTitledRow
 
@@ -59,8 +60,10 @@ def build_ui(parent):
             # avoid changing opacity of all selected layers if we just changed slider value based on changed layer selection
             if opacity.value() == default_selection_opacity(layers):
                 return
+            val = opacity.value()
             for i in list_layers():
-                i.opacity = opacity.value()
+                if abs(i.opacity - val) > 0.00001:
+                    i.opacity = val
 
         update_values()
 
@@ -70,58 +73,72 @@ def build_ui(parent):
         return group
 
     def build_mirror_effect():
+        def configure_mirror_all_layers(option, value):
+            for i in list_layers():
+                i.effects.configure_mirror(**{option: value})
+
+        mirror_direction = QtWidgets.QComboBox()
+        mirror_direction.addItem("Positive to negative", MirrorOptions.directionPositiveToNegative)
+        mirror_direction.addItem("Negative to positive", MirrorOptions.directionNegativeToPositive)
+        mirror_direction.addItem("Flip", MirrorOptions.directionFlip)
+        mirror_direction.setMinimumWidth(1)
+
+        @qt.on(mirror_direction.currentIndexChanged)
+        def value_changed():
+            configure_mirror_all_layers("mirror_direction", mirror_direction.currentData())
+
+        influences = QtWidgets.QCheckBox("Influence weights")
+        mask = QtWidgets.QCheckBox("Layer mask")
+        dq = QtWidgets.QCheckBox("Dual quaternion weights")
+
+        def configure_checkbox(checkbox, option):
+            @qt.on(checkbox.stateChanged)
+            def update_pref():
+                if checkbox.checkState() == QtCore.Qt.PartiallyChecked:
+                    checkbox.setCheckState(QtCore.Qt.Checked)
+
+                enabled = checkbox.checkState() == QtCore.Qt.Checked
+                configure_mirror_all_layers(option, enabled)
+
+        configure_checkbox(influences, 'mirror_weights')
+        configure_checkbox(mask, 'mirror_mask')
+        configure_checkbox(dq, 'mirror_dq')
+
+        @signal.on(session.context.selected_layers.changed, session.events.currentLayerChanged, qtParent=tab.tabContents)
+        def update_values():
+            layers = list_layers()
+            with qt.signals_blocked(influences):
+                influences.setCheckState(checkStateFromBooleanStates([i.effects.mirror_weights for i in layers]))
+            with qt.signals_blocked(mask):
+                mask.setCheckState(checkStateFromBooleanStates([i.effects.mirror_mask for i in layers]))
+            with qt.signals_blocked(dq):
+                dq.setCheckState(checkStateFromBooleanStates([i.effects.mirror_dq for i in layers]))
+            with qt.signals_blocked(mirror_direction):
+                qt.select_data(mirror_direction, MirrorOptions.directionPositiveToNegative if not layers else layers[0].effects.mirror_direction)
+
+        update_values()
+
         def elements():
             result = QtWidgets.QVBoxLayout()
-
-            influences = QtWidgets.QCheckBox("Influence weights")
-            mask = QtWidgets.QCheckBox("Layer mask")
-            dq = QtWidgets.QCheckBox("Dual quaternion weights")
 
             for i in [influences, mask, dq]:
                 i.setTristate(True)
                 result.addWidget(i)
-
-            def configure_behavior(checkbox, state):
-                @qt.on(checkbox.stateChanged)
-                def update_pref():
-                    if checkbox.checkState() == QtCore.Qt.PartiallyChecked:
-                        checkbox.setCheckState(QtCore.Qt.Checked)
-
-                    enabled = checkbox.checkState() == QtCore.Qt.Checked
-                    for i in list_layers():
-                        i.effects.configure_mirror(**{state: enabled})
-
-            configure_behavior(influences, 'mirror_weights')
-            configure_behavior(mask, 'mirror_mask')
-            configure_behavior(dq, 'mirror_dq')
-
-            @signal.on(session.context.selected_layers.changed, session.events.currentLayerChanged, qtParent=tab.tabContents)
-            def update_values():
-                layers = list_layers()
-                with qt.signals_blocked(influences):
-                    influences.setCheckState(checkStateFromBooleanStates([i.effects.mirror_weights for i in layers]))
-                with qt.signals_blocked(mask):
-                    mask.setCheckState(checkStateFromBooleanStates([i.effects.mirror_mask for i in layers]))
-                with qt.signals_blocked(dq):
-                    dq.setCheckState(checkStateFromBooleanStates([i.effects.mirror_dq for i in layers]))
-
-            update_values()
-
             return result
 
         layout = QtWidgets.QVBoxLayout()
         layout.addLayout(createTitledRow("Mirror effect on:", elements()))
+        layout.addLayout(createTitledRow("Mirror direction:", mirror_direction))
 
         group = QtWidgets.QGroupBox("Mirror")
         group.setLayout(layout)
         return group
 
     def build_skin_properties():
-
         use_max_influences = QtWidgets.QCheckBox("Limit max influences per vertex")
-        max_influences = widgets.NumberSliderGroup(minimum=1, maximum=5, tooltip="", value_type=int)
+        max_influences = widgets.NumberSliderGroup(min_value=1, max_value=5, tooltip="", value_type=int)
         use_prune_weight = QtWidgets.QCheckBox("Prune small weights before writing to skin cluster")
-        prune_weight = widgets.NumberSliderGroup(maximum=0.05, tooltip="")
+        prune_weight = widgets.NumberSliderGroup(max_value=0.05, tooltip="")
         prune_weight.set_expo("start", 3)
 
         update_guard = qt.updateGuard()

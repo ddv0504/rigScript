@@ -23,13 +23,14 @@ global proc ztEditorWindow () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "Ref" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "ReferenceEditor" 
         -sourceType "mel" 
@@ -55,13 +56,14 @@ global proc ztEditorWindow () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "Name" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "NamespaceEditor" 
         -sourceType "mel" 
@@ -87,13 +89,14 @@ global proc ztEditorWindow () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "UV" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "TextureViewWindow" 
         -sourceType "mel" 
@@ -119,13 +122,14 @@ global proc ztEditorWindow () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "Mat" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "HypershadeWindow" 
         -sourceType "mel" 
@@ -151,13 +155,14 @@ global proc ztEditorWindow () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "Node" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "NodeEditorWindow" 
         -sourceType "mel" 
@@ -183,13 +188,14 @@ global proc ztEditorWindow () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "CnEd" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "ConnectionEditor" 
         -sourceType "mel" 
@@ -215,13 +221,14 @@ global proc ztEditorWindow () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "CpEd" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "ComponentEditor" 
         -sourceType "mel" 
@@ -247,13 +254,14 @@ global proc ztEditorWindow () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "Expr" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "ExpressionEditor" 
         -sourceType "mel" 
@@ -281,13 +289,14 @@ global proc ztEditorWindow () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "GE" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "GraphEditor" 
         -sourceType "mel" 

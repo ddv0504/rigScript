@@ -3,8 +3,8 @@ these are methods that are called by plugin when corresponding events happen
 """
 from ngSkinTools2 import api
 from ngSkinTools2.api import eventtypes as et
+from ngSkinTools2.api.log import getLogger
 from ngSkinTools2.api.session import session
-from ngSkinTools2.log import getLogger
 from ngSkinTools2.ui import hotkeys_setup
 
 log = getLogger("plugin callbacks")

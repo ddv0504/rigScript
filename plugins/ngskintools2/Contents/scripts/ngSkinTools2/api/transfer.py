@@ -1,7 +1,7 @@
 import itertools
 
+from ngSkinTools2.api.python_compatibility import Object
 from ngSkinTools2.decorators import undoable
-from ngSkinTools2.python_compatibility import Object
 
 from . import plugin
 from .influenceMapping import InfluenceMapping, InfluenceMappingConfig
@@ -31,11 +31,14 @@ class LayersTransfer(Object):
         self.keep_existing_layers = True
         self.customize_callback = None
 
-    def load_source_from_file(self, file):
-        data = plugin.ngst2tools(
-            tool="importJsonFile",
-            file=file,
-        )
+    def load_source_from_file(self, file, format):
+        from .import_export import FileFormatWrapper
+
+        with FileFormatWrapper(file, format=format, read_mode=True) as f:
+            data = plugin.ngst2tools(
+                tool="importJsonFile",
+                file=f.plain_file,
+            )
 
         self.source = "-reference-mesh-"
         self.source_file = file

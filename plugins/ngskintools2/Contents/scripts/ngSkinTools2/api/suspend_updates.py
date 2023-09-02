@@ -1,5 +1,5 @@
 from ngSkinTools2.api import plugin
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.python_compatibility import Object
 
 
 def suspend_updates(target):

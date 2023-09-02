@@ -3,7 +3,7 @@ The purpose of the module is mostly for testing: close everything and prepare fo
 """
 from __future__ import print_function
 
-from ngSkinTools2.log import getLogger
+from ngSkinTools2.api.log import getLogger
 
 handlers = []
 

@@ -1,7 +1,7 @@
 from PySide2 import QtCore, QtWidgets
 
 from ngSkinTools2.api import PaintMode
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.python_compatibility import Object
 from ngSkinTools2.signal import Signal
 from ngSkinTools2.ui import qt
 from ngSkinTools2.ui.layout import scale_multiplier
@@ -30,72 +30,85 @@ class NumberSliderGroup(Object):
     float spinner is the "main control" while the slider acts as complementary way to change value
     """
 
-    def __init__(self, value_type=float, minimum=0, maximum=1, tooltip="", expo=None):
-        float_mode = value_type == float
+    slider_resolution = 1000.0
+    infinity_max = 65535
+
+    def __init__(self, value_type=float, min_value=0, max_value=1, soft_max=True, tooltip="", expo=None):
+        self.value_range = 0
+        self.min_value = 0
+        self.max_value = 0
+
+        self.float_mode = value_type == float
 
         self.__layout = layout = QtWidgets.QHBoxLayout()
         self.valueChanged = Signal("sliderGroupValueChanged")
 
-        self.spinner = spinner = QtWidgets.QDoubleSpinBox() if float_mode else QtWidgets.QSpinBox()
+        self.spinner = spinner = QtWidgets.QDoubleSpinBox() if self.float_mode else QtWidgets.QSpinBox()
         spinner.setKeyboardTracking(False)
 
         self.expo = expo
         self.expo_coefficient = 1.0
 
         spinner.setMinimumWidth(80 * scale_multiplier)
-        if float_mode:
+        if self.float_mode:
             spinner.setDecimals(3)
-
-        value_range = maximum - minimum
-        single_step = value_range / 100.0
-        if not float_mode and single_step < 1:
-            single_step = 1
-        spinner.setSingleStep(single_step)
 
         spinner.setToolTip(tooltip)
 
-        slider_resolution = 1000.0
         self.slider = slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         slider.setMinimum(0)
-        slider.setMaximum(slider_resolution)
+        slider.setMaximum(self.slider_resolution)
         slider.setToolTip(tooltip)
 
         layout.addWidget(spinner)
         layout.addWidget(slider)
 
-        # formulas: https://www.desmos.com/calculator/gjwk5t3wmn
-
-        def to_slider_value(v):
-            x = float(v - minimum) / value_range
-
-            y = x
-            if self.expo == 'start':
-                y = curve_mapping(x, self.expo_coefficient, 0)
-            if self.expo == 'end':
-                y = curve_mapping(x, self.expo_coefficient, 1)
-
-            return y * slider_resolution
-
-        def from_slider_value(v):
-            x = v / slider_resolution
-            if self.expo == 'start':
-                x = curve_mapping(x, self.expo_coefficient, 1)
-            if self.expo == 'end':
-                x = curve_mapping(x, self.expo_coefficient, 0)
-
-            return minimum + value_range * x
+        self.set_range(min_value, max_value, soft_max=soft_max)
 
         @qt.on(spinner.valueChanged)
         def update_slider():
             with qt.signals_blocked(slider):
-                slider.setValue(to_slider_value(spinner.value()))
+                slider.setValue(self.__to_slider_value(spinner.value()))
             self.valueChanged.emit()
 
         @qt.on(slider.valueChanged)
         def slider_updated():
-            spinner.setValue(from_slider_value(slider.value()))
+            spinner.setValue(self.__from_slider_value(slider.value()))
 
         self.update_slider = update_slider
+
+    def set_range(self, min_value, max_value, soft_max=True):
+        with qt.signals_blocked(self.spinner):
+            self.spinner.setMaximum(self.infinity_max if soft_max else max_value)
+        self.min_value = min_value
+        self.max_value = max_value
+        self.value_range = max_value - min_value
+        single_step = self.value_range / 100.0
+        if not self.float_mode and single_step < 1:
+            single_step = 1
+        self.spinner.setSingleStep(single_step)
+
+    def __to_slider_value(self, v):
+        # formulas: https://www.desmos.com/calculator/gjwk5t3wmn
+
+        x = float(v - self.min_value) / self.value_range
+
+        y = x
+        if self.expo == 'start':
+            y = curve_mapping(x, self.expo_coefficient, 0)
+        if self.expo == 'end':
+            y = curve_mapping(x, self.expo_coefficient, 1)
+
+        return y * self.slider_resolution
+
+    def __from_slider_value(self, v):
+        x = v / self.slider_resolution
+        if self.expo == 'start':
+            x = curve_mapping(x, self.expo_coefficient, 1)
+        if self.expo == 'end':
+            x = curve_mapping(x, self.expo_coefficient, 0)
+
+        return self.min_value + self.value_range * x
 
     def layout(self):
         return self.__layout
@@ -111,7 +124,11 @@ class NumberSliderGroup(Object):
         self.spinner.setEnabled(enabled)
         self.slider.setEnabled(enabled)
 
+    # noinspection PyPep8Naming
     def blockSignals(self, block):
+        """
+        a mimic of qt's blockSignals for both inner widgets
+        """
         result = self.spinner.blockSignals(block)
         self.slider.blockSignals(block)
         return result

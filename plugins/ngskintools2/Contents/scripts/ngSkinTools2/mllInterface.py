@@ -3,8 +3,8 @@ import json
 import maya.cmds as cmds
 import maya.mel as mel
 
-from ngSkinTools2 import log
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api import log
+from ngSkinTools2.api.python_compatibility import Object
 
 
 class NamedPaintTarget(Object):

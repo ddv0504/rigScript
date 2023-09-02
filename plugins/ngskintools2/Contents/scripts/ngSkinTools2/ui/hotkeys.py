@@ -44,14 +44,16 @@ def paint_tool_sample_influence_release():
     plugin.ngst2_hotkey(paintContextSampleInfluence=False)
 
 
+@withSession
 def select_paint_brush_intensity():
     from ngSkinTools2.ui.brush_settings_popup import brush_settings_popup
 
-    brush_settings_popup(PaintTool())
+    brush_settings_popup(session.paint_tool)
 
 
+@withSession
 def paint_tool_toggle_original_mesh():
-    paint = PaintTool()
+    paint = session.paint_tool
     paint.display_node_visible = not paint.display_node_visible
     session.events.toolChanged.emit()
 
@@ -62,7 +64,7 @@ def paint_tool_cycle_weights_display_mode():
     cycle current display mode "all influences" -> "current influence" -> "current influence colored"
     :return:
     """
-    paint = PaintTool()
+    paint = session.paint_tool
     paint.weights_display_mode = {
         WeightsDisplayMode.allInfluences: WeightsDisplayMode.currentInfluence,
         WeightsDisplayMode.currentInfluence: WeightsDisplayMode.currentInfluenceColored,

@@ -1,6 +1,6 @@
 import functools
 
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.python_compatibility import Object
 
 
 class UiLock(Object):

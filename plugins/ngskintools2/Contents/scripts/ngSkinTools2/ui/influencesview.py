@@ -6,9 +6,9 @@ from PySide2 import QtCore, QtGui, QtWidgets
 from ngSkinTools2 import signal
 from ngSkinTools2.api.influenceMapping import InfluenceInfo
 from ngSkinTools2.api.layers import Layer
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object
 from ngSkinTools2.api.target_info import list_influences
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object
 from ngSkinTools2.signal import Signal
 from ngSkinTools2.ui import qt
 from ngSkinTools2.ui.layout import scale_multiplier
@@ -127,26 +127,26 @@ def build_view(parent, actions, session, filter):
         # type: (QtWidgets.QTreeWidget, list[InfluenceInfo], Layer) -> None
         is_group_layer = layer is not None and layer.num_children != 0
 
-        used = set([] if layer is None else (layer.get_used_influences() or []))
-        for i in items:
-            i.used = i.logicalIndex in used
-
-        if config.influences_show_used_influences_only() and layer is not None:
-            items = [i for i in items if i.used]
-
-        if is_group_layer:
-            items = []
-
-        log.info("rebuilding influences items")
-
         def get_icon(influence, is_joint):
             if influence.used:
                 return icon_joint if is_joint else icon_transform
             return icon_joint_disabled if is_joint else icon_transform_disabled
 
-        def wanted_tree_items():
+        def wanted_tree_items(items):
             if layer is None:
                 return
+
+            # calculate "used" regardless as we're displaying it visually even if "show used influences only" is toggled off
+            used = set((layer.get_used_influences() or []))
+            for i in items:
+                i.used = i.logicalIndex in used
+
+            if config.influences_show_used_influences_only() and layer is not None:
+                items = [i for i in items if i.used]
+
+            if is_group_layer:
+                items = []
+
             yield "mask", "[Mask]", icon_mask
             if not is_group_layer and session.state.skin_cluster_dq_channel_used:
                 yield "dq", "[DQ Weights]", icon_dq
@@ -157,45 +157,37 @@ def build_view(parent, actions, session, filter):
                 if filter.is_match(infl_label):
                     yield i.logicalIndex, infl_label, get_icon(i, is_joint)
 
-        selected_ids = [get_item_id(item) for item in view.selectedItems()]
-        current_id = get_item_id(view.currentItem())
+        selected_ids = []
+        if session.state.currentLayer.layer:
+            selected_ids = session.state.currentLayer.layer.paint_targets
+        current_id = None if not selected_ids else selected_ids[0]
 
-        tree_items.clear()
-        tree_root = view.invisibleRootItem()
+        with qt.signals_blocked(view):
+            tree_items.clear()
+            tree_root = view.invisibleRootItem()
 
-        item_index = 0
-        for itemId, displayName, icon in wanted_tree_items():
-            if item_index >= tree_root.childCount():
-                item = QtWidgets.QTreeWidgetItem([displayName])
-            else:
-                item = tree_root.child(item_index)
-                item.setText(0, displayName)
+            item_index = 0
+            for itemId, displayName, icon in wanted_tree_items(items):
+                if item_index >= tree_root.childCount():
+                    item = QtWidgets.QTreeWidgetItem([displayName])
+                else:
+                    item = tree_root.child(item_index)
+                    item.setText(0, displayName)
 
-            item.setData(0, id_role, itemId)
-            item.setIcon(0, icon)
-            item.setSizeHint(0, item_size_hint)
-            tree_root.addChild(item)
+                item.setData(0, id_role, itemId)
+                item.setIcon(0, icon)
+                item.setSizeHint(0, item_size_hint)
+                tree_root.addChild(item)
 
-            tree_items[itemId] = item
-            if itemId in selected_ids:
-                item.setSelected(True)
+                tree_items[itemId] = item
+                if itemId == current_id:
+                    view.setCurrentItem(item, 0, QtCore.QItemSelectionModel.NoUpdate)
+                item.setSelected(itemId in selected_ids)
 
-            item_index += 1
+                item_index += 1
 
-        while item_index < tree_root.childCount():
-            tree_root.removeChild(tree_root.child(item_index))
-
-        new_current_item = tree_items.get(current_id, None)
-        if new_current_item is None:
-            clear_selection()
-        else:
-            view.setCurrentItem(new_current_item)
-            new_current_item.setSelected(True)
-
-        update_selected_influences()
-
-    def clear_selection():
-        view.setCurrentItem(None, QtCore.QItemSelectionModel.Clear)
+            while item_index < tree_root.childCount():
+                tree_root.removeChild(tree_root.child(item_index))
 
     view = QtWidgets.QTreeWidget(parent)
     view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -230,23 +222,19 @@ def build_view(parent, actions, session, filter):
 
     @signal.on(session.events.currentInfluenceChanged, qtParent=view)
     def current_influence_changed():
-        target = session.state.currentInfluence.target
-        log.info("current target changed to %s", target)
-        current_item = view.currentItem()
-        if target is None and current_item is None:
+        if session.state.currentLayer.layer is None:
             return
 
-        prev_influence = None if current_item is None else get_item_id(current_item)
-
-        if prev_influence is None or prev_influence != target:
-            item = tree_items.get(target, None)
-            if item is not None:
-                with qt.signals_blocked(view):
-                    log.info("setting current item rofl")
-                    view.setCurrentItem(item)
-            else:
-                clear_selection()
-            update_selected_influences()
+        log.info("current influence changed - updating item selection")
+        with qt.signals_blocked(view):
+            targets = session.state.currentLayer.layer.paint_targets
+            first = True
+            for tree_item in tree_items.values():
+                selected = get_item_id(tree_item) in targets
+                if selected and first:
+                    view.setCurrentItem(tree_item, 0, QtCore.QItemSelectionModel.NoUpdate)
+                first = False
+                tree_item.setSelected(selected)
 
     @qt.on(view.currentItemChanged)
     def current_item_changed(curr, prev):
@@ -256,23 +244,27 @@ def build_view(parent, actions, session, filter):
         if session.state.selectedSkinCluster is None:
             return
 
-        update_selected_influences()
-
-        selected_target = get_item_id(curr)
-        if session.state.currentInfluence.target == selected_target:
+        if not session.state.currentLayer.layer:
             return
 
-        if session.state.currentLayer.layer:
-            session.state.currentLayer.layer.paint_target = selected_target
-        session.events.currentInfluenceChanged.emitIfChanged()
+        log.info("focused item changed: %r", get_item_id(curr))
+        sync_paint_targets_to_selection()
 
     @qt.on(view.itemSelectionChanged)
-    def update_selected_influences():
-        ids = {get_item_id(item) for item in [view.currentItem()] + view.selectedItems()}
-        selection = [i for i in ids if i is not None]
-        log.info("updating selection to %r", selection)
+    def sync_paint_targets_to_selection():
+        log.info("syncing paint targets")
+        selected_ids = [get_item_id(item) for item in view.selectedItems()]
+        selected_ids = [i for i in selected_ids if i is not None]
 
-        session.context.selectedInfluences.set(selection)
+        current_item = view.currentItem()
+        if current_item and current_item.isSelected():
+            # move id of current item to front, if it's selected
+            item_id = get_item_id(current_item)
+            selected_ids.remove(item_id)
+            selected_ids = [item_id] + selected_ids
+
+        if session.state.currentLayer.layer:
+            session.state.currentLayer.layer.paint_targets = selected_ids
 
     current_layer_changed()
 

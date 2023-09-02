@@ -2,13 +2,13 @@ from functools import wraps
 
 from maya import cmds
 
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object
 
 log = getLogger("decorators")
 
 
-def preserveSelection(function):
+def preserve_selection(function):
     """
     decorator for function;
     saves selection prior to execution and restores it
@@ -16,7 +16,7 @@ def preserveSelection(function):
     """
 
     @wraps(function)
-    def undoableWrapper(*args, **kargs):
+    def undoable_wrapper(*args, **kargs):
         selection = cmds.ls(sl=True, fl=True)
         highlight = cmds.ls(hl=True, fl=True)
         try:
@@ -29,7 +29,7 @@ def preserveSelection(function):
             if highlight:
                 cmds.hilite(highlight)
 
-    return undoableWrapper
+    return undoable_wrapper
 
 
 def undoable(function):
@@ -50,6 +50,9 @@ class Undo(Object):
     an undo context for use "with Undo():"
     """
 
+    def __init__(self):
+        pass
+
     def __enter__(self):
         log.debug("UNDO chunk: start")
         cmds.undoInfo(openChunk=True)
@@ -60,12 +63,12 @@ class Undo(Object):
         cmds.undoInfo(closeChunk=True)
 
 
-def traceException(function):
+def trace_exception(function):
     @wraps(function)
     def result(*args, **kwargs):
         try:
             return function(*args, **kwargs)
-        except:
+        except Exception:
             import sys
             import traceback
 

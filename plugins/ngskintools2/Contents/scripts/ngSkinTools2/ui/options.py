@@ -3,9 +3,9 @@ import json
 from maya import cmds
 
 from ngSkinTools2 import signal
-from ngSkinTools2.log import getLogger
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object, is_string
 from ngSkinTools2.observableValue import ObservableValue
-from ngSkinTools2.python_compatibility import Object, is_string
 
 log = getLogger("plugin")
 
@@ -32,14 +32,14 @@ class PersistentValue(Value):
     persistent value can store itself into Maya's "option vars" array
     """
 
-    def __init__(self, name, defaultValue=None, prefix=None):
+    def __init__(self, name, default_value=None, prefix=None):
         Value.__init__(self)
 
         if prefix is None:
             prefix = VAR_OPTION_PREFIX
         self.name = prefix + name
-        self.defaultValue = defaultValue
-        self.value = loadOption(self.name, self.defaultValue)
+        self.default_value = default_value
+        self.value = loadOption(self.name, self.default_value)
 
     def set(self, value):
         Value.set(self, value)
@@ -81,7 +81,7 @@ def saveOption(varName, value):
 VAR_OPTION_PREFIX = 'ngSkinTools2_'
 
 
-def deleteCustomOptions():
+def delete_custom_options():
     for varName in cmds.optionVar(list=True):
         if varName.startswith(VAR_OPTION_PREFIX):
             cmds.optionVar(remove=varName)
@@ -101,15 +101,15 @@ class Config(Object):
     mirrorInfluencesDefaults = build_config_property('mirrorInfluencesDefaults', "{}")  # type: string
 
     def __init__(self):
-        self.unique_client_id = PersistentValue('updateCheckUniqueClientId')
+        from ngSkinTools2.api.mirror import MirrorOptions
 
         self.__storage__ = PersistentValue("config", "{}")
         self.__state__ = self.load()
 
+        self.unique_client_id = PersistentValue('updateCheckUniqueClientId')
+
         self.checkForUpdatesAtStartup = self.build_observable_value('checkForUpdatesAtStartup', True)
         self.influences_show_used_influences_only = self.build_observable_value("influencesViewShowUsedInfluencesOnly", False)
-
-        from ngSkinTools2.api.mirror import MirrorOptions
 
         default_mirror_options = MirrorOptions()
         self.mirror_direction = self.build_observable_value("mirrorDirection", default_mirror_options.direction)

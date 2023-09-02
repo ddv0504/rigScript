@@ -18,8 +18,8 @@ import itertools
 import json
 import re
 
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object, is_string
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object, is_string
 
 log = getLogger("influenceMapping")
 
@@ -347,7 +347,6 @@ def distanceMatches(source_influences, destination_influences, threshold, mirror
 
     result = {}
     for source in source_influences:
-
         # if we're in mirror mode and near mirror axis, match self instead of other influence
         if mirror_mode and abs(source.pivot[mirror_axis]) < (threshold / 2.0):
             result[source] = source

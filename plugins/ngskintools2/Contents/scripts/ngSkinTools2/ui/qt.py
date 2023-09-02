@@ -5,7 +5,7 @@ from PySide2 import QtGui, QtWidgets
 from PySide2.QtWidgets import QWidget
 from shiboken2 import wrapInstance
 
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.python_compatibility import Object
 
 
 def wrap_layout_into_widget(layout):

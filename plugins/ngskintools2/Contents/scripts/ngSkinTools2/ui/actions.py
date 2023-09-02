@@ -2,6 +2,7 @@ from PySide2 import QtGui, QtWidgets
 
 from ngSkinTools2 import signal
 from ngSkinTools2.api import PasteOperation
+from ngSkinTools2.api.python_compatibility import Object
 from ngSkinTools2.api.session import Session
 from ngSkinTools2.operations import import_export_actions, import_v1_actions
 from ngSkinTools2.operations.layers import (
@@ -10,7 +11,6 @@ from ngSkinTools2.operations.layers import (
 )
 from ngSkinTools2.operations.paint import FloodAction, PaintAction
 from ngSkinTools2.operations.website_links import WebsiteLinksActions
-from ngSkinTools2.python_compatibility import Object
 from ngSkinTools2.ui import action
 from ngSkinTools2.ui.updatewindow import build_action_check_for_updates
 
@@ -37,7 +37,7 @@ def build_action_delete_custom_nodes_for_selection(parent, session):
     result = define_action(
         parent,
         "Delete Custom Nodes For Selection",
-        callback=lambda: removeLayerData.removeCustomNodesFromSelection(interactive=True, session=session),
+        callback=lambda: removeLayerData.remove_custom_nodes_from_selection(interactive=True, session=session),
     )
 
     @signal.on(session.events.nodeSelectionChanged)
@@ -87,7 +87,7 @@ class Actions(Object):
         self.toolsUnifyWeights, self.toolsUnifyWeightsOptions = tools.create_action__unify_weights(parent, session)
 
         self.toolsDeleteCustomNodes = define_action(
-            parent, "Delete All Custom Nodes", callback=lambda: removeLayerData.removeCustomNodes(interactive=True, session=session)
+            parent, "Delete All Custom Nodes", callback=lambda: removeLayerData.remove_custom_nodes(interactive=True, session=session)
         )
 
         self.toolsDeleteCustomNodesOnSelection = build_action_delete_custom_nodes_for_selection(parent, session)

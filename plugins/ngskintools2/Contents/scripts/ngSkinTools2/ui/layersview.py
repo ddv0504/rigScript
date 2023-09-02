@@ -1,8 +1,8 @@
 from PySide2 import QtCore, QtGui, QtWidgets
 
 from ngSkinTools2 import api, signal
+from ngSkinTools2.api.log import getLogger
 from ngSkinTools2.api.session import session
-from ngSkinTools2.log import getLogger
 from ngSkinTools2.ui import qt
 from ngSkinTools2.ui.layout import scale_multiplier
 

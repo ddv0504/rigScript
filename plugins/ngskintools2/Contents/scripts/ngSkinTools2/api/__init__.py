@@ -1,6 +1,6 @@
 from . import import_v1
 from .copy_paste_weights import PasteOperation, copy_weights, cut_weights, paste_weights
-from .import_export import export_json, import_json
+from .import_export import FileFormat, export_json, import_json
 from .influenceMapping import InfluenceInfo, InfluenceMapping, InfluenceMappingConfig
 from .layers import (
     Layer,
@@ -15,6 +15,7 @@ from .paint import (
     BrushProjectionMode,
     BrushShape,
     PaintMode,
+    PaintModeSettings,
     PaintTool,
     TabletMode,
     WeightsDisplayMode,
@@ -27,7 +28,6 @@ from .target_info import (
     list_influences,
 )
 from .tools import (
-    FloodSettings,
     assign_from_closest_joint,
     copy_component_weights,
     duplicate_layer,

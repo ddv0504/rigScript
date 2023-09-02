@@ -1,19 +1,34 @@
 from PySide2 import QtWidgets
 
 from ngSkinTools2 import api, signal
+from ngSkinTools2.ui.options import PersistentValue
+
+filter_normal_json = 'JSON files(*.json)'
+filter_compressed = 'Compressed JSON(*.json.gz)'
+file_dialog_filters = ";;".join([filter_normal_json, filter_compressed])
+
+format_map = {
+    filter_normal_json: api.FileFormat.JSON,
+    filter_compressed: api.FileFormat.CompressedJSON,
+}
+
+default_filter = PersistentValue("default_import_filter", default_value=api.FileFormat.JSON)
 
 
 def buildAction_export(session, parent):
     from ngSkinTools2.ui import actions
 
     def export_callback():
-
-        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(parent, "Export to Json", filter="JSON files(*.json)")
+        file_name, selected_filter = QtWidgets.QFileDialog.getSaveFileName(
+            parent, "Export to Json", filter=file_dialog_filters, selectedFilter=default_filter.get()
+        )
         if not file_name:
             return
 
+        default_filter.set(selected_filter)
+
         if session.state.layersAvailable:
-            api.export_json(session.state.selectedSkinCluster, file_name)
+            api.export_json(session.state.selectedSkinCluster, file_name, format=format_map[selected_filter])
 
     result = actions.define_action(
         parent,
@@ -31,16 +46,20 @@ def buildAction_export(session, parent):
     return result
 
 
-def buildAction_import(session, parent, fileDialogFunc=None):
+def buildAction_import(session, parent, file_dialog_func=None):
     from ngSkinTools2.ui import actions
     from ngSkinTools2.ui.transferDialog import LayersTransfer, UiModel, open
 
-    def defaultFileDialogFunc():
-        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(parent, "Import from Json", filter="JSON files(*.json)")
-        return file_name
+    def default_file_dialog_func():
+        file_name, selected_filter = QtWidgets.QFileDialog.getOpenFileName(
+            parent, "Import from Json", filter=file_dialog_filters, selectedFilter=default_filter.get()
+        )
+        if file_name:
+            default_filter.set(selected_filter)
+        return file_name, selected_filter
 
-    if fileDialogFunc is None:
-        fileDialogFunc = defaultFileDialogFunc
+    if file_dialog_func is None:
+        file_dialog_func = default_file_dialog_func
 
     def transfer_dialog(transfer):
         model = UiModel()
@@ -51,12 +70,12 @@ def buildAction_import(session, parent, fileDialogFunc=None):
         if session.state.selectedSkinCluster is None:
             return
 
-        file_name = fileDialogFunc()
+        file_name, selected_format = file_dialog_func()
         if not file_name:
             return
 
         t = LayersTransfer()
-        t.load_source_from_file(file_name)
+        t.load_source_from_file(file_name, format=format_map[selected_format])
         t.target = session.state.selectedSkinCluster
         t.customize_callback = transfer_dialog
         t.execute()

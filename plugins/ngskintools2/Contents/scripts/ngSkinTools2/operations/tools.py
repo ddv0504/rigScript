@@ -1,12 +1,12 @@
 from maya import cmds
 
 from ngSkinTools2 import api, signal
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object
 from ngSkinTools2.api.session import Session
 from ngSkinTools2.decorators import undoable
-from ngSkinTools2.log import getLogger
 from ngSkinTools2.observableValue import ObservableValue
 from ngSkinTools2.operations import layers
-from ngSkinTools2.python_compatibility import Object
 from ngSkinTools2.ui import dialogs
 
 logger = getLogger("operation/tools")
@@ -52,7 +52,7 @@ def create_action__from_closest_joint(parent, session):
         layer = session.state.currentLayer.layer
         influences = None
         if not options.all_influences():
-            influences = list(session.context.get_selected_influences())
+            influences = layer.paint_targets
             if not influences:
                 dialogs.info("Select one or more influences in Influences list")
                 return
@@ -254,7 +254,11 @@ def create_action__select_affected_vertices(parent, session):
         selected_layers = session.context.selected_layers(default=[])
         if not selected_layers:
             return
-        influences = session.context.selectedInfluences(default=[])
+
+        if not session.state.currentLayer.layer:
+            return
+
+        influences = session.state.currentLayer.layer.paint_targets
         if not influences:
             return
 

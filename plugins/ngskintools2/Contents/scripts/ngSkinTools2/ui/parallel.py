@@ -2,7 +2,7 @@ from threading import Thread
 
 from maya import utils
 
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.python_compatibility import Object
 
 
 class ParallelTask(Object):

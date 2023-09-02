@@ -3,9 +3,9 @@ from PySide2 import QtGui, QtWidgets
 from ngSkinTools2 import signal
 from ngSkinTools2.api import BrushShape, PaintMode, PaintTool, WeightsDisplayMode
 from ngSkinTools2.api import eventtypes as et
+from ngSkinTools2.api.log import getLogger
 from ngSkinTools2.api.paint import BrushProjectionMode
 from ngSkinTools2.api.session import session
-from ngSkinTools2.log import getLogger
 from ngSkinTools2.ui import qt, widgets
 from ngSkinTools2.ui.layout import TabSetup, createTitledRow
 from ngSkinTools2.ui.qt import bind_action_to_button
@@ -14,10 +14,18 @@ log = getLogger("tab paint")
 
 
 # noinspection PyShadowingNames
-def build_ui(parent, globalActions):
-    paint = PaintTool()
+def build_ui(parent, global_actions):
+    """
+    :type parent: PySide2.QtWidgets.QWidget
+    :type global_actions: ngSkinTools2.ui.actions.Actions
+    """
+    paint = session.paint_tool
+    # TODO: move paint model to session maybe?
 
     on_signal = session.signal_hub.on
+
+    def update_ui():
+        pass  # noop until it's defined
 
     def build_brush_settings_group():
         def brush_mode_row3():
@@ -76,7 +84,6 @@ def build_ui(parent, globalActions):
                 group.addAction(a)
 
                 # noinspection PyShadowingNames
-                @qt.on(a.toggled)
                 def toggled(checked):
                     if checked:
                         paint.brush_shape = shape
@@ -88,6 +95,7 @@ def build_ui(parent, globalActions):
                     a.setChecked(paint.brush_shape == shape)
 
                 update_to_tool()
+                qt.on(a.toggled)(toggled)
 
             add_brush_shape_action(':/circleSolid.png', 'Solid', BrushShape.solid, checked=True)
             add_brush_shape_action(':/circlePoly.png', 'Smooth', BrushShape.smooth)
@@ -129,7 +137,8 @@ def build_ui(parent, globalActions):
 
             add(
                 'Surface',
-                'Using first surface hit under the mouse, update all nearby vertices that are connected by surface to the hit location. Only current shell will be updated.',
+                'Using first surface hit under the mouse, update all nearby vertices that are connected by surface to the hit location. '
+                + 'Only current shell will be updated.',
                 BrushProjectionMode.surface,
                 use_volume=False,
                 checked=True,
@@ -166,14 +175,14 @@ def build_ui(parent, globalActions):
         layout.addLayout(createTitledRow("Brush shape:", brush_shape_row()))
         intensity = widgets.NumberSliderGroup()
         radius = widgets.NumberSliderGroup(
-            maximum=100, tooltip="You can also set brush radius by just holding <b>B</b> " "and mouse-dragging in the viewport"
+            max_value=100, tooltip="You can also set brush radius by just holding <b>B</b> " "and mouse-dragging in the viewport"
         )
-        iterations = widgets.NumberSliderGroup(value_type=int, minimum=1, maximum=100)
+        iterations = widgets.NumberSliderGroup(value_type=int, min_value=1, max_value=100)
         layout.addLayout(createTitledRow("Intensity:", intensity.layout()))
         layout.addLayout(createTitledRow("Brush radius:", radius.layout()))
         layout.addLayout(createTitledRow("Brush iterations:", iterations.layout()))
 
-        influences_limit = widgets.NumberSliderGroup(value_type=int, minimum=0, maximum=10)
+        influences_limit = widgets.NumberSliderGroup(value_type=int, min_value=0, max_value=10)
         layout.addLayout(createTitledRow("Influences limit:", influences_limit.layout()))
 
         @signal.on(influences_limit.valueChanged)
@@ -205,7 +214,7 @@ def build_ui(parent, globalActions):
 
         @qt.on(interactive_mirror.stateChanged)
         def interactive_mirror_changed():
-            paint.interactive_mirror = interactive_mirror.isChecked()
+            paint.mirror = interactive_mirror.isChecked()
             update_ui()
 
         sample_joint_on_stroke_start = QtWidgets.QCheckBox("Sample current joint on stroke start")
@@ -221,7 +230,7 @@ def build_ui(parent, globalActions):
 
         @qt.on(redistribute_removed_weight.stateChanged)
         def redistribute_removed_weight_changed():
-            paint.redistribute_removed_weight = redistribute_removed_weight.isChecked()
+            paint.distribute_to_other_influences = redistribute_removed_weight.isChecked()
             update_ui()
 
         stylus = stylus_pressure_selection()
@@ -230,14 +239,18 @@ def build_ui(parent, globalActions):
         @on_signal(et.tool_settings_changed, scope=layout)
         def update_ui():
             log.info("updated paint settings ui")
-            intensity.set_value(paint.brush_intensity)
+            log.info("brush mode:%s, brush shape: %s", paint.mode, paint.brush_shape)
+            paint.update_plugin_brush_radius()
+
+            intensity.set_value(paint.intensity)
             widgets.set_paint_expo(intensity, paint.paint_mode)
+            radius.set_range(0, 1000 if paint.brush_projection_mode == BrushProjectionMode.screen else 100, soft_max=True)
             radius.set_value(paint.brush_radius)
-            iterations.set_value(paint.brush_iterations)
+            iterations.set_value(paint.iterations)
             iterations.set_enabled(paint.paint_mode in [PaintMode.smooth, PaintMode.sharpen])
             stylus.setCurrentIndex(paint.tablet_mode)
-            interactive_mirror.setChecked(paint.interactive_mirror)
-            redistribute_removed_weight.setChecked(paint.redistribute_removed_weight)
+            interactive_mirror.setChecked(paint.mirror)
+            redistribute_removed_weight.setChecked(paint.distribute_to_other_influences)
             influences_limit.set_value(paint.influences_limit)
             sample_joint_on_stroke_start.setChecked(paint.sample_joint_on_stroke_start)
             fixed_influences.setChecked(paint.fixed_influences_per_vertex)
@@ -253,12 +266,12 @@ def build_ui(parent, globalActions):
 
         @signal.on(intensity.valueChanged, qtParent=layout)
         def intensity_edited():
-            paint.brush_intensity = intensity.value()
+            paint.intensity = intensity.value()
             update_ui()
 
         @signal.on(iterations.valueChanged, qtParent=layout)
         def iterations_edited():
-            paint.brush_iterations = iterations.value()
+            paint.iterations = iterations.value()
             update_ui()
 
         @qt.on(stylus.currentIndexChanged)
@@ -284,7 +297,7 @@ def build_ui(parent, globalActions):
         influences_display.setCurrentIndex(paint.weights_display_mode)
 
         display_toolbar = QtWidgets.QToolBar()
-        display_toolbar.addAction(globalActions.randomizeInfluencesColors)
+        display_toolbar.addAction(global_actions.randomizeInfluencesColors)
 
         @qt.on(influences_display.currentIndexChanged)
         def influences_display_changed():
@@ -329,14 +342,14 @@ def build_ui(parent, globalActions):
 
         @signal.on(session.events.toolChanged, qtParent=tab.tabContents)
         def update_ui_to_tool():
-            toggle_original_mesh.setChecked(paint.is_painting() and not paint.display_node_visible)
+            toggle_original_mesh.setChecked(PaintTool.is_painting() and not paint.display_node_visible)
 
             qt.select_data(influences_display, paint.weights_display_mode)
             show_effects.setChecked(paint.layer_effects_display)
             show_masked.setChecked(paint.display_masked)
             show_selected_verts_only.setChecked(paint.show_selected_verts_only)
-            globalActions.randomizeInfluencesColors.setEnabled(paint.weights_display_mode == WeightsDisplayMode.allInfluences)
-            display_toolbar.setVisible(globalActions.randomizeInfluencesColors.isEnabled())
+            global_actions.randomizeInfluencesColors.setEnabled(paint.weights_display_mode == WeightsDisplayMode.allInfluences)
+            display_toolbar.setVisible(global_actions.randomizeInfluencesColors.isEnabled())
 
         layout.addLayout(createTitledRow("", mesh_toolbar))
 
@@ -350,12 +363,12 @@ def build_ui(parent, globalActions):
     tab.innerLayout.addWidget(build_display_settings())
     tab.innerLayout.addStretch()
 
-    tab.lowerButtonsRow.addWidget(bind_action_to_button(globalActions.paint, QtWidgets.QPushButton()))
-    tab.lowerButtonsRow.addWidget(bind_action_to_button(globalActions.flood, QtWidgets.QPushButton()))
+    tab.lowerButtonsRow.addWidget(bind_action_to_button(global_actions.paint, QtWidgets.QPushButton()))
+    tab.lowerButtonsRow.addWidget(bind_action_to_button(global_actions.flood, QtWidgets.QPushButton()))
 
     @signal.on(session.events.toolChanged, qtParent=tab.tabContents)
     def update_to_tool():
-        tab.scrollArea.setEnabled(paint.is_painting())
+        tab.scrollArea.setEnabled(PaintTool.is_painting())
 
     @signal.on(session.events.targetChanged, qtParent=tab.tabContents)
     def update_tab_enabled():

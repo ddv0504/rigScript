@@ -1,5 +1,6 @@
 from ngSkinTools2 import signal
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.python_compatibility import Object
+from ngSkinTools2.api.session import Session
 
 
 class Action(Object):

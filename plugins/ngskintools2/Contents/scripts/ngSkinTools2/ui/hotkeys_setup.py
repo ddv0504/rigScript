@@ -34,13 +34,16 @@ hotkey -keyShortcut "b" -name ("SculptMeshActivateBrushSizeNameCommand") -releas
 
 from maya import cmds
 
-from ngSkinTools2.python_compatibility import is_string
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import is_string
 
 from . import hotkeys
 
 hotkeySetName = 'ngSkinTools2'
 context = 'ngst2PaintContext'
 command_prefix = "ngskintools_2_"  # maya breaks command name on capital letters and before numbers, so this will ensure that all command names start with "ngskintools 2 "
+
+log = getLogger("hotkeys setup")
 
 
 def uninstall_hotkeys():
@@ -167,13 +170,21 @@ def function_link(fun):
 
 class HotkeySetHandler:
     def __init__(self):
+        log.info("initializing new hotkey set handler")
         self.prev_hotkey_set = None
 
     def remember(self):
-        if self.prev_hotkey_set is None:
-            self.prev_hotkey_set = cmds.hotkeySet(q=True, current=True)
+        if self.prev_hotkey_set is not None:
+            return
+
+        log.info("remembering current hotkey set")
+        self.prev_hotkey_set = cmds.hotkeySet(q=True, current=True)
 
     def restore(self):
+        if self.prev_hotkey_set is None:
+            return
+
+        log.info("restoring previous hotkey set")
         cmds.hotkeySet(self.prev_hotkey_set, e=True, current=True)
         self.prev_hotkey_set = None
 

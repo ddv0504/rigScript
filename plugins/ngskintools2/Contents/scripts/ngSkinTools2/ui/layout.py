@@ -1,7 +1,7 @@
 from maya import cmds
 from PySide2 import QtCore, QtWidgets
 
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.python_compatibility import Object
 from ngSkinTools2.ui import qt
 
 try:

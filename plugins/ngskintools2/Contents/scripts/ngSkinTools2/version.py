@@ -1,5 +1,5 @@
 from ngSkinTools2.api import plugin
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.python_compatibility import Object
 
 COPYRIGHT = "<span>&copy; Viktoras Makauskas, 2012-2021</span>"
 PRODUCT_URL = "https://www.ngskintools.com"
@@ -10,7 +10,7 @@ def pluginVersion():
     Unique version of plugin, e.g. "1.0beta.680". Also represents
     required version of mll plugin. Automatically set at build time
     """
-    pluginVersion_doNotEdit = "2.0.39"
+    pluginVersion_doNotEdit = "2.0.44"
     return pluginVersion_doNotEdit
 
 
@@ -74,7 +74,7 @@ class SemanticVersion(Object):
         self.preRelease = result.group(8)
 
 
-def compareSemVer(currentVersion, candidateVersion):
+def compare_semver(currentVersion, candidateVersion):
     """
     returns negative if current version is bigger, 0 if versions are equal and positive if candidateVersion is higher.
 

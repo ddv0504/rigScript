@@ -23,12 +23,13 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "AS5.png" 
         -image1 "AS5.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "mel.eval(\"AdvancedSkeleton5;\")" 
         -sourceType "python" 
@@ -56,13 +57,14 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "JointOnCurve" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "curveAddPt.png" 
         -image1 "curveAddPt.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "import maya.cmds as cmds\nimport pymel.core as pm\n\ncurve = pm.ls(sl=True)[0]\ncurveShape = curve.getShape()\ncurveShape.getCVs()\n\nfor ep in range(curveShape.numEPs()):\n    cmds.select(cl=True)\n    editPoint = '%s.ep[%s]' % (curve.name(),ep)\n    point = cmds.xform(editPoint,ws=True,t=True,q=True)    \n    jnt = cmds.joint()\n    cmds.xform(jnt,t=point,ws=True)\n    cmds.connectAttr(editPoint,'%s.translate' % jnt,f=True)" 
         -sourceType "python" 
@@ -90,13 +92,14 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "ringRivetSkin" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "circlePoly.png" 
         -image1 "circlePoly.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "def ringFaceInfluenceSkinBind(skinObject,parentJnt):\n    faces = cmds.ls(sl=True,fl=True)\n    cmds.select(cl=True)\n    jntLst = []\n    for face in faces:\n        cmds.select(face,r=True)\n        cmds.Rivet()\n        pin,loc = cmds.ls(sl=True)\n        pin = cmds.rename(pin, '%s_UVPin' % face.split('.')[0])\n        loc = cmds.rename(loc, '%s_pinTransform' % face.split('.')[0])\n        cmds.delete(cmds.listRelatives(loc,c=True))\n        cmds.select(cl=True)\n        jnt = cmds.joint(name='%s_jnt' % loc)    \n        cmds.matchTransform(jnt,loc)\n        if cmds.objExists(parentJnt):\n            cmds.parent(jnt,parentJnt)\n        \n        cmds.connectAttr('%s.worldMatrix' % loc,'%s.offsetParentMatrix' % jnt,f=True)\n        cmds.matchTransform(jnt,loc)\n        jntLst.append(jnt)\n    \n    cmds.select(jntLst,r=True)\n    kwargs = {\n        'name': '%s_skinCluster' % skinObject,  # or whatever you want to call it...\n        'toSelectedBones': True,\n        'bindMethod': 0,\n        'skinMethod': 0,\n        'normalizeWeights': 1\n    }\n    scls = cmds.skinCluster(jntLst, skinObject, **kwargs)[0]\n     \ndef ringFaceInfluenceUI(*args):\n    if cmds.window('ringFaceInfluenceWindow',ex=True):\n        cmds.deleteUI('ringFaceInfluenceWindow')\n    cmds.window('ringFaceInfluenceWindow')\n    cmds.frameLayout(lv=False)\n    cmds.rowLayout(nc=2)\n    cmds.textFieldButtonGrp('jntParentField',l='Parent of joint',bl='<<',bc=lambda:cmds.textFieldButtonGrp('jntParentField',e=True,text=cmds.ls(sl=True)[0]))\n    cmds.setParent('..')\n    cmds.rowLayout(nc=2)\n    cmds.textFieldButtonGrp('skinObjField',l='Skin object',bl='<<',bc=lambda:cmds.textFieldButtonGrp('skinObjField',e=True,text=cmds.ls(sl=True)[0]))\n    cmds.setParent('..')\n    \n    cmds.button(l='Execute',c=lambda *args:ringFaceInfluenceSkinBind(cmds.textFieldButtonGrp('skinObjField',q=True,text=True),cmds.textFieldButtonGrp('jntParentField',q=True,text=True)))\n    cmds.showWindow()\n\nringFaceInfluenceUI()" 
         -sourceType "python" 
@@ -124,12 +127,13 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "kinJoint.png" 
         -image1 "kinJoint.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "JointTool" 
         -sourceType "mel" 
@@ -157,13 +161,14 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "ReSample" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "orientJoint.png" 
         -image1 "orientJoint.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "try:\n    mel.eval('asFitResample;')\nexcept Exception as e:\n    mel.eval('AdvancedSkeleton5;')\n    mel.eval('asFitResample;')" 
         -sourceType "python" 
@@ -191,12 +196,13 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "orientJoint.png" 
         -image1 "orientJoint.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "OrientJointOptions" 
         -sourceType "mel" 
@@ -206,7 +212,7 @@ global proc ztRigBuild () {
     shelfButton
         -enableCommandRepeat 1
         -flexibleWidthType 3
-        -flexibleWidthValue 31
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -224,13 +230,14 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "JTT" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "targetTransfo.png" 
         -image1 "targetTransfo.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from imp import reload\nimport ztRigUtils.ztRigUtil as rigUtil\nreload(rigUtil)\nobjs = cmds.ls(sl=True)\nrigUtil.createJntToTarget(objs)" 
         -sourceType "python" 
@@ -240,7 +247,7 @@ global proc ztRigBuild () {
     shelfButton
         -enableCommandRepeat 1
         -flexibleWidthType 3
-        -flexibleWidthValue 37
+        -flexibleWidthValue 38
         -enable 1
         -width 32
         -height 32
@@ -258,13 +265,14 @@ global proc ztRigBuild () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "renamer" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "transformation.png" 
         -image1 "transformation.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScripts\n\nmel.eval('source \"%s/renameAdvanced\";' % melScripts.path.replace('\\\\','/'))" 
         -sourceType "python" 

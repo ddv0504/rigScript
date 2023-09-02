@@ -25,12 +25,13 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "smoothSkin.png" 
         -image1 "smoothSkin.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "SmoothBindSkinOptions" 
         -sourceType "mel" 
@@ -58,12 +59,13 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "paintSkinWeights.png" 
         -image1 "paintSkinWeights.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "ArtPaintSkinWeightsTool" 
         -sourceType "mel" 
@@ -91,12 +93,13 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "brSmoothWeights.svg" 
         -image1 "brSmoothWeights.svg" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "brSmoothWeightsToolCtx" 
         -sourceType "mel" 
@@ -124,12 +127,13 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "ngSkinTools2ShelfIcon.png" 
         -image1 "ngSkinTools2ShelfIcon.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "import ngSkinTools2; ngSkinTools2.open_ui()" 
         -sourceType "python" 
@@ -157,12 +161,13 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "skinWeightEditor.png" 
         -image1 "skinWeightEditor.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "import SkinMagic\nreload(SkinMagic)\nexecfile('%s/skinMagic.py' % SkinMagic.path)" 
         -sourceType "python" 
@@ -190,12 +195,13 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "addWrapInfluence.png" 
         -image1 "addWrapInfluence.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "AddInfluence" 
         -sourceType "mel" 
@@ -221,12 +227,13 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "removeWrapInfluence.png" 
         -image1 "removeWrapInfluence.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "RemoveInfluence" 
         -sourceType "mel" 
@@ -254,12 +261,13 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "mirrorSkinWeight.png" 
         -image1 "mirrorSkinWeight.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "MirrorSkinWeightsOptions" 
         -sourceType "mel" 
@@ -287,13 +295,14 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "COPY" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "commandButton.png" 
         -image1 "commandButton.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "source \"skinCopyWithSkinNew.mel\"; skinCopyWithSkinNew; repeatLast -ac skinCopyWithSkinNew" 
         -sourceType "mel" 
@@ -319,13 +328,14 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "PSW" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconSkinning.png" 
         -image1 "menuIconSkinning.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "PruneSmallWeights" 
         -sourceType "mel" 
@@ -351,13 +361,14 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "RUI" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconSkinning.png" 
         -image1 "menuIconSkinning.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "removeUnusedInfluences;" 
         -sourceType "mel" 
@@ -385,13 +396,14 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "CMF" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "setMaxInfluence.png" 
         -image1 "setMaxInfluence.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from ztRigUtils import ztRigUtil\nreload(ztRigUtil)\n\nztRigUtil.checkMaxSkinInfluences()" 
         -sourceType "python" 
@@ -419,13 +431,14 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "skinWeightLock" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "bind.png" 
         -image1 "bind.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from ztRigUtils import infLockerUI\nreload(infLockerUI)\ninfLockerUI.main()" 
         -sourceType "python" 
@@ -453,13 +466,14 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "HSW" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconSkinning.png" 
         -image1 "menuIconSkinning.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "weightHammerVerts" 
         -sourceType "mel" 
@@ -487,12 +501,13 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "cleanUpRig.png" 
         -image1 "cleanUpRig.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from ztRigUtils import tak_cleanUpRig\nreload(tak_cleanUpRig)\ntak_cleanUpRig.ui()" 
         -sourceType "python" 
@@ -520,13 +535,14 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "CVW" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconSkinning.png" 
         -image1 "menuIconSkinning.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "CopyVertexWeights" 
         -sourceType "mel" 
@@ -554,13 +570,14 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "PVW" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconSkinning.png" 
         -image1 "menuIconSkinning.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "PasteVertexWeights" 
         -sourceType "mel" 
@@ -586,12 +603,13 @@ global proc ztRigDeformation () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "paintCluster.png" 
         -image1 "paintCluster.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "PaintClusterWeightsToolOptions" 
         -sourceType "mel" 

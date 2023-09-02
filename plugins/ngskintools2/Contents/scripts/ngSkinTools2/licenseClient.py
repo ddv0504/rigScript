@@ -11,10 +11,12 @@ from maya import utils as mu
 
 from ngSkinTools2 import cleanup, signal
 from ngSkinTools2.api import plugin
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import HTTPError, Object, Request, urlopen
+from ngSkinTools2.api.http_client import HTTPError, Request, urlopen
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object
 from ngSkinTools2.ui import options
 from ngSkinTools2.ui.parallel import ParallelTask
+from ngSkinTools2.version import compare_semver
 
 log = getLogger("license client")
 
@@ -106,12 +108,16 @@ class LicenseServerClient(Object):
             req.data = req_contents.encode()
             req.add_header("content-type", "application/json")
 
-            resp = urlopen(req, timeout=self.timeout).read()
+            resp = urlopen(req, timeout=self.timeout)
+            # check response version first before validating body
+            check_minimum_required_server_version(resp.headers.get("server-version", None))
+
+            resp_body = resp.read()
             if should_abort():
                 return
 
             self.lastError = None
-            main_thread.execute(checkin_response, resp)
+            main_thread.execute(checkin_response, resp_body)
         except HTTPError as err:
             code = err.getcode()
 
@@ -123,6 +129,9 @@ class LicenseServerClient(Object):
             communication_error = "{0} ({1})".format(message, code)
 
         except IOError as err:
+            communication_error = str(err)
+
+        except Exception as err:
             communication_error = str(err)
 
         if should_abort():
@@ -181,6 +190,19 @@ class LicenseServerClient(Object):
 
         self.serverUrl = server_address
         self.run_license_reservation_thread()
+
+
+def check_minimum_required_server_version(actual_version):
+    if actual_version == "v1.0.0-dev":
+        # special case for development version of the server
+        return
+
+    minimum_required = "v1.0.22"
+    if actual_version is None or actual_version.strip() == "":
+        raise Exception("License server version unknown: please upgrade to version %s or above" % minimum_required)
+
+    if compare_semver(minimum_required.lstrip("v"), actual_version.lstrip("v")) < 0:
+        raise Exception("License server version too low: current version is %s, need version %s or above" % (actual_version, minimum_required))
 
 
 class StoppableThread(Thread):
@@ -518,6 +540,11 @@ class LicenseData:
     def has_errors(self):
         return bool(self.errors)
 
+    def __repr__(self):
+        return "LicenseData(active:{self.active}, status_description: {self.status_description!r}, licensed_to: {self.licensed_to!r}, errors: {self.errors}".format(
+            self=self
+        )
+
 
 class LicenseClient:
     def __init__(self):
@@ -580,7 +607,6 @@ class LicenseClient:
         self.__reset_errors()
 
         def done(context):
-
             if context.error:
                 self.errors.append(context.error)
             if context.conf is not None:
@@ -609,3 +635,20 @@ class LicenseClient:
 
         self.__apply_and_save_configuration(conf)
         self.serverClient.refresh_reservation()
+
+    def should_show_evaluation_banner(self):
+        """
+        returns true if we should show evaluation banner in main UI
+        """
+        status = self.current_status()
+        if status.active:
+            return False
+
+        if status.errors:
+            return True
+
+        # in case there's no errors, and the thread is still running, wait for the current thread to complete
+        if self.serverClient.current_thread is not None:
+            return False
+
+        return True

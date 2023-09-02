@@ -23,13 +23,14 @@ global proc ztView () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "VtxId" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconDisplay.png" 
         -image1 "menuIconDisplay.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "ToggleVertIDs" 
         -sourceType "mel" 
@@ -55,13 +56,14 @@ global proc ztView () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "CVs" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconDisplay.png" 
         -image1 "menuIconDisplay.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "ToggleCVs" 
         -sourceType "mel" 
@@ -87,13 +89,14 @@ global proc ztView () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "Vert" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconDisplay.png" 
         -image1 "menuIconDisplay.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "ToggleVertices" 
         -sourceType "mel" 
@@ -121,13 +124,14 @@ global proc ztView () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "Jnt" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconDisplay.png" 
         -image1 "menuIconDisplay.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "curPanel = cmds.getPanel(withFocus=True)\nstate = cmds.modelEditor(curPanel, q=True, joints=True)\nif state:\n    cmds.modelEditor(curPanel, e=True, joints=False)\nelse:\n    cmds.modelEditor(curPanel, e=True, joints=True)" 
         -sourceType "python" 
@@ -153,13 +157,14 @@ global proc ztView () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "Poly" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "menuIconDisplay.png" 
         -image1 "menuIconDisplay.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "curPanel = cmds.getPanel(withFocus=True)\nstate = cmds.modelEditor(curPanel, q=True, polymeshes=True)\nif state:\n    cmds.modelEditor(curPanel, e=True, polymeshes=False)\nelse:\n    cmds.modelEditor(curPanel, e=True, polymeshes=True)" 
         -sourceType "python" 

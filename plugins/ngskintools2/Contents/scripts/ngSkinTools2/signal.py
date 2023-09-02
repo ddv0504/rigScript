@@ -11,8 +11,8 @@ New system is changing to allow decoupling subscribers and receivers, and allowi
 from functools import partial
 
 from ngSkinTools2 import cleanup
-from ngSkinTools2.log import getLogger
-from ngSkinTools2.python_compatibility import Object
+from ngSkinTools2.api.log import getLogger
+from ngSkinTools2.api.python_compatibility import Object
 
 log = getLogger("signal")
 
@@ -52,7 +52,8 @@ class SignalQueue(Object):
 
             current_handler += 1
 
-        log.info("handler queue finished with %d items", len(self.queue))
+        if len(self.queue) > 50:
+            log.info("handler queue finished with %d items", len(self.queue))
         self.queue = []
 
 

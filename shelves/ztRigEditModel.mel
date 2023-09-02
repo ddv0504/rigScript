@@ -25,12 +25,13 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "Sculpt.png" 
         -image1 "Sculpt.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "SetMeshSculptTool" 
         -sourceType "mel" 
@@ -59,12 +60,13 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "Grab.png" 
         -image1 "Grab.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "SetMeshGrabTool" 
         -sourceType "mel" 
@@ -93,12 +95,13 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "Smooth.png" 
         -image1 "Smooth.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "SetMeshSmoothTool" 
         -sourceType "mel" 
@@ -127,12 +130,13 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "Relax.png" 
         -image1 "Relax.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "SetMeshRelaxTool" 
         -sourceType "mel" 
@@ -161,12 +165,13 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "putty.png" 
         -image1 "putty.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "SculptGeometryTool" 
         -sourceType "mel" 
@@ -195,13 +200,14 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -imageOverlayLabel "modelTools" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "modelToolkit.png" 
         -image1 "modelToolkit.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "import ztModelTool\nreload(ztModelTool)\nztModelTool.main()" 
         -sourceType "python" 
@@ -218,40 +224,6 @@ global proc ztRigEditModel () {
         -manage 1
         -visible 1
         -preventOverride 0
-        -annotation "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScript..." 
-        -enableBackground 0
-        -backgroundColor 0 0 0 
-        -highlightColor 0.321569 0.521569 0.65098 
-        -align "center" 
-        -label "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScript..." 
-        -labelOffset 0
-        -rotation 0
-        -flipX 0
-        -flipY 0
-        -useAlpha 1
-        -imageOverlayLabel "AriSymmetryChecker" 
-        -overlayLabelColor 0.8 0.8 0.8 
-        -overlayLabelBackColor 0 0 0 0.5 
-        -image "AriSymmetryChecker.png" 
-        -image1 "AriSymmetryChecker.png" 
-        -style "iconOnly" 
-        -marginWidth 1
-        -marginHeight 1
-        -command "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScripts\n\nmel.eval('source \"%s/AriSymmetryChecker\";AriSymmetryChecker();' % melScripts.path.replace('\\\\','/'))" 
-        -sourceType "python" 
-        -commandRepeatable 1
-        -flat 1
-    ;
-    shelfButton
-        -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 32
-        -enable 1
-        -width 32
-        -height 32
-        -manage 1
-        -visible 1
-        -preventOverride 0
         -enableBackground 0
         -backgroundColor 0 0 0 
         -highlightColor 0.321569 0.521569 0.65098 
@@ -261,12 +233,13 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "cleanUpMesh.bmp" 
         -image1 "cleanUpMesh.bmp" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from ztRigUtils import tak_cleanUpModel\nreload(tak_cleanUpModel)\ntak_cleanUpModel.UI()" 
         -sourceType "python" 
@@ -294,12 +267,13 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "paintBlendshape.png" 
         -image1 "paintBlendshape.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "ArtPaintBlendShapeWeightsToolOptions" 
         -sourceType "mel" 
@@ -327,12 +301,13 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "QuadRemesher.png" 
         -image1 "QuadRemesher.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "import QuadRemesher\nQuadRemesher.QuadRemesher()" 
         -sourceType "python" 
@@ -358,12 +333,13 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "dupMatAssign.png" 
         -image1 "dupMatAssign.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from ztRigUtils import tak_misc\nreload(tak_misc)\ntak_misc.dupMatAndAssign()" 
         -sourceType "python" 
@@ -389,12 +365,13 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "lambertWithSelectedTexture.png" 
         -image1 "lambertWithSelectedTexture.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from ztRigUtils import tak_misc\nreload(tak_misc)\ntak_misc.assignLambertWithSelectedTexture()" 
         -sourceType "python" 
@@ -420,14 +397,118 @@ global proc ztRigEditModel () {
         -flipX 0
         -flipY 0
         -useAlpha 1
+        -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
         -image "solColorMat.bmp" 
         -image1 "solColorMat.bmp" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "from ztRigUtils import tak_misc\nreload(tak_misc)\ntak_misc.solidColMat()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScript..." 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScript..." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "AriSymmetryChecker" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "AriSymmetryChecker.png" 
+        -image1 "AriSymmetryChecker.png" 
+        -style "iconOnly" 
+        -marginWidth 0
+        -marginHeight 1
+        -command "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScripts\n\nmel.eval('source \"%s/AriSymmetryChecker\";AriSymmetryChecker();' % melScripts.path.replace('\\\\','/'))" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScript..." 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "AriMirror" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "AriMirror.png" 
+        -image1 "AriMirror.png" 
+        -style "iconOnly" 
+        -marginWidth 0
+        -marginHeight 1
+        -command "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScripts\n\nmel.eval('source \"%s/AriMirror\";AriMirror();' % melScripts.path.replace('\\\\','/'))" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "AriAdsorptionVertex" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "AriAdsorptionVertex" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "AriAdsorptionVertex.png" 
+        -image1 "AriAdsorptionVertex.png" 
+        -style "iconOnly" 
+        -marginWidth 0
+        -marginHeight 1
+        -command "import maya.cmds as cmds\nimport maya.mel as mel\nimport melScripts\n\nmel.eval('source \"%s/AriAdsorptionVertex\";' % melScripts.path.replace('\\\\','/'))\nmel.eval('source \"%s/AriAdsorptionVertexOptions\";AriAdsorptionVertexOptions();' % melScripts.path.replace('\\\\','/'))" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1

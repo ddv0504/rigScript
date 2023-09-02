@@ -3,10 +3,11 @@ import webbrowser
 from PySide2 import QtWidgets
 from PySide2.QtCore import Qt
 
+from ngSkinTools2.api import versioncheck
+from ngSkinTools2.api.log import getLogger
 from ngSkinTools2.ui.options import bind_checkbox, config
 
-from .. import cleanup, signal, version, versioncheck
-from ..log import getLogger
+from .. import cleanup, signal, version
 from . import qt
 from .layout import scale_multiplier
 
@@ -50,7 +51,7 @@ def show(parent, silent_mode):
         def success_handler(info):
             """
 
-            :type info: ngSkinTools2.versioncheck.UpdateInfo
+            :type info: ngSkinTools2.api.versioncheck.
             """
 
             header.setText("<strong>{0}</strong>".format('Update available!' if info.update_available else 'ngSkinTools is up to date.'))
