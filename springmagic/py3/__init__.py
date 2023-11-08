@@ -1,7 +1,5 @@
-import os
-import sys
-
-path = os.path.dirname(__file__)
+__version__ = "3.5a"
+from springmagic.py3.main import main
 
 
 def version():

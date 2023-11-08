@@ -8,7 +8,7 @@ import datetime
 import maya.mel as mel
 import pymel.core as pm
 
-import springmagic.core as core
+import springmagic.py2.core as core
 
 from shutil import copyfile
 
@@ -19,7 +19,7 @@ scriptName = inspect.getframeinfo(inspect.currentframe()).filename
 scriptPath = os.path.dirname(os.path.abspath(scriptName))
 
 # Parameter Initialization
-ui_file = scriptPath + os.sep + 'springMagic.ui'
+ui_file = scriptPath + os.sep + 'springMagic.py2.ui'
 
 # Constants
 kPaypalLink = r'https://www.paypal.me/Yanbin'
