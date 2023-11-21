@@ -6,6 +6,8 @@ global proc ztAnimation () {
 
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -30,7 +32,7 @@ global proc ztAnimation () {
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "GraphEditor" 
         -sourceType "mel" 
@@ -39,6 +41,8 @@ global proc ztAnimation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -63,7 +67,7 @@ global proc ztAnimation () {
         -image "menuIconWindow.png" 
         -image1 "menuIconWindow.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "OutlinerWindow" 
         -sourceType "mel" 
@@ -72,6 +76,8 @@ global proc ztAnimation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -95,7 +101,7 @@ global proc ztAnimation () {
         -image "blendShapeEditor.png" 
         -image1 "blendShapeEditor.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "ShapeEditor" 
         -sourceType "mel" 
@@ -104,6 +110,8 @@ global proc ztAnimation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -127,7 +135,7 @@ global proc ztAnimation () {
         -image "rivet.bmp" 
         -image1 "rivet.bmp" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "rivet" 
         -sourceType "mel" 
@@ -136,6 +144,8 @@ global proc ztAnimation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -159,7 +169,7 @@ global proc ztAnimation () {
         -image "N:/sccEnv/rigScript/icons/asBiped.png" 
         -image1 "N:/sccEnv/rigScript/icons/asBiped.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "source \"biped.mel\";asSelectorbiped;" 
         -sourceType "mel" 
@@ -168,6 +178,8 @@ global proc ztAnimation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -191,7 +203,7 @@ global proc ztAnimation () {
         -image "asFace.png" 
         -image1 "asFace.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "source \"face.mel\";asSelectorface;" 
         -sourceType "mel" 
@@ -200,6 +212,8 @@ global proc ztAnimation () {
     ;
     shelfButton
         -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
         -enable 1
         -width 32
         -height 32
@@ -223,9 +237,9 @@ global proc ztAnimation () {
         -image "springMagic.png" 
         -image1 "springMagic.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
-        -command "import springmagic\nexecfile('%s/springMagic.py' % springmagic.path)" 
+        -command "from imp import reload\nimport SpringMagic\nreload(SpringMagic)\n\nSpringMagic.main()\n" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1

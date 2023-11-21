@@ -1,5 +1,5 @@
-import springmagic.py2
-import springmagic.py2.ui as ui
+import springmagic
+import springmagic.ui as ui
 
 def main(*args, **kwargs):
 

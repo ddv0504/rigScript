@@ -1,13 +1,13 @@
-import os
 import sys
+import os
+currentPath = os.path.dirname(__file__)
+if sys.version.startswith('3'):
+    pythonPath = os.path.join(currentPath, 'py3')
+    sys.path.append(pythonPath)
+else:
+    pythonPath = os.path.join(currentPath, 'py2')
+    sys.path.append(pythonPath)
 
-path = os.path.dirname(__file__)
-
-
-def version():
-    """
-    Return the current version of the Spring Magic
-
-    :rtype: str
-    """
-    return __version__
+def main():
+    import springmagic
+    springmagic.main()
