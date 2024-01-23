@@ -1,0 +1,247 @@
+// ===========================================================================
+// Copyright 2022 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+//
+//  Creation Date:  Apr, 2004
+//
+//  Procedure Name:
+//      performArmSetup
+//
+//  Description:
+//        
+//         
+//  Input Arguments:
+//        $option : Whether to set the options to default values.
+//  Return Value:
+//        None
+//
+
+global proc getArmSetupControl(string $control){
+	string $selection[] = `ls -sl`;
+	
+	if ($control == "elbow"){
+		textFieldButtonGrp -edit 
+			-text ($selection[0]) 
+			armElbowControlBtn;
+	}else{
+		textFieldButtonGrp -edit 
+			-text ($selection[0]) 
+			armHandControlBtn;
+	}
+
+}
+
+
+
+proc setOptionVars (int	$forceFactorySettings)
+{
+	optionVar -init $forceFactorySettings -category "Bonus Tools.Rigging.Setup Arm"
+		-iv "armTwistJoint" 1
+		-sv "armHandControl" ""
+		-sv "armElbowControl" ""
+		;
+}
+
+global proc armSetupSetup (string $parent, int $forceFactorySettings)
+{
+	setOptionVars($forceFactorySettings);
+	setParent $parent;
+
+	radioButtonGrp
+        -edit
+        -select `optionVar -query armTwistJoint`
+        armTwistJoint;
+
+	textFieldButtonGrp -edit
+		-text `optionVar -query armHandControl`
+		armHandControlBtn;
+
+	textFieldButtonGrp -edit
+		-text `optionVar -query armElbowControl`
+		armElbowControlBtn;
+
+}
+
+global proc armSetupCallback (string $parent, int $doIt)
+{	
+	setParent $parent;
+
+	optionVar -intValue "armTwistJoint"
+		`radioButtonGrp -query -select armTwistJoint`;
+
+	optionVar -stringValue "armHandControl"
+		`textFieldButtonGrp -query -text armHandControlBtn`;
+
+	optionVar -stringValue "armElbowControl"
+		`textFieldButtonGrp -query -text armElbowControlBtn`;
+
+	if ($doIt) 
+	{
+		performArmSetup 0;
+		string $tmpCmd = "performArmSetup 0 ";
+		addToRecentCommandQueue $tmpCmd "Setup Arm";
+	}
+}
+
+proc armSetupOptions ()
+{
+	string $commandName = "armSetup";
+	string $callback = ($commandName + "Callback");
+	string $setup = ($commandName + "Setup");
+	//	STEP 1:  Get the option box.
+	//	============================
+	//
+	string $layout = getOptionBox();
+	setParent $layout;
+	//	STEP 2:  Pass the command name to the option box.
+	//	=================================================
+	//
+	setOptionBoxCommandName($commandName);
+	//	STEP 3:  Activate the default UI template.
+	//	==========================================
+	//
+	setUITemplate -pushTemplate DefaultTemplate;
+	//	STEP 4: Create option box contents.
+	//	===================================
+	//
+	waitCursor -state 1;
+	
+	string $parent = `columnLayout -adjustableColumn 1`;
+
+	/*
+	frameLayout -label "Image" 
+		-borderStyle "etchedIn"
+		-collapsable 0;
+	*/
+
+	columnLayout;
+
+	radioButtonGrp
+		-numberOfRadioButtons 2
+		-label "Twist Joints"
+		-labelArray2 "No" "Yes"
+		-select 1
+		armTwistJoint;
+
+	textFieldButtonGrp -label "Hand Control" 
+		-buttonLabel "Set"
+		-buttonCommand "getArmSetupControl hand"
+		-editable true
+		-annotation ("Select the hand control object or leave blank for the default control.")
+		armHandControlBtn;
+
+	textFieldButtonGrp -label "Elbow Control" 
+		-buttonLabel "Set"
+		-buttonCommand "getArmSetupControl elbow"
+		-editable true
+		-annotation ("Select the elbow control object or leave blank for the default control.")
+		armElbowControlBtn;
+	
+	setParent ..;
+
+	setParent ..;
+
+	//copyAttrib
+	
+	setParent -menu ..;
+
+	waitCursor -state 0;
+	//	Step 5: Deactivate the default UI template.
+	//	===========================================
+	//
+	setUITemplate -popTemplate;
+
+	//	Step 6: Customize the buttons.  
+	//	==============================
+	//
+	string $applyBtn = getOptionBoxApplyBtn();
+	button -edit 
+		-label "Apply"
+		-command ($callback + " " + $parent + " " + 1) 
+		$applyBtn;
+	
+	string $applyAndCloseBtn = getOptionBoxApplyAndCloseBtn();
+	button -edit 
+		-label "Setup Arm"
+		$applyAndCloseBtn;
+
+	string $saveBtn = getOptionBoxSaveBtn();
+	button -edit 
+		-command ($callback + " " + $parent + " " + 0 + " " +"; hideOptionBox")
+		$saveBtn;
+
+	string $resetBtn = getOptionBoxResetBtn();
+	button -edit 
+		-command ($setup + " " + $parent + " " + 1)
+		$resetBtn;
+
+	//	Step 7: Set the option box title.
+	//	=================================
+	//
+	setOptionBoxTitle("Setup Arm Options");
+	//	Step 8: Customize the 'Help' menu item text.
+	//	============================================
+	//
+	//setOptionBoxHelpTag("Poly Attribute Map");
+	//	Step 9: Set the current values of the option box.
+	//	=================================================
+	//
+	eval (($setup + " " + $parent + " " + 0));
+	//	Step 10: Show the option box.
+	//	=============================
+	//
+	showOptionBox();
+}
+
+
+proc string assembleCmd()
+{
+	setOptionVars (false);
+
+	int $doHistory = `constructionHistory -q -toggle`;
+	int $twistJoint= `optionVar -query "armTwistJoint"`;
+	string $handControl = `optionVar -query "armHandControl"`;
+	string $armElbowControl = `optionVar -query "armElbowControl"`;
+	$twistJoint = $twistJoint - 1;
+
+	string $cmd = "armSetup \"";
+	$cmd += $handControl;
+	$cmd += "\" \"";
+	$cmd += $armElbowControl;
+	$cmd += "\" ";
+	$cmd += $twistJoint;
+
+	//print $cmd;
+	return $cmd;	
+}
+
+
+global proc string performArmSetup (int $option)
+{
+    source armSetup;
+    
+	string $cmd="";
+
+	switch ($option) 
+	{
+		case 0:
+			$cmd = `assembleCmd`;
+			eval($cmd);
+			break;
+		case 1:
+			armSetupOptions;
+			break;
+		case 2:
+			$cmd = `assembleCmd`;
+			break;
+	}
+	return $cmd;
+}

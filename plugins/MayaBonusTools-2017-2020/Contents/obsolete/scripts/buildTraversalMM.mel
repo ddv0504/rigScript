@@ -1,5 +1,5 @@
 // ===========================================================================
-// Copyright 2021 Autodesk, Inc. All rights reserved.
+// Copyright 2022 Autodesk, Inc. All rights reserved.
 //
 // Use of this software is subject to the terms of the Autodesk license
 // agreement provided at the time of installation or download, or which
@@ -130,7 +130,7 @@ proc int fillSpokes( string $preferredNode, string $nodes[], int $spokes[], int 
 		case 2:
 			$moreLabel = "Downstream...";
 			$overflowSpokes = "{2,1,3,0,4}";
-			$image = "futurePulldownIcon.png";
+			$image = "outArrow.png";
 			break;
 		case 4:
 			$moreLabel = "Children...";
@@ -140,7 +140,7 @@ proc int fillSpokes( string $preferredNode, string $nodes[], int $spokes[], int 
 		case 6:
 			$moreLabel = "Upstream...";
 			$overflowSpokes = "{6,5,7,4,0}";
-			$image = "historyPulldownIcon.png";
+			$image = "inArrow.png";
 	}
 	global string $gSpokes[];
 

@@ -1,0 +1,38 @@
+// ===========================================================================
+// Copyright 2022 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+
+global proc performSelectEveryNEdge(){
+
+
+	string $result = `confirmDialog -title "Select Every N Edge Options" 
+		-message "Select every N edges as"
+ 		-button "Command" 
+ 		-button "Tool" 
+ 		-defaultButton "Command"
+ 		//-cancelButton "No" 
+ 		//-dismissString "No"
+ 		`;
+ 	
+ 	int $state;	
+ 	
+ 	if ($result == "Command"){
+ 		$state = 0;
+ 		selectEveryNEdge;
+ 		}
+ 	else{
+ 		$state = 1;
+ 		selectEveryNEdgeTool;
+ 		}	
+ 		
+ 	optionVar -intValue "selectEveryNEdgeTool" $state;
+ 	
+ }

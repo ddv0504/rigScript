@@ -1,0 +1,34 @@
+// ===========================================================================
+// Copyright 2022 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+//
+// Created:        ( 04/01/15 )
+
+
+global proc bt_toggleParallelEval()
+{
+	//Toggle GPU Accel mode for selected models for if nothing selected toggle for all panels	
+	
+	$evalMode = `evaluationManager -q -enabled`;
+		
+	if ($evalMode == 1)
+		{
+        evaluationManager -mode "off";
+        SetEvaluationManagerHUDVisibility 1 ;
+        inViewMessage -smg "Parellel evalution disabled.  Evaluation mode set to DG." -pos midCenter -bkc 0x11111111 -alpha .5 -fade -fst 3000;
+        }
+	else
+		{
+        evaluationManager -mode "parallel";
+        SetEvaluationManagerHUDVisibility 1 ;
+        inViewMessage -smg "Parellel evalution enabled." -pos midCenter -bkc 0x11111111 -alpha .5 -fade -fst 3000;
+        }
+}

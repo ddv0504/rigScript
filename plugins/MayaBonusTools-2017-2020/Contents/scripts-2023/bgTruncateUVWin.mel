@@ -1,0 +1,35 @@
+// ===========================================================================
+// Copyright 2022 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+// bgTruncateUVWin.mel
+//
+
+global proc bgTruncateUVWin(){
+
+	string $text;
+	string $result = `promptDialog
+		-title "UV Precision Window"
+		-message "Enter number of decimal places for selected UV values:"
+		-messageAlign "left"
+		-text "2"
+		-button "OK" 
+		-button "Cancel"
+		-defaultButton "OK" 
+		-cancelButton "Cancel"
+		-dismissString "Cancel"
+		`;
+
+	if ($result == "OK") {
+		$text = `promptDialog -query truncateUVDialog`;
+		truncateUV $text;
+	}
+
+}

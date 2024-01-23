@@ -1,0 +1,220 @@
+// ===========================================================================
+// Copyright 2022 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+// ===========================================================================
+//
+// agreement provided at the time of installation or download, or which
+// ==========================================================================
+//+
+
+// This procedure creates an extrusion from the current selection.  The selection
+// must consist of a polygonal mesh representing the shape to extrude, and a nurbs curve
+// defining the extrusion path.
+global proc bt_createMeshInstanceExtrude()
+{
+	int $numCurves, $numMeshes, $i, $j, $k;
+	string $curveList[], $meshList[];
+	string $selectionList[];
+	$numCurves = 0;
+	$numMeshes = 0;
+
+	// Get the selection and find a mesh and nurbsCurve in it.  If the selection
+	// doesn't contain a mesh and curve, display an error and return.
+	$selectionList=`ls -selection -long`;
+	clear ($curveList);
+
+	for ($i = 0; $i < size($selectionList); $i++)
+	{
+		string $node = $selectionList[$i];
+		if (`nodeType $node` == "nurbsCurve")
+	    {
+			$curveList[$numCurves] = $node;
+			$numCurves++;
+			continue;
+		}
+		else if (`nodeType $node` == "mesh")
+	    {
+			$meshList[$numMeshes] = $node;
+			$numMeshes++;
+			continue;
+		}
+		string $children[] = `listRelatives -children -fullPath $node`;
+		for ($j = 0; $j < size ($children); $j++)
+		{
+			string $cnode = $children[$j];
+			if (`nodeType $cnode` == "nurbsCurve")
+	    	{
+				$curveList[$numCurves] = $cnode;
+				$numCurves++;
+			}
+			else if (`nodeType $cnode` == "mesh")
+	    	{
+				$meshList[$numMeshes] = $cnode;
+				$numMeshes++;
+			}
+			else if (`objectType -isAType "transform" $cnode`)
+			{
+				string $gchildren[] = `listRelatives -allDescendents -fullPath $cnode`;
+				for ($k = 0; $k < size ($gchildren); $k++)
+				{
+					string $gnode = $gchildren[$k];
+					if (`nodeType $gnode` == "mesh")
+	    			{
+						$meshList[$numMeshes] = $gnode;
+						$numMeshes++;
+					}
+				}
+			}
+		}
+	}
+
+	if ($numCurves == 0)
+	{
+		error ("Invalid selection.  Selection must include a single nurbs curve.  None are selected\n");
+	}
+	else if ($numCurves > 1)
+	{
+		warning ("Multiple nurbs curves selected.  Using " + $curveList[0] + "\n");
+	}
+
+	if ($numMeshes == 0)
+	{
+		error ("Invalid selection.  Selection must include a single polygonal mesh.  None are selected\n");
+	}
+
+	// Create the extrusion node and connected it to the incoming nurbs curve.
+	$extrusionNode = `createNode meshInstanceExtrude`;
+	connectAttr ($curveList[0] + ".worldSpace") ($extrusionNode + ".inputCurve");
+
+	// Treat the first mesh as the base instance shape and connected it to the input mesh.
+	connectAttr ($meshList[0] + ".worldMesh") ($extrusionNode + ".inputMesh");
+
+	// Treat any other meshes as detail geometry on top of the base instance.
+	int $nextAvailable = 0;
+	for ($i = 1; $i < size($meshList); $i++)
+	{
+		connectAttr ($meshList[$i] + ".worldMesh") ($extrusionNode + ".detailMesh[" + $nextAvailable + "]");
+		$nextAvailable = $nextAvailable + 1;
+	}
+
+	// Create a mesh to represent the extruded shape and connect it to the extrusion node.
+	$transformNode = `createNode transform`;
+	$meshNode = `createNode mesh -p $transformNode`;
+	sets -add initialShadingGroup $meshNode;
+
+	connectAttr ($extrusionNode + ".outputMesh") ($meshNode + ".inMesh");
+
+	// Finally, select the new extruded mesh.
+	select -r $meshNode;
+}
+
+// This procedure copy the selected extruded mesh settings to selected curves. the detail 
+// mesh and input mesh will share the connections and won't be duplicated.
+global proc bt_copyExtruedMeshSettingsToCurve()
+{
+	int $i, $j;
+	string $selectionList[];
+	string $newSelection[];
+	$selectionList=`ls -selection -shapes -dag`;
+	if (size($selectionList) < 2)
+	{
+		error "Select extruded mesh and curve(s) to copy settings";
+		return;
+	}
+	// Qualify the extruded mesh, i.e. meshInstanceExtrude -> groupParts* -> meshShape
+	// Cache meshInstanceExtrude node if found
+	string $meshInstanceExtrude = "";
+	string $mesh = $selectionList[0];
+	string $nodes[] = `listHistory $mesh`;
+	for ($i = 0; $i < size($nodes); $i++) {
+		if (nodeType($nodes[$i]) == "meshInstanceExtrude") {
+			$meshInstanceExtrude = $nodes[$i];
+			break;
+		}
+	}
+	if ($meshInstanceExtrude == "")
+	{
+		error "Select extruded mesh and curve(s) to copy settings";
+		return;
+	}
+
+	// Select mesh, meshInstanceExtrude, and input circleShapes
+	string $circles[] = `listConnections ($meshInstanceExtrude + ".curveUpVectorTwist")`;
+
+	for ($i = 1; $i < size($selectionList); $i++)
+	{
+		if (nodeType($selectionList[$i]) != "nurbsCurve")
+		{
+			warning "Skip $selectionList[$i]. Must be a Nurbs curve.";
+			continue;
+		}
+
+		// Cache original meshInstanceExtrude and its inputCurve, inputMesh, detailMesh, and circle controls break connections
+		string $inputCurvePlug[] = `listConnections -plugs on ($meshInstanceExtrude + ".inputCurve")`;
+		disconnectAttr $inputCurvePlug[0] ($meshInstanceExtrude + ".inputCurve");
+		string $inputMeshPlug[] = `listConnections -plugs on ($meshInstanceExtrude + ".inputMesh")`;
+		disconnectAttr $inputMeshPlug[0] ($meshInstanceExtrude + ".inputMesh");
+		string $detailMeshPlug[] = `listConnections -plugs on ($meshInstanceExtrude + ".detailMesh")`;
+		for ($j	= 0; $j < size($detailMeshPlug); $j++) {
+			disconnectAttr $detailMeshPlug[$j] ($meshInstanceExtrude + ".detailMesh[" + $j + "]");
+		}
+		string $circlesPlug[] = `listConnections -plugs on ($meshInstanceExtrude + ".curveUpVectorTwist")`;
+		for ($j	= 0; $j < size($circlesPlug); $j++) {
+			disconnectAttr $circlesPlug[$j] ($meshInstanceExtrude + ".curveUpVectorTwist[" + $j + "]");
+		}
+
+		// Execute duplicate special
+		string $cmd = "duplicate -rr -renameChildren -un " + $mesh + " " + $meshInstanceExtrude;
+		for ($j = 0; $j < size($circles); $j++) {
+			$cmd = $cmd + " " + $circles[0];
+		}
+		string $newNodes[];
+		catchQuiet($newNodes = eval($cmd));
+
+		// Find new meshInstanceExtrude. $newNodes[0] should be the transform parent of the new extruded mesh.
+		string $newMesh[] = `ls -shapes -dag $newNodes[0]`;
+		$nodes = `listHistory $newMesh[0]`;
+		string $newMeshInstanceExtrude;
+		for ($j = 0; $j < size($nodes); $j++) {
+			if (nodeType($nodes[$j]) == "meshInstanceExtrude") {
+				$newMeshInstanceExtrude = $nodes[$j];
+				break;
+			}
+		}
+
+		// Reconnect inputCurve, inputMesh and detailMesh to original and new meshInstanceExtrudes 
+		connectAttr $inputCurvePlug[0] ($meshInstanceExtrude + ".inputCurve");
+		connectAttr ($selectionList[$i] + ".worldSpace") ($newMeshInstanceExtrude + ".inputCurve");
+		connectAttr $inputMeshPlug[0] ($meshInstanceExtrude + ".inputMesh");
+		connectAttr $inputMeshPlug[0] ($newMeshInstanceExtrude + ".inputMesh");
+		for ($j	= 0; $j < size($detailMeshPlug); $j++) {
+			connectAttr $detailMeshPlug[$j] ($meshInstanceExtrude + ".detailMesh[" + $j + "]");
+			connectAttr $detailMeshPlug[$j] ($newMeshInstanceExtrude + ".detailMesh[" + $j + "]");
+		}
+		for ($j	= 0; $j < size($circlesPlug); $j++) {
+			connectAttr $circlesPlug[$j] ($meshInstanceExtrude + ".curveUpVectorTwist[" + $j + "]");
+		}
+		if (size($circlesPlug) > 0) {
+			// Create circle controls with default twist angles, i.e. 0's.
+			setAttr -type "string" ($newMeshInstanceExtrude + ".twistString") "";
+			int $curveUpVector = `getAttr ($meshInstanceExtrude + ".curveUpVector")`;
+			int $showControl = `getAttr ($meshInstanceExtrude + ".showControl")`;
+			if ($curveUpVector == 8 && $showControl) {
+				setAttr ($newMeshInstanceExtrude + ".showControl") 0; 
+			} else {
+				setAttr ($newMeshInstanceExtrude + ".curveUpVector") 8;
+				setAttr ($newMeshInstanceExtrude + ".showControl") 1;
+			}
+			setAttr ($newMeshInstanceExtrude + ".curveUpVector") $curveUpVector;
+			setAttr ($newMeshInstanceExtrude + ".showControl") $showControl;
+		}
+
+		string $parent[] = `listRelatives -parent $newMesh[0]`;
+		$newSelection[size($newSelection)] = $parent[0];
+	}
+	select -r $newSelection;
+}

@@ -1,0 +1,18 @@
+// ===========================================================================
+// Copyright 2022 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+global proc nudgeVertWeights (float $value){
+
+		string $joint[] = `ls -sl -type joint`;
+		string $verts[] = `getVerts`;
+		string $cluster[] = `listConnections -type skinCluster $joint[0]`;
+
+		skinPercent -relative 1 -transformValue $joint[0] $value $cluster[0] $verts;
+
+		select -add $joint[0];
+
+}

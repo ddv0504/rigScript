@@ -1,93 +1,8 @@
 // ===========================================================================
-// Copyright 2021 Autodesk, Inc. All rights reserved.
+// Copyright 2022 Autodesk, Inc. All rights reserved.
 //
 // Use of this software is subject to the terms of the Autodesk license
 // agreement provided at the time of installation or download, or which
 // otherwise accompanies this software in either electronic or hard copy form.
 // ===========================================================================
-//
-// Procedure Name:
-// AESkin
-//
-// Description Name;
-// Creates the attribute editor controls for the skin shader plug-in
-//
-// Input Value:
-// nodeName
-//
-// Output Value:
-// None
-//
-
-//----------------------------------------------------------
-//
-//  Procedure Name:
-//  AEshaderBumpNew
-//
-
-global proc AEshaderBumpNew (string $attrName)
-{
-   setUITemplate -pst attributeEditorTemplate;
-
-   attrNavigationControlGrp
-      -l "Bump Mapping"
-      -at $attrName
-      bumpControl;
-
-   setUITemplate -ppt;
-}
-
-
-//
-//  Procedure Name:
-// AEshaderBumpReplace
-//
-
-global proc AEshaderBumpReplace (string $attrName)
-{
-   attrNavigationControlGrp -edit
-      -at $attrName
-      bumpControl;
-}
-
-global proc AESkinShaderTemplate ( string $nodeName )
-{
-	editorTemplate -beginNoOptimize;
-
-	editorTemplate -beginScrollLayout;
-	editorTemplate -addControl "epidermis";
-	editorTemplate -addControl "dermis";
-	editorTemplate -addControl "anisotropy";
-	editorTemplate -addControl "roughness";
-	editorTemplate -addControl "Ambient";
-	editorTemplate -addControl "SubSurface";
-	editorTemplate -addControl "Surface";
-	editorTemplate -addControl "reflectivity";
-	editorTemplate -addControl "reflectedColor";
-
-	editorTemplate -callCustom "AEshaderBumpNew" "AEshaderBumpReplace"
-               "normalCamera";
-
-	// include/call base class/node attributes
-	AEdependNodeTemplate $nodeName;
-
-	editorTemplate -addExtraControls;
-	
-	// supress photon attributes inherited from TdnLambert which are not
-	// used by TdnSkinShader.
-	editorTemplate -suppress "miRefractionBlurLimit";
-	editorTemplate -suppress "miScatterRadius";
-	editorTemplate -suppress "miScatterColor";
-	editorTemplate -suppress "miScatterColorR";
-	editorTemplate -suppress "miScatterColorG";
-	editorTemplate -suppress "miScatterColorB";
-	editorTemplate -suppress "miScatterAccuracy";
-	editorTemplate -suppress "miScatterFalloff";
-	editorTemplate -suppress "miScatterLimit";
-	editorTemplate -suppress "miScatterCache";
-		
-	editorTemplate -endScrollLayout;
-
-	editorTemplate -endNoOptimize;
-}
-//----------------------------------------------------
+//// Procedure Name:// AESkin//// Description Name;// Creates the attribute editor controls for the skin shader plug-in//// Input Value:// nodeName//// Output Value:// None////----------------------------------------------------------////  Procedure Name://  AEshaderBumpNew//global proc AEshaderBumpNew (string $attrName){   setUITemplate -pst attributeEditorTemplate;   attrNavigationControlGrp      -l "Bump Mapping"      -at $attrName      bumpControl;   setUITemplate -ppt;}////  Procedure Name:// AEshaderBumpReplace//global proc AEshaderBumpReplace (string $attrName){   attrNavigationControlGrp -edit      -at $attrName      bumpControl;}global proc AESkinShaderTemplate ( string $nodeName ){	editorTemplate -beginNoOptimize;	editorTemplate -beginScrollLayout;	editorTemplate -addControl "epidermis";	editorTemplate -addControl "dermis";	editorTemplate -addControl "anisotropy";	editorTemplate -addControl "roughness";	editorTemplate -addControl "Ambient";	editorTemplate -addControl "SubSurface";	editorTemplate -addControl "Surface";	editorTemplate -addControl "reflectivity";	editorTemplate -addControl "reflectedColor";	editorTemplate -callCustom "AEshaderBumpNew" "AEshaderBumpReplace"               "normalCamera";	// include/call base class/node attributes	AEdependNodeTemplate $nodeName;	editorTemplate -addExtraControls;		// supress photon attributes inherited from TdnLambert which are not	// used by TdnSkinShader.	editorTemplate -suppress "miRefractionBlurLimit";	editorTemplate -suppress "miScatterRadius";	editorTemplate -suppress "miScatterColor";	editorTemplate -suppress "miScatterColorR";	editorTemplate -suppress "miScatterColorG";	editorTemplate -suppress "miScatterColorB";	editorTemplate -suppress "miScatterAccuracy";	editorTemplate -suppress "miScatterFalloff";	editorTemplate -suppress "miScatterLimit";	editorTemplate -suppress "miScatterCache";			editorTemplate -endScrollLayout;	editorTemplate -endNoOptimize;}//----------------------------------------------------

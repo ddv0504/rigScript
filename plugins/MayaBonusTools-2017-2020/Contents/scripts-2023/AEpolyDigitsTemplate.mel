@@ -1,0 +1,38 @@
+// ===========================================================================
+// Copyright 2022 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+//
+
+
+global proc AEpolyDigitsTemplate(string $nodeName)
+{
+	editorTemplate -beginScrollLayout;
+
+	editorTemplate -beginLayout "Poly Digits" -collapse 0;
+	editorTemplate -addControl "counter";
+	editorTemplate -addControl "counterBlurRange";
+	editorTemplate -addControl "numDigits";
+	editorTemplate -addControl "dotPosition";
+	editorTemplate -addControl "displayComma";
+	editorTemplate -addControl "noLeadZero";
+	editorTemplate -endLayout;
+
+	editorTemplate -beginLayout "Font Geometry" -collapse 0;
+	editorTemplate -addControl "digitSpacing";
+	editorTemplate -addControl "thickness";
+	editorTemplate -addControl "segmentSpacing";
+	editorTemplate -addControl "heighStretch";
+	editorTemplate -addControl "slant";
+	editorTemplate -endLayout;
+
+	// supressed attributes
+	// editorTemplate -suppress "attributeName";
+
+	editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+}

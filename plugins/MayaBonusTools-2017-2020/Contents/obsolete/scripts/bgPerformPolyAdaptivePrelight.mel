@@ -1,5 +1,5 @@
 // ===========================================================================
-// Copyright 2021 Autodesk, Inc. All rights reserved.
+// Copyright 2022 Autodesk, Inc. All rights reserved.
 //
 // Use of this software is subject to the terms of the Autodesk license
 // agreement provided at the time of installation or download, or which
@@ -21,18 +21,12 @@
 
 proc setOptionVars (int	$forceFactorySettings)
 {
-	if ($forceFactorySettings || !`optionVar -exists "adaptivePrelightIterations"`)
-		optionVar -intValue "adaptivePrelightIterations" 2;
-
-	if ($forceFactorySettings || !`optionVar -exists "adaptivePrelightTolerance"`)
-		optionVar -floatValue "adaptivePrelightTolerance" 0.5;
-
-	if ($forceFactorySettings || !`optionVar -exists "adaptivePrelightSmooth"`)
-		optionVar -intValue "adaptivePrelightSmooth" 1;
-
-	if ($forceFactorySettings || !`optionVar -exists "adaptivePrelightShadows"`)
-		optionVar -intValue "adaptivePrelightShadows" 1;
-
+	optionVar -init $forceFactorySettings -category "Bonus Tools.Rendering.Poly Adaptive Prelight"
+		-iv "adaptivePrelightIterations" 2
+		-fv "adaptivePrelightTolerance" 0.5
+		-iv "adaptivePrelightSmooth" 1
+		-iv "adaptivePrelightShadows" 1
+		;
 }
 
 global proc polyAdaptivePrelightSetup (string $parent, int $forceFactorySettings)

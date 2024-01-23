@@ -1,5 +1,5 @@
 // ===========================================================================
-// Copyright 2021 Autodesk, Inc. All rights reserved.
+// Copyright 2022 Autodesk, Inc. All rights reserved.
 //
 // Use of this software is subject to the terms of the Autodesk license
 // agreement provided at the time of installation or download, or which
@@ -16,16 +16,16 @@
 //
 global proc drawSplitSetup()
 {
-
-      if (!`optionVar -ex QT_drawSplitMinSampleSize`) optionVar -iv QT_drawSplitMinSampleSize 25;
-      if (!`optionVar -ex QT_drawSplitMultiSlices`) optionVar -iv QT_drawSplitMultiSlices 1;
-      if (!`optionVar -ex QT_drawSplitMultiSliceDropoffPower`) optionVar -fv QT_drawSplitMultiSliceDropoffPower 1;
-      if (!`optionVar -ex QT_drawSplitSubdivisions`) optionVar -iv QT_drawSplitSubdivisions 1;
-      if (!`optionVar -ex QT_drawSplitEdgeSnapping`) optionVar -iv QT_drawSplitEdgeSnapping 0;
-      if (!`optionVar -ex QT_drawSplitEdgeSnappingType`) optionVar -iv QT_drawSplitEdgeSnappingType 1;
-      if (!`optionVar -ex QT_drawSplitEdgeSnappingOffset`) optionVar -fv QT_drawSplitEdgeSnappingOffset 0.5;
-      if (!`optionVar -ex QT_drawSplitEdgeSnappingIntervals`) optionVar -iv QT_drawSplitEdgeSnappingIntervals 2;
-      if (!`optionVar -ex QT_drawSplitSelectNewVertsUponExit`) optionVar -iv QT_drawSplitSelectNewVertsUponExit 1;
-      if (!`optionVar -ex QT_drawSplitAutoBackfaceCulling`) optionVar -iv QT_drawSplitAutoBackfaceCulling 1;
-
+      optionVar -init false -category "Bonus Tools.Draw Split Tool"
+            -iv QT_drawSplitMinSampleSize 25
+            -iv QT_drawSplitMultiSlices 1
+            -fv QT_drawSplitMultiSliceDropoffPower 1
+            -iv QT_drawSplitSubdivisions 1
+            -iv QT_drawSplitEdgeSnapping 0
+            -iv QT_drawSplitEdgeSnappingType 1
+            -fv QT_drawSplitEdgeSnappingOffset 0.5
+            -iv QT_drawSplitEdgeSnappingIntervals 2
+            -iv QT_drawSplitSelectNewVertsUponExit 1
+            -iv QT_drawSplitAutoBackfaceCulling 1
+            ;
 }

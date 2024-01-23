@@ -1,0 +1,45 @@
+// ===========================================================================
+// Copyright 2023 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+
+global proc bt_nudgeVertWeightsWindow ()
+{
+	$window = "nudgeVertWeightsWindow";
+
+	if( (`window -exists $window`) == true )	
+	{
+		deleteUI $window;
+        windowPref -r $window;
+	}
+
+	window -title "Nudge Vert Weights" -s 0 $window;
+	
+	columnLayout;
+
+	floatSliderGrp -label "Nudge Value"
+		-value 0.1
+		-min 0
+		-max 1 
+		-field true
+		bt_nudgeVertWeightsValue;
+
+	rowColumnLayout -numberOfColumns 3
+		-cw 1 200
+		-cw 2 3
+		-cw 3 200
+		;
+
+	button -label "Decrease" -c "float $value = `floatSliderGrp -q -value bt_nudgeVertWeightsValue`;	bt_nudgeVertWeights ($value * -1);";
+	text "";
+	button -label "Increase" -c "float $value = `floatSliderGrp -q -value bt_nudgeVertWeightsValue`;	bt_nudgeVertWeights ($value);";
+
+	showWindow;
+}

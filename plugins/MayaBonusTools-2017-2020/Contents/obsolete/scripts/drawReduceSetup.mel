@@ -1,5 +1,5 @@
 // ===========================================================================
-// Copyright 2021 Autodesk, Inc. All rights reserved.
+// Copyright 2022 Autodesk, Inc. All rights reserved.
 //
 // Use of this software is subject to the terms of the Autodesk license
 // agreement provided at the time of installation or download, or which
@@ -16,14 +16,14 @@
 
 global proc drawReduceSetup()
 {
- 
-      if (!`optionVar -ex QT_drawReduceMinSampleSize`) optionVar -iv QT_drawReduceMinSampleSize 25;
-      if (!`optionVar -ex QT_drawReduceReductionType`) optionVar -iv QT_drawReduceReductionType 1;
-      if (!`optionVar -ex QT_drawReduceMergeVerticesAt`) optionVar -iv QT_drawReduceMergeVerticesAt 1;
-      if (!`optionVar -ex QT_drawReduceEdgeSnappingWhen`) optionVar -iv QT_drawReduceEdgeSnappingWhen 1;
-      if (!`optionVar -ex QT_drawReduceEdgeSnappingType`) optionVar -iv QT_drawReduceEdgeSnappingType 1;
-      if (!`optionVar -ex QT_drawReduceEdgeSnappingOffset`) optionVar -fv QT_drawReduceEdgeSnappingOffset 0.5;
-      if (!`optionVar -ex QT_drawReduceEdgeSnappingIntervals`) optionVar -iv QT_drawReduceEdgeSnappingIntervals 2;
-      if (!`optionVar -ex QT_drawReduceAutoBackfaceCulling`) optionVar -iv QT_drawReduceAutoBackfaceCulling 1;
-
+      optionVar -init false -category "Bonus Tools.Draw Reduce Tool"
+            -iv QT_drawReduceMinSampleSize 25
+            -iv QT_drawReduceReductionType 1
+            -iv QT_drawReduceMergeVerticesAt 1
+            -iv QT_drawReduceEdgeSnappingWhen 1
+            -iv QT_drawReduceEdgeSnappingType 1
+            -fv QT_drawReduceEdgeSnappingOffset 0.5
+            -iv QT_drawReduceEdgeSnappingIntervals 2
+            -iv QT_drawReduceAutoBackfaceCulling 1
+            ;
 }

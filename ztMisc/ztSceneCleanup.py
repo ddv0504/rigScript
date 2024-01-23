@@ -210,7 +210,7 @@ def removeAll(arg=None):
     removeUnknownTypeNode()
 
 def cleanUp(arg=None):
-    fileName = cmds.file(sn=True,q=True)
+    fileName = cmds.file(sn=1,q=1)
     s = datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S')
     msg = 'Check issue file: {0} -- {1}'.format(fileName,s)
     reportIssue(msg)

@@ -1,0 +1,204 @@
+// ===========================================================================
+// Copyright 2022 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+//
+// Created : Aug 22th, 2004
+// Modified bt Steven Roselle: 01/01/20
+
+
+global proc boundingBoxScale(float $x, float $y, float $z ){
+	//initialize
+	float $boundingBox[6];
+	float $boundingBoxSize[3];
+	float $ideal[3];
+	float $gain[3];
+
+	$ideal[0] = $x;
+	$ideal[1] = $y;
+	$ideal[2] = $z;
+	//
+	float $rotation[3] = `xform -q -rotation`;
+	xform -rotation 0 0 0;
+	$boundingBox = `xform -q -bb`;
+	xform -rotation $rotation[0] $rotation[1] $rotation[2];
+
+	$boundingBoxSize[0] = $boundingBox[3] - $boundingBox[0];
+	$boundingBoxSize[1] = $boundingBox[4] - $boundingBox[1];
+	$boundingBoxSize[2] = $boundingBox[5] - $boundingBox[2];
+
+
+	for($i = 0; $i < 3; $i++ ){
+		if ( $boundingBoxSize[$i] == 0 ){
+			$gain[$i] = 0;
+		}else{
+			$gain[$i] = $ideal[$i] / $boundingBoxSize[$i];
+		}
+	}
+
+
+	scale -r $gain[0] $gain[1] $gain[2];
+}
+
+
+global proc float[] getBoundingBoxSize(){
+
+	string $selection[];
+	$selection = `ls -sl`;
+
+
+	float $boundingBox[6];
+	float $boundingBoxSize[3] = {0,0,0};
+	float $rotation[3] = `xform -q -rotation`;
+	//float $rotation[3]
+
+	if (`size($selection)`){
+		//$rotation = `xform -q -rotation $selection[0]`;
+		xform -rotation 0 0 0;
+		$boundingBox = `xform -q -bb`;
+		xform -rotation $rotation[0] $rotation[1] $rotation[2];
+
+		$boundingBoxSize[0] = $boundingBox[3] - $boundingBox[0];
+		$boundingBoxSize[1] = $boundingBox[4] - $boundingBox[1];
+		$boundingBoxSize[2] = $boundingBox[5] - $boundingBox[2];
+	}
+	return $boundingBoxSize;
+}
+
+
+global proc boundingBoxSetPivot (string $pivotPosition){
+
+	float $bb[6];
+	float $p[6] = `xform -q -ws -pivots`;
+	float $rotation[3] = `xform -q -rotation`;
+
+	xform -rotation 0 0 0;
+	$bb = `xform -q -ws -bb`;
+	
+
+	switch ($pivotPosition){
+		case "+x":
+			xform -a -ws -piv $bb[3] $p[1] $p[2];
+			break;
+		case "-x":
+			xform -a -ws -piv $bb[0] $p[1] $p[2];
+			break;
+		case "+y":
+			xform -a -ws -piv $p[0] $bb[4] $p[2];
+			break;
+		case "-y":
+			xform -a -ws -piv $p[0] $bb[1] $p[2];
+			break;
+		case "+z":
+			xform -a -ws -piv $p[0] $p[1] $bb[5];
+			break;
+		case "-z":
+			xform -a -ws -piv $p[0] $p[1] $bb[2];
+			break;		
+	}
+
+	xform -rotation $rotation[0] $rotation[1] $rotation[2];
+}
+
+global proc boundingBoxUpdateWindow(){
+
+	global string $xSizeFloatField;
+	global string $ySizeFloatField;
+	global string $zSizeFloatField;
+	string $selection[];
+	$selection = `ls -sl`;
+	float $boundingBoxSize[];
+
+	if (`size($selection)`){
+		$boundingBoxSize = `getBoundingBoxSize`; 
+	}else{
+		$boundingBoxSize = {0,0,0};
+	}
+	floatField -e -value $boundingBoxSize[0] $xSizeFloatField;
+	floatField -e -value $boundingBoxSize[1] $ySizeFloatField;
+	floatField -e -value $boundingBoxSize[2] $zSizeFloatField;
+
+}
+
+global proc bt_boundingBoxScaleWindow(){
+	global string $xSizeFloatField;
+	global string $ySizeFloatField;
+	global string $zSizeFloatField;
+	global int $boundingBoxSizeJob;
+	global string $boundingBoxWindow;
+
+	$boundingBoxWindow = "boundingBoxScaleWindow";
+
+	if( (`window -exists $boundingBoxWindow`) == true )	
+	{
+		deleteUI $boundingBoxWindow;
+		windowPref -r $boundingBoxWindow;
+	}
+
+	window -title "Bounding Box Scale" -w 180 -h 30 $boundingBoxWindow;
+
+	$boundingBoxSizeJob = `scriptJob -parent $boundingBoxWindow -e "SelectionChanged" "boundingBoxUpdateWindow"`;
+
+    // removed and instead parented sc to the window
+	//scriptJob -runOnce true -uiDeleted $boundingBoxWindow "eval(\"scriptJob -kill \" + $boundingBoxSizeJob)";
+
+	string $selection[];
+	$selection = `ls -sl`;
+	float $boundingBoxSize[];
+
+	if (`size($selection)`){
+		$boundingBoxSize = `getBoundingBoxSize`; 
+	}else{
+		$boundingBoxSize = {0,0,0};
+	}
+
+	columnLayout;
+
+	rowColumnLayout -numberOfColumns 4
+		-cw 1 120
+		-cw 2 60
+		-cw 3 60
+		-cw 4 60;
+		
+	global string $xSizeFloatField;
+	global string $ySizeFloatField;
+	global string $zSizeFloatField;
+
+	text -label "Set Global BB Scale:   " -al "right";
+
+	$xSizeFloatField= `floatField -value $boundingBoxSize[0]`;
+	$ySizeFloatField =`floatField -value $boundingBoxSize[1]`;
+	$zSizeFloatField =`floatField -value $boundingBoxSize[2]`;
+
+	floatField -e -value $boundingBoxSize[0] 
+		-cc "$x = eval(\"floatField -q -value \" + $xSizeFloatField); $y = eval(\"floatField -q -value \" + $ySizeFloatField); $z = eval(\"floatField -q -value \" + $zSizeFloatField); boundingBoxScale($x , $y, $z)"
+		$xSizeFloatField;
+	floatField -e -value $boundingBoxSize[1] 
+		-cc "$x = eval(\"floatField -q -value \" + $xSizeFloatField); $y = eval(\"floatField -q -value \" + $ySizeFloatField); $z = eval(\"floatField -q -value \" + $zSizeFloatField); boundingBoxScale($x , $y, $z)"
+		$ySizeFloatField;
+	floatField -e -value $boundingBoxSize[2] 
+		-cc "$x = eval(\"floatField -q -value \" + $xSizeFloatField); $y = eval(\"floatField -q -value \" + $ySizeFloatField); $z = eval(\"floatField -q -value \" + $zSizeFloatField); boundingBoxScale($x , $y, $z)"
+		$zSizeFloatField;
+
+
+	text -label "Set Pivot to BB:   " -al "right";
+	button -label "Max  X" -c "boundingBoxSetPivot \"+x\"; setToolTo scaleSuperContext; print \"Setting virtual pivot to max X of object bounding box\"";
+	button -label "Max  Y" -c "boundingBoxSetPivot \"+y\"; setToolTo scaleSuperContext; print \"Setting virtual pivot to max Y of object bounding box\"";
+	button -label "Max  Z" -c "boundingBoxSetPivot \"+z\"; setToolTo scaleSuperContext; print \"Setting virtual pivot to max Z of object bounding box\"";
+
+	text "";
+	button -label "Min  X" -c "boundingBoxSetPivot \"-x\"; setToolTo scaleSuperContext; print \"Setting virtual pivot to min X of object bounding box\"";
+	button -label "Min  Y" -c "boundingBoxSetPivot \"-y\"; setToolTo scaleSuperContext; print \"Setting virtual pivot to min Y of object bounding box\"";
+	button -label "Min  Z" -c "boundingBoxSetPivot \"-z\"; setToolTo scaleSuperContext; print \"Setting virtual pivot to min Z of object bounding box\"";
+
+	showWindow;
+}
+
+//boundingBoxScaleWindow;

@@ -1,0 +1,41 @@
+// ===========================================================================
+// Copyright 2023 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+// description: creates a window to clamp selected UV values
+//
+// usage: select UVs to clamp and enter the bounding box values
+//
+// input arguments: none
+//
+
+global proc bgClampUVWin(){
+
+	string $text;
+	string $result = `promptDialog
+		-title "Clamp UVs to Bounds"
+		-message "Enter Bounds (U min, V min, U max, V max):"
+		-text "0.0 0.0 1.0 1.0"
+		-button "OK" 
+		-button "Cancel"
+		-defaultButton "OK" 
+		-cancelButton "Cancel"
+		-dismissString "Cancel"
+		`;
+
+	if ($result == "OK") {
+		$text = `promptDialog -query clampUVDialog`;
+		string $values[];
+		tokenize ($text, " ", $values);
+		clampUVToBounds $values[0] $values[1] $values[2] $values[3];
+	}
+
+
+}

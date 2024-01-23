@@ -1,0 +1,61 @@
+// ===========================================================================
+// Copyright 2022 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+//
+// Last Update:        ( 04/01/14 )
+
+
+global proc float bt_polyAreaCalc()
+{
+    float $area = 0;
+       
+    $meshes = `filterExpand -sm 12`;
+
+    if (`size $meshes` > 0)
+     	{
+     	//old method via plugin
+     	//$tmp = `measure -s -ver $meshes`;
+     	//$area = $tmp[0];
+     	
+     	//new methold via command
+     	$tmp = `polyEvaluate -wa`;
+     	$area = $tmp[0];
+     	}
+    return $area;
+}
+
+
+proc bt_createPolyAreaHUD (){
+
+	headsUpDisplay
+		-section          0
+		//-block            10
+		-b `headsUpDisplay -nfb  0`
+		-blockSize        "small"
+		-label            "Poly Area (^2):"
+		-labelFontSize    "small"
+		-dataFontSize	  "small"
+		-command          "bt_polyAreaCalc"
+		-event            "SelectionChanged"
+		-nodeChanges      "attributeChange"
+		-dp		4
+	HUDPolyArea;
+}
+
+
+global proc bt_togglePolyAreaHUD (){
+
+    if (`headsUpDisplay -ex HUDPolyArea`)
+	headsUpDisplay -rem HUDPolyArea;
+    else 
+        bt_createPolyAreaHUD;
+     	
+}

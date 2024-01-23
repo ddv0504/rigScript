@@ -1,5 +1,5 @@
 // ===========================================================================
-// Copyright 2021 Autodesk, Inc. All rights reserved.
+// Copyright 2022 Autodesk, Inc. All rights reserved.
 //
 // Use of this software is subject to the terms of the Autodesk license
 // agreement provided at the time of installation or download, or which
@@ -26,64 +26,19 @@
 //
 proc setOptionVars(int $forceFactorySettings)
 {
-	//	AntiAlias.
-	//
-	if ($forceFactorySettings || !`optionVar -exists lightMapAntiA`) {
-		optionVar -intValue lightMapAntiA false;
-	}
-
-	//	bakeShadow.
-	//
-	if ($forceFactorySettings || !`optionVar -exists lightMapShadow`) {
-		optionVar -intValue lightMapShadow true;
-	}
-
-	//	ResolutionX.
-	//
-	if ($forceFactorySettings || !`optionVar -exists lightMapResX`) {
-		optionVar -intValue lightMapResX 256;
-	}
-
-	//	ResolutionY.
-	//
-	if ($forceFactorySettings || !`optionVar -exists lightMapResY`) {
-		optionVar -intValue lightMapResY 256;
-	}
-
-	// File Format.
-	if ($forceFactorySettings || !`optionVar -exists lightMapFileFormat`) {
-		optionVar -stringValue lightMapFileFormat "tif";
-	}
-
-	// Blend Mode
-	if ($forceFactorySettings || !`optionVar -exists lightMapBlendMode`) {
-		optionVar -stringValue lightMapBlendMode "Add";
-	}
-
-	// All Meshes
-	if ($forceFactorySettings || !`optionVar -exists lightMapAllMeshes`) {
-		optionVar -intValue lightMapAllMeshes true;
-	}
-
-	// Shading Group
-	if ($forceFactorySettings || !`optionVar -exists lightMapSG`) {
-		optionVar -stringValue lightMapSG "";
-	}
-
-	// File Suffix
-	if ($forceFactorySettings || !`optionVar -exists lightMapFileSuffix`) {
-		optionVar -stringValue lightMapFileSuffix "light";
-	}
-
-	// New UV set
-	if ($forceFactorySettings || !`optionVar -exists lightMapNewUVSet`) {
-		optionVar -intValue lightMapNewUVSet true;
-	}
-
-	// UVSet name
-	if ($forceFactorySettings || !`optionVar -exists lightMapNewUVSetName`) {
-		optionVar -stringValue lightMapNewUVSetName "lightMap";
-	}
+	optionVar -init $forceFactorySettings -category "Bonus Tools.Rendering.Generate Light Maps"
+		-iv lightMapAntiA false				// AntiAlias.
+		-iv lightMapShadow true				// bakeShadow.
+		-iv lightMapResX 256				// ResolutionX.
+		-iv lightMapResY 256				// ResolutionY.
+		-sv lightMapFileFormat "tif"		// File Format.
+		-sv lightMapBlendMode "Add"			// Blend Mode
+		-iv lightMapAllMeshes true			// All Meshes
+		-sv lightMapSG ""					// Shading Group
+		-sv lightMapFileSuffix "light"		// File Suffix
+		-iv lightMapNewUVSet true			// New UV set
+		-sv lightMapNewUVSetName "lightMap"	// UVSet name
+		;
 }
 
 

@@ -1,0 +1,24 @@
+// ===========================================================================
+// Copyright 2023 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+// Created: ( 04/01/15 )
+//
+global proc bt_polyNSidedToQuad()
+{
+    ConvertSelectionToFaces;    
+    polySelectConstraint -m 2 -t 8 -sz 3;
+    polyTriangulate -ch 1 ; 
+    polyQuad  -a 30 -kgb 1 -ktb 1 -khe 1 -ws 1 -ch 0;
+    print("Converted all selected n-sided faces to quads.\n");
+    polySelectConstraint -m 0;
+    resetPolySelectConstraint;
+}
+

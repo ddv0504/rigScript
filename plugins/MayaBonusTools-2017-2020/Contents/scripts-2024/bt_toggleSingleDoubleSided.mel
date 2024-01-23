@@ -1,0 +1,99 @@
+// ===========================================================================
+// Copyright 2023 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+// bt_toggleSingleDoubleSided
+//
+// toggles single/double sided display for selected objects if specific polys are selected
+// toggles single/double sided display for -all- objects if nothing is selected
+//
+//
+// Updated 01/18/12 - Added optional toggle for all objects
+// Updated 10/01/10 - Rename command from toggleSingleDoubleSided to bt_toggleSingleDoubleSided
+//
+
+global proc bt_toggleSingleDoubleSided()
+{
+    // Replace per object with optional toggle for all objects
+    //
+    //  string $objects[] = `ls -sl`;
+    //
+    //  for ($object in $objects){
+    //      string $shapes[] = `listRelatives -s $object`;
+    //      string $shape = $shapes[0];
+    //
+    //      int $value = `getAttr ($shape + ".doubleSided")`;
+    //      $value = !$value;		
+    //      setAttr ($shape + ".doubleSided") $value;
+
+    //Toggle double sided attr to keep track of setting for all objects
+    $doubleSidedState = `optionVar -q bt_doubleSided`;
+
+    string $selected[] = `ls -sl`;
+    string $poly;
+    string $polys[] = `filterExpand -sm 12`;
+    
+    if (`optionVar -q bt_doubleSided` == 0)
+            {
+            optionVar -intValue bt_doubleSided 1;
+            print ("Double sided enabled. ");		
+
+            }
+    else
+            {
+            optionVar -intValue bt_doubleSided 0;
+            print ("Double sided disabled. ");		
+            }
+            
+    if (`size $polys` > 0)
+        {
+        //Toggle selected
+            
+        for ($poly in $polys)
+            {
+            select -r $poly;
+            $shape = `listRelatives -s`;
+            $attr = $shape[0]+".doubleSided";
+            //change for toggling individually
+            //if (`getAttr $attr`)
+            if ($doubleSidedState)
+                setAttr $attr off;
+            else
+                setAttr $attr on;
+            }
+        print ("Applied to selected Meshes.\n");
+        }
+        
+    else
+        {
+        //Toggle selected		
+        string $polys[] = `ls -type mesh`;
+            
+        for ($poly in $polys)
+            {
+            if ($doubleSidedState == 0)
+                {
+                //print ("\n "+$poly);
+                $attr = $poly+".doubleSided";
+                setAttr $attr 1;
+                }
+            else
+                {
+                //print ("\n "+$poly);
+                $attr = $poly+".doubleSided";
+                setAttr $attr 0;
+                }			
+            }				
+        print ("Applied to all Meshes.\n");
+        }
+        
+    select -r $selected;
+}
+

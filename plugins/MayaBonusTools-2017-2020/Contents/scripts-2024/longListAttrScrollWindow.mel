@@ -1,0 +1,28 @@
+// ===========================================================================
+// Copyright 2023 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+
+global proc longListAttrScrollWindow()
+{
+	$ob = `ls -sl`;
+	$ls = `listAttr $ob`;
+	window -title ("Attribute List for " + $ob[0]);
+	columnLayout;
+	
+	textScrollList 
+		-numberOfRows 20 
+		scrollList;
+	
+	for ($i in $ls)
+	{textScrollList -edit -append $i scrollList;}
+	
+	showWindow;
+}

@@ -1,0 +1,475 @@
+// ===========================================================================
+// Copyright 2023 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+// ===========================================================================
+//
+// agreement provided at the time of installation or download, or which
+// ===========================================================================
+//
+//
+//  Procedure Name:
+//	AEMeshInstanceExtrudeTemplate
+//
+//  Description:
+//	Creates the attribute editor controls for the MeshInstanceExtrude Node
+//
+//  Input Value:
+//	nodeName 
+//
+//  Output Value:
+//	None
+// 
+
+global string $AEselectedMeshInstance;
+global string $AEMeshInstanceMenuParent;
+
+global proc MeshInstanceDetailMeshNew( string $attrName )
+{
+	setUITemplate -pst attributeEditorTemplate;
+
+	columnLayout ("DetailMeshColumn");
+
+	setParent ..;
+	setUITemplate -ppt;
+
+	MeshInstanceCreateDetailMeshList( $attrName );
+	MeshInstanceDetailMeshReplace( $attrName );
+}
+
+global proc MeshInstanceDetailMeshReplace( string $attrName )
+{
+	global string $AEMeshInstanceMenuParent;
+	global string $AEselectedMeshInstance;
+
+	string   $buffer[];
+	tokenize($attrName, ".", $buffer);
+	string $nodeName = $buffer[0];
+
+	$AEselectedMeshInstance = $nodeName;
+
+	setUITemplate -pst attributeEditorTemplate;
+
+	if (!`columnLayout -ex DetailMeshColumn`)
+	{
+		setUITemplate -pst attributeEditorTemplate;
+		columnLayout DetailMeshColumn;
+		setUITemplate -ppt;
+	}
+
+	setParent DetailMeshColumn;
+	string $parent = `setParent -q`; 
+
+	MeshInstanceEditDetailMeshList( $attrName );
+
+	setParent ..;
+
+	setUITemplate -ppt;	
+}
+
+global proc MeshInstanceCreateDetailMeshList( string $attrName )
+{
+	global string $AEMeshInstanceMenuParent;
+	global string $AEselectedMeshInstance;
+
+	string   $buffer[];
+	tokenize($attrName, ".", $buffer);
+	string $nodeName = $buffer[0];
+
+	$AEselectedMeshInstance = $nodeName;
+
+	string $parent = `setParent -q`;
+
+	rowColumnLayout
+		-columnWidth 1 400
+		-numberOfColumns 1
+		-columnAttach 1 "both" 0
+		"MeshInstanceMainLayout";
+
+	text -label "Detail Meshes" "MeshInstanceListNameLabel";
+
+	string $mainListName = "MeshInstanceMainList";
+	textScrollList
+		-width 400
+		-height 94
+		-allowMultiSelection true
+		-removeAll
+		-annotation "Detail Meshes." 
+		$mainListName;
+
+	int $scriptJobIndex = 
+		`scriptJob -replacePrevious -parent $parent -attributeChange ($attrName)
+		("MeshInstanceUpdateListWithCurrentSelection "+$mainListName+" "+$AEselectedMeshInstance) -disregardIndex`;
+
+	rowColumnLayout
+		-numberOfColumns 2
+		-columnWidth 1 200
+		-columnWidth 2 200
+		-columnAlign 1 "center"
+		-columnAlign 2 "center"
+		-columnAttach 1 "both" 0
+		-columnAttach 2 "both" 0
+		-rowAttach 1 "top" 2
+		-rowAttach 2 "top" 2
+		"MeshInstanceExistingItemButtonLayout";
+
+	button
+		-label "Add Selection To List" 
+		-command ("MeshInstanceAddSelectionToList "+$mainListName+" $AEselectedMeshInstance "+$parent)
+		-annotation "Add selected mesh(s) to detail mesh list." 
+		-width 200
+		"MeshInstanceAddItemsButton";
+
+	button
+		-label "Remove Items from List" 
+		-command ("MeshInstanceRemoveItemsFromList "+$mainListName+" $AEselectedMeshInstance "+$parent)
+		-annotation "Remove highlighted detail mesh(s) from the list."
+		-width 200
+		"MeshInstanceRemoveItemsButton";
+
+	MeshInstanceUpdateListWithCurrentSelection( $mainListName, $nodeName );
+
+	setParent ..;
+}
+
+proc adjustScrollListToSeeItems( string $listName, int $items[] )
+{
+	if( size($items) > 0 )
+	{
+		$items = sort($items);
+		int $i;
+		for( $i = 0; $i < size($items); $i ++ )
+		{
+			int $firstSelected = $items[$i];
+			int $numberOfRows = `textScrollList -q -numberOfRows $listName`;
+			if( $firstSelected > $numberOfRows )
+			{
+				int $selectThis = $firstSelected - $numberOfRows + 1;
+				textScrollList -e -showIndexedItem $selectThis $listName;
+			}
+		}
+	}
+}
+
+proc updateList( string $listName, string $nodeName, int $selectedIndices[] )
+{
+	string $currentConnections[] = `listConnections -sh on ($nodeName+".detailMesh")`;
+
+	int $vis = `textScrollList -q -visible $listName`;
+	textScrollList -e -visible 0 $listName;
+	textScrollList -e -removeAll $listName;
+
+	int $i;
+	if( size($currentConnections) == 0 )
+	{
+		textScrollList -e -append " " -width 380 $listName;
+	}
+	else
+	{
+		for( $i = 0; $i < size($currentConnections); $i ++ )
+		{
+			string $newText = ($i + ": " + $currentConnections[$i]);	
+			textScrollList -e -append $newText -width 380 $listName;
+		}
+	}
+
+	textScrollList -e -deselectAll $listName;
+	for( $i = 0; $i < size($selectedIndices); $i ++ )
+	{
+		if( $selectedIndices[$i] <= `textScrollList -q -numberOfItems $listName` )
+		{	
+			textScrollList -e -selectIndexedItem $selectedIndices[$i] $listName;
+		}
+	}
+
+	adjustScrollListToSeeItems( $listName, $selectedIndices );
+	textScrollList -e -visible 1 $listName;
+}
+
+proc connectObjectsToMeshInstance( string $listName, string $nodeName, string $arrayName[], int $selectedIndices[], string $window )
+{
+	scriptJob -replacePrevious -parent $window -conditionTrue readingFile "";
+
+	string $currentConnections[] = `listConnections -connections on -plugs on -source on ($nodeName+".detailMesh")`;
+
+	int $i;
+	for( $i = 0; $i < size($currentConnections); $i += 2 )
+	{
+		disconnectAttr $currentConnections[$i+1] $currentConnections[$i];
+	}
+
+	for( $i = 0; $i < size($arrayName); $i ++ )
+	{
+		connectAttr ($arrayName[$i]+".worldMesh") ($nodeName+".detailMesh["+$i+"]");
+	}
+
+	textScrollList -e -visible 0 $listName;
+	textScrollList -e -deselectAll $listName;
+	for( $i = 0; $i < size($selectedIndices); $i ++ )
+	{
+		if( $selectedIndices[$i] <= `textScrollList -q -numberOfItems $listName` )
+		{
+			textScrollList -e -selectIndexedItem $selectedIndices[$i] $listName;
+		}
+	}
+
+	if (size($selectedIndices) > 0)
+	{
+		updateList( $listName, $nodeName, $selectedIndices );
+	}
+
+	scriptJob -replacePrevious -parent $window -attributeChange ($nodeName+".detailMesh")
+			("MeshInstanceUpdateListWithCurrentSelection "+$listName+" "+$nodeName) -disregardIndex;
+}
+
+proc fillItemListFromCurrentSelection(string $listName, string $nodeName, string $arrayName[], string $window )
+{
+	int $selectedIndices[] = `textScrollList -q -selectIndexedItem $listName`;
+	connectObjectsToMeshInstance( $listName, $nodeName, $arrayName, $selectedIndices, $window );
+}
+
+proc string[] downstreamMesh(string $node, string $attr)
+{
+    string $outMeshNodes[];
+    string $dstNodes[] = `listConnections -d on -sh on ($node + $attr)`;
+    int $i, $j;
+    for ($i = 0; $i < size($dstNodes); $i++) {
+        if (nodeType($dstNodes[$i]) == "groupParts") {
+            string $meshNodes[] = downstreamMesh($dstNodes[$i], ".outputGeometry");
+            for ($j = 0; $j < size($meshNodes); $j++) {
+                $outMeshNodes[size($outMeshNodes)] = $meshNodes[$j];
+            }
+        } else if (nodeType($dstNodes[$i]) == "mesh")
+            $outMeshNodes[size($outMeshNodes)] = $dstNodes[$i];        
+    }
+    return $outMeshNodes;
+}
+
+global proc MeshInstanceAddSelectionToList( string $listName, string $nodeName, string $window )
+{
+	string $selectedItems[] = `ls -sl`;
+	if( size($selectedItems) > 0 )
+	{
+		string $currentConnections[] = `listConnections -sh on ($nodeName+".detailMesh")`;	
+		string $outMesh[] = downstreamMesh($nodeName, ".outputMesh");
+		int $listChanged = false;
+		int $i;
+		for( $i = 0; $i < size($selectedItems); $i ++ )
+		{
+			string $meshShapes[];
+			if (nodeType($selectedItems[$i]) == "mesh")
+				$meshShapes[0] = $selectedItems[$i];
+			else
+				$meshShapes = `listRelatives -type "mesh" $selectedItems[$i]`;
+			int $k;
+			for ( $k = 0; $k < size($meshShapes); $k++ )
+			{
+				if ($meshShapes[$k] != $outMesh[0])
+				{
+					int $found = false;
+					int $j;
+					for( $j = 0; $j < size($currentConnections); $j ++ )
+					{
+						if( $meshShapes[$k] == $currentConnections[$j] )
+						{
+							$found = true;
+							break;
+						}
+					}
+					if( $found == false )
+					{				
+						$currentConnections[size($currentConnections)] = $meshShapes[$k];
+						$listChanged = true;
+					}
+				}
+				else
+				{
+					error "Extruded mesh used as its own detail mesh";
+					return;
+				}
+			}
+		}
+
+		if( $listChanged )
+			fillItemListFromCurrentSelection( $listName, $nodeName, $currentConnections, $window );
+		else
+			warning "No new mesh to add as detail mesh";
+	}	
+}
+
+global proc MeshInstanceRemoveItemsFromList( string $listName, string $nodeName, string $window )
+{
+	string $currentConnections[] = `listConnections -sh on ($nodeName+".detailMesh")`;
+
+	int $selectedIndices[] = `textScrollList -q -selectIndexedItem $listName`;
+	if( size($selectedIndices) == 0 )
+		return;
+
+	int $i;
+	int $j;
+	string $temp[];
+	for( $i = 0; $i < size($currentConnections); $i ++ )
+	{
+		int $found = 0;
+		for( $j = 0; $j < size($selectedIndices); $j ++ )
+		{
+			if( $selectedIndices[$j] == $i+1 )
+				$found = 1;
+		}
+
+		if( $found == 0 )
+		{
+			$temp[size($temp)] = $currentConnections[$i];
+		}
+	}
+	$currentConnections = $temp;
+
+	textScrollList -e -deselectAll $listName;
+	fillItemListFromCurrentSelection( $listName, $nodeName, $currentConnections, $window );
+}
+
+global proc MeshInstanceUpdateListWithCurrentSelection( string $listName, string $nodeName )
+{
+	int $selectedIndices[] = `textScrollList -q -selectIndexedItem $listName`;
+	updateList( $listName, $nodeName, $selectedIndices );
+}
+
+global proc MeshInstanceEditDetailMeshList( string $attrName )
+{
+	string   $buffer[];
+	tokenize($attrName, ".", $buffer);
+	string $nodeName = $buffer[0];
+
+	string $parent = `setParent -q`;
+
+    string $mainListName = "MeshInstanceMainList";
+ 
+	scriptJob -replacePrevious -parent $mainListName -attributeChange ($nodeName+".detailMesh")
+			("MeshInstanceUpdateListWithCurrentSelection "+$mainListName+" "+$nodeName) -disregardIndex;
+
+	MeshInstanceUpdateListWithCurrentSelection( $mainListName, $nodeName );
+
+	setParent ..;
+}
+
+global proc MeshInstanceExtrudeRefreshNew( string $attrName )
+{
+    string $nodeName = plugNode($attrName);
+	columnLayout -columnAttach "left" 150;
+	button -label "Refresh"
+	       -width 75
+		   -command ( "dgdirty " + $nodeName )
+		MeshInstanceExtrudeRefreshBtn;
+}
+
+global proc MeshInstanceExtrudeRefreshReplace( string $attrName )
+{
+    string $nodeName = plugNode($attrName);
+	button -edit
+		   -command ( "dgdirty " + $nodeName )
+		MeshInstanceExtrudeRefreshBtn;
+}
+
+global proc ShowControlRelated( string $nodeName )
+{
+    int $useManualControl = `getAttr ($nodeName + ".curveUpVector")` == 8;
+	int $showControl = `getAttr ($nodeName + ".showControl")`;
+	string $controls[] = `listConnections -d off  -s on ($nodeName + ".curveUpVectorTwist")`;
+	for ($i = 0; $i < size($controls); $i++) {
+		setAttr ($controls[$i] + ".visibility") $showControl;
+	}
+	int $isVisible = $useManualControl && $showControl;
+	editorTemplate -dimControl $nodeName "controlScale" true;
+	if ($isVisible) {
+		editorTemplate -dimControl $nodeName "controlScale" false;
+	}
+}
+
+global proc ShowControlScaleRelated( string $nodeName )
+{
+	float $radius = `getAttr ($nodeName + ".controlScale")`;
+	string $controls[] = `listConnections -d off  -s on ($nodeName + ".curveUpVectorTwist")`;
+	for ($i = 0; $i < size($controls); $i++) {
+		string $parents[] = `listRelatives -p $controls[$i]`;
+		if (size($parents) == 1) {
+			setAttr ($parents[0] + ".s") $radius $radius $radius;
+		}
+	}
+}
+
+global proc CheckCornerRelated( string $nodeName )
+{
+    string $nodeAttr = $nodeName + ".subdivideForSmoothCorner";
+	if ( `getAttr $nodeAttr` == 0) {
+		editorTemplate -dimControl $nodeName "cornerTightness"		true;
+		editorTemplate -dimControl $nodeName "cornerTightnessScale" true;
+	} else {
+		editorTemplate -dimControl $nodeName "cornerTightness"		false;
+		editorTemplate -dimControl $nodeName "cornerTightnessScale" false;
+	}
+}
+
+global proc CheckUpVectorRelated( string $nodeName )
+{
+    string $nodeAttr = $nodeName + ".curveUpVector";
+	editorTemplate -dimControl $nodeName "customUpVector" true;
+	editorTemplate -dimControl $nodeName "controlScale" true;
+	editorTemplate -dimControl $nodeName "twistString" true;
+	if ( `getAttr $nodeAttr` == 7) {
+		editorTemplate -dimControl $nodeName "customUpVector" false;
+	} else if ( `getAttr $nodeAttr` == 8) {
+		setAttr ($nodeName + ".showControl") true;
+		editorTemplate -dimControl $nodeName "twistString" false;
+		if (`getAttr ($nodeName + ".showControl")`) {
+			editorTemplate -dimControl $nodeName "controlScale" false;
+		}
+	}
+	ShowControlRelated( $nodeName );
+}
+
+global proc AEmeshInstanceExtrudeTemplate ( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+		editorTemplate -beginLayout "Tessellation Attributes" -collapse 0;
+			editorTemplate -addControl "resolution";
+			editorTemplate -addControl "curveUpVector" CheckUpVectorRelated;
+			editorTemplate -addControl "showControl" "ShowControlRelated";
+			editorTemplate -addControl "controlScale" "ShowControlScaleRelated";
+			editorTemplate -label "" -addControl "customUpVector";
+			editorTemplate -addControl "twistString";
+			editorTemplate -addControl "instanceRotation";
+			editorTemplate -addControl "softEdges";
+			editorTemplate -addControl "weldUVs";
+			editorTemplate -addControl "offsetU";
+			editorTemplate -addControl "scaleU";
+			editorTemplate -addSeparator;
+
+			editorTemplate -callCustom "MeshInstanceDetailMeshNew" "MeshInstanceDetailMeshReplace" "detailMesh";
+
+			editorTemplate -addControl "detailMeshDeformable";
+			editorTemplate -addSeparator;
+			editorTemplate -addControl "subdivideAtCurvePoint";
+			editorTemplate -addSeparator;
+			editorTemplate -addControl "subdivideForSmoothCorner" "CheckCornerRelated";
+			editorTemplate -addControl "cornerTightness";
+			editorTemplate -addControl "cornerTightnessScale";
+			// Pass the softEdges attribute as a means to trigger the dgdirty call.
+			editorTemplate -callCustom "MeshInstanceExtrudeRefreshNew" "MeshInstanceExtrudeRefreshReplace"	"softEdges";
+			editorTemplate -suppress "inputCurve";
+			editorTemplate -suppress "inputMesh";
+			editorTemplate -suppress "outputMesh";
+			editorTemplate -suppress "curveUpVectorTwist";
+			editorTemplate -suppress "cap";
+			editorTemplate -suppress "cerrMesh";
+			editorTemplate -suppress "cerrMFnMesh";
+			editorTemplate -suppress "cerrCurveData";
+			editorTemplate -suppress "refreshNow";
+		editorTemplate -endLayout;		
+
+	editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+}
+

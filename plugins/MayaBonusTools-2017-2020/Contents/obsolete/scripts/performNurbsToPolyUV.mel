@@ -1,5 +1,5 @@
 // ===========================================================================
-// Copyright 2021 Autodesk, Inc. All rights reserved.
+// Copyright 2022 Autodesk, Inc. All rights reserved.
 //
 // Use of this software is subject to the terms of the Autodesk license
 // agreement provided at the time of installation or download, or which
@@ -22,21 +22,13 @@
 
 proc setOptionVars (int	$forceFactorySettings)
 {
-	if ($forceFactorySettings || !`optionVar -exists "nurbsToPolyUVOperator"`)
-		optionVar -stringValue "nurbsToPolyUVOperator" "projectCenterToPoly";
-
-	if ($forceFactorySettings || !`optionVar -exists "nurbsToPolyUVReverseNormals"`)
-		optionVar -intValue "nurbsToPolyUVReverseNormals" 0;
-
-	if ($forceFactorySettings || !`optionVar -exists "nurbsToPolyUVDoubleSided"`)
-		optionVar -intValue "nurbsToPolyUVDoubleSided" 0;
-
-	if ($forceFactorySettings || !`optionVar -exists "nurbsToPolyUVGeometryNormals"`)
-		optionVar -intValue "nurbsToPolyUVGeometryNormals" 1;
-
-	//if ($forceFactorySettings || !`optionVar -exists "nurbsToPolyUVWholeFaces"`)
-	//	optionVar -intValue "nurbsToPolyUVWholeFaces" 0;
-
+	optionVar -init $forceFactorySettings -category "Bonus Tools.UV Editing.NURBS To Poly UV"
+		-sv "nurbsToPolyUVOperator" "projectCenterToPoly"
+		-iv "nurbsToPolyUVReverseNormals" 0
+		-iv "nurbsToPolyUVDoubleSided" 0
+		-iv "nurbsToPolyUVGeometryNormals" 1
+		//-iv "nurbsToPolyUVWholeFaces" 0
+		;
 }
 
 global proc nurbsToPolyUVSetup (string $parent, int $forceFactorySettings)

@@ -1,0 +1,274 @@
+// ===========================================================================
+// Copyright 2023 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+//  Creation Date:  Apr, 2003
+//
+//  Procedure Name:
+//      performFootSetup
+//
+//  Description:
+//        
+//         
+//  Input Arguments:
+//        $option : Whether to set the options to default values.
+//  Return Value:
+//        None
+//
+
+global proc getFootSetupControl(string $control){
+	string $selection[] = `ls -sl`;
+	
+	if ($control == "knee"){
+		textFieldButtonGrp -edit 
+			-text ($selection[0]) 
+			kneeControlBtn;
+	}else{
+		textFieldButtonGrp -edit 
+			-text ($selection[0]) 
+			footControlBtn;
+	}
+
+}
+
+
+
+proc setOptionVars (int	$forceFactorySettings)
+{
+	optionVar -init $forceFactorySettings -category "Bonus Tools.Rigging.Setup Foot"
+		-iv "footSetupHeel" 1
+		-iv "footSetupStyle" 1
+		-sv "footControl" ""
+		-sv "kneeControl" ""
+		;
+}
+
+global proc footSetupSetup (string $parent, int $forceFactorySettings)
+{
+	setOptionVars($forceFactorySettings);
+	setParent $parent;
+
+	radioButtonGrp
+        -edit
+        -select `optionVar -query footSetupHeel`
+        footSetupHeel;
+
+	radioButtonGrp
+        -edit
+        -select `optionVar -query footSetupStyle`
+        footSetupStyle;
+
+	textFieldButtonGrp -edit
+		-text `optionVar -query footControl`
+		footControlBtn;
+
+	textFieldButtonGrp -edit
+		-text `optionVar -query kneeControl`
+		kneeControlBtn;
+
+}
+
+global proc footSetupCallback (string $parent, int $doIt)
+{	
+	setParent $parent;
+
+	optionVar -intValue "footSetupHeel"
+		`radioButtonGrp -query -select footSetupHeel`;
+
+	optionVar -intValue "footSetupStyle"
+		`radioButtonGrp -query -select footSetupStyle`;
+
+	optionVar -stringValue "footControl"
+		`textFieldButtonGrp -query -text footControlBtn`;
+
+	optionVar -stringValue "kneeControl"
+		`textFieldButtonGrp -query -text kneeControlBtn`;
+
+	if ($doIt) 
+	{
+		bt_performFootSetup 0;
+		string $tmpCmd = "bt_performFootSetup 0 ";
+		addToRecentCommandQueue $tmpCmd "Setup Foot";
+	}
+}
+
+proc footSetupOptions ()
+{
+	string $commandName = "footSetup";
+	string $callback = ($commandName + "Callback");
+	string $setup = ($commandName + "Setup");
+	//	STEP 1:  Get the option box.
+	//	============================
+	//
+	string $layout = getOptionBox();
+	setParent $layout;
+	//	STEP 2:  Pass the command name to the option box.
+	//	=================================================
+	//
+	setOptionBoxCommandName($commandName);
+	//	STEP 3:  Activate the default UI template.
+	//	==========================================
+	//
+	setUITemplate -pushTemplate DefaultTemplate;
+	//	STEP 4: Create option box contents.
+	//	===================================
+	//
+	waitCursor -state 1;
+	
+	string $parent = `columnLayout -adjustableColumn 1`;
+
+	/*
+	frameLayout -label "Image" 
+		-borderStyle "etchedIn"
+		-collapsable 0;
+	*/
+
+	columnLayout;
+
+	radioButtonGrp
+		-numberOfRadioButtons 2
+		-label "Heel Joint"
+		-labelArray2 "Does not Exist" "Exists"
+		-select 2
+		footSetupHeel;
+
+	radioButtonGrp
+		-numberOfRadioButtons 3
+		-label "Foot Style"
+		-labelArray3 "IK Handles" "Parent Constraint" "Set Driven Key"
+		-select 1
+		footSetupStyle;
+
+	textFieldButtonGrp -label "Foot Control" 
+		//-text "Driver to copy to" 
+		-buttonLabel "Set"
+		-buttonCommand "getFootSetupControl foot"
+		-editable true
+		-annotation ("Select the foot control object or leave blank for the default control.")
+		footControlBtn;
+
+	textFieldButtonGrp -label "Knee Control" 
+		//-text "Driver to copy to" 
+		-buttonLabel "Set"
+		-buttonCommand "getFootSetupControl knee"
+		-editable true
+		-annotation ("Select the knee control object or leave blank for the default control.")
+		kneeControlBtn;
+	
+	setParent ..;
+
+	setParent ..;
+
+	//copyAttrib
+	
+	setParent -menu ..;
+
+	waitCursor -state 0;
+	//	Step 5: Deactivate the default UI template.
+	//	===========================================
+	//
+	setUITemplate -popTemplate;
+
+	//	Step 6: Customize the buttons.  
+	//	==============================
+	//
+	string $applyBtn = getOptionBoxApplyBtn();
+	button -edit 
+		-label "Apply"
+		-command ($callback + " " + $parent + " " + 1) 
+		$applyBtn;
+	
+	string $applyAndCloseBtn = getOptionBoxApplyAndCloseBtn();
+	button -edit 
+		-label "Setup Foot"
+		$applyAndCloseBtn;
+
+	string $saveBtn = getOptionBoxSaveBtn();
+	button -edit 
+		-command ($callback + " " + $parent + " " + 0 + " " +"; hideOptionBox")
+		$saveBtn;
+
+	string $resetBtn = getOptionBoxResetBtn();
+	button -edit 
+		-command ($setup + " " + $parent + " " + 1)
+		$resetBtn;
+
+	//	Step 7: Set the option box title.
+	//	=================================
+	//
+	setOptionBoxTitle("Setup Foot Options");
+	//	Step 8: Customize the 'Help' menu item text.
+	//	============================================
+	//
+	//setOptionBoxHelpTag("Poly Attribute Map");
+	//	Step 9: Set the current values of the option box.
+	//	=================================================
+	//
+	eval (($setup + " " + $parent + " " + 0));
+	//	Step 10: Show the option box.
+	//	=============================
+	//
+	showOptionBox();
+}
+
+
+proc string assembleCmd()
+{
+	setOptionVars (false);
+
+	int $doHistory = `constructionHistory -q -toggle`;
+	int $heelValue = `optionVar -query "footSetupHeel"`;
+	int $footStyleValue = `optionVar -query "footSetupStyle"`;
+	string $footControl = `optionVar -query "footControl"`;
+	string $kneeControl = `optionVar -query "kneeControl"`;
+	$heelValue = $heelValue -1;
+	string $footStyle;
+	if ($footStyleValue == 1)
+		$footStyle = "ikHandles";
+	else if ($footStyleValue == 2)
+		$footStyle = "parentConstraint";
+	else if ($footStyleValue == 3)
+		$footStyle = "sdkFoot";
+	else
+		$footStyle = "ikHandles";
+
+	string $cmd = "footSetup ";
+	$cmd += $heelValue;
+	$cmd += " \"";
+	$cmd += $footStyle;
+	$cmd += "\" \"";
+	$cmd += $footControl;
+	$cmd += "\" \"";
+	$cmd += $kneeControl;
+	$cmd += "\"";
+
+	print $cmd;
+	return $cmd;	
+}
+
+global proc string bt_performFootSetup (int $option)
+{
+	string $cmd="";
+
+	switch ($option) 
+	{
+		case 0:
+			$cmd = `assembleCmd`;
+			eval($cmd);
+			break;
+		case 1:
+			footSetupOptions;
+			break;
+		case 2:
+			$cmd = `assembleCmd`;
+			break;
+	}
+	return $cmd;
+}

@@ -24,14 +24,9 @@
 
 {
 	string $me =`moduleInfo -p -mn "MayaBonusTools"` ;
-	string $meAll =$me + "/python-" + `about -v` ;
-	$me +="/python" ;
+	string $meAll =$me + "/python-" + `about -v` ;	
 	python ("import sys") ;
-	string $py[] =python ("sys.path") ;
-	if ( stringArrayCount ($me, $py) == 0 ) {
-		python ("sys.path.insert(0, '" + $me + "')") ;
-		python ("sys.path.insert(0, '" + $meAll + "')") ;
-	}
+	python ("sys.path.insert(0, '" + $meAll + "')") ;	
 }
 
 // build the BonusTools menu at startup

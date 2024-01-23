@@ -1,5 +1,5 @@
 // ===========================================================================
-// Copyright 2019 Autodesk, Inc. All rights reserved.
+// Copyright 2022 Autodesk, Inc. All rights reserved.
 //
 // Use of this software is subject to the terms of the Autodesk license
 // agreement provided at the time of installation or download, or which
@@ -22,45 +22,19 @@
 
 proc setOptionVars (int	$forceFactorySettings)
 {
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapAttribute"`)
-		optionVar -stringValue "polyAttributeMapAttribute" "uv";
-
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapCreateFileTexture"`)
-		optionVar -intValue "polyAttributeMapCreateFileTexture" 1;
-
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapDefaultAttributeColor"`){
-		optionVar -floatValue "polyAttributeMapDefaultAttributeColor" 0;
-		optionVar -floatValueAppend "polyAttributeMapDefaultAttributeColor" 0;
-		optionVar -floatValueAppend "polyAttributeMapDefaultAttributeColor" 0;
-	}
-
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapDefaultAttributeAlpha"`)
-		optionVar -floatValue "polyAttributeMapDefaultAttributeAlpha" 1;
-
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapDefaultBackgroundColor"`){
-		optionVar -floatValue "polyAttributeMapDefaultBackgroundColor" 0;
-		optionVar -floatValueAppend "polyAttributeMapDefaultBackgroundColor" 0;
-		optionVar -floatValueAppend "polyAttributeMapDefaultBackgroundColor" 0;
-	}
-
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapDefaultBackgroundAlpha"`)
-		optionVar -floatValue "polyAttributeMapDefaultBackgroundAlpha" 1;
-
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapFileName"`)
-		optionVar -stringValue "polyAttributeMapFileName" "attributeMap";
-
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapFileOutputType"`)
-		optionVar -stringValue "polyAttributeMapFileOutputType" "iff";
-
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapX"`)
-		optionVar -intValue "polyAttributeMapX" 256;
-
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapY"`)
-		optionVar -intValue "polyAttributeMapY" 256;
-
-	if ($forceFactorySettings || !`optionVar -exists "polyAttributeMapObjectSpace"`)
-		optionVar -intValue "polyAttributeMapObjectSpace" 1;
-
+	optionVar -init $forceFactorySettings -category "Bonus Tools.Rendering.Poly Attribute Map"
+		-sv  "polyAttributeMapAttribute" "uv"
+		-iv  "polyAttributeMapCreateFileTexture" 1
+		-fv3 "polyAttributeMapDefaultAttributeColor" 0 0 0
+		-fv  "polyAttributeMapDefaultAttributeAlpha" 1
+		-fv3 "polyAttributeMapDefaultBackgroundColor" 0 0 0
+		-fv  "polyAttributeMapDefaultBackgroundAlpha" 1
+		-sv  "polyAttributeMapFileName" "attributeMap"
+		-sv  "polyAttributeMapFileOutputType" "iff"
+		-iv  "polyAttributeMapX" 256
+		-iv  "polyAttributeMapY" 256
+		-iv  "polyAttributeMapObjectSpace" 1
+		;
 }
 
 global proc polyAttributeMapSetup (string $parent, int $forceFactorySettings)

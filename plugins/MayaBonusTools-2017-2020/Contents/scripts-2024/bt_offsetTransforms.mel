@@ -1,0 +1,533 @@
+// ===========================================================================
+// Copyright 2023 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+//
+// Last updated: 01/01/20
+
+global proc bt_deleteOffsetTransformsOptionVars()
+{
+    //Delete layout optionVars so they can be reset back to default values
+
+    //////////////////////
+    //  Position
+    //
+    optionVar -rm bt_moveFrame;
+    optionVar -rm bt_moveOffsetAxis;
+    optionVar -rm bt_moveSpace;
+    optionVar -rm bt_moveValue;
+
+    //////////////////////
+    //  Orient
+    //
+    optionVar -rm bt_rotateFrame;
+    optionVar -rm bt_rotateOffsetAxis;
+    optionVar -rm bt_rotateSpace;
+    optionVar -rm bt_rotateValue;
+
+    //////////////////////
+    //  Scale
+    //
+    optionVar -rm bt_scaleFrame;
+    optionVar -rm bt_scaleOffsetX;
+    optionVar -rm bt_scaleOffsetY;
+    optionVar -rm bt_scaleOffsetZ;
+    optionVar -rm bt_scaleSpace;
+    optionVar -rm bt_scaleValue;
+
+    inViewMessage -smg "Offset Transform Settings have been reset. Close and reopen window for reset to apply." -pos midCenter -bkc 0x11111111 -alpha .5 -fade -fst 2000;
+}
+
+global proc float bt_setFloatFieldValue(string $id, string $optVar)
+{
+    // Return number from float field change
+    //
+
+    float $val = `floatField -q -value $id` ;
+    optionVar -fv $optVar $val;
+    return $val;
+}
+
+global proc int bt_setIntFieldValue(string $id, string $optVar)
+{
+    // Return number from integer field change
+    //
+
+    int $val = `intField -q -value $id` ;
+    optionVar -iv $optVar $val;
+    return $val;
+}
+
+//////////////////////////////////////////////
+//	XForm Procs
+//////////////////////////////////////////////
+
+global proc bt_moveOffset (float $value, int $axis, string $space)
+{
+    global string $gSelect;
+    global string $gMove;
+
+    if (($space == "-os") || ($space == "-ws"))
+    {
+        setToolTo $gMove;
+        if ($axis == 1)
+            move  -r -wd $space $value 0 0;
+        else if ($axis == 2)
+            move  -r -wd $space 0 $value 0;
+        else if ($axis == 3)
+            move  -r -wd $space 0 0 $value;
+        else
+            warning ("No axis defined for move");
+    }
+    else if ($space == "-edge")
+    {
+        setToolTo $gSelect;
+        bt_moveAlongEdge ($value);
+    }
+    else if ($space == "-normal")
+    {
+        setToolTo $gSelect;
+        bt_moveAlongNormal ($value);
+    }
+}
+
+
+global proc bt_rotateOffset (float $value, int $axis, string $space)
+{
+
+global string $gRotate;
+global string $gSelect;
+
+if ($space == "-bb")
+    {
+    float $boundingBox[] = `exactWorldBoundingBox`;
+
+    $xcenter = (($boundingBox[0] + $boundingBox[3]) / 2);
+    $ycenter = (($boundingBox[1] + $boundingBox[4]) / 2);
+    $zcenter = (($boundingBox[2] + $boundingBox[5]) / 2);
+
+    print ("Rotated " + $value + " degrees around center of world bounding box for all selected objects\n");
+
+    setToolTo $gSelect;
+
+    if ($axis == 1)
+        rotate -r -ws -pivot $xcenter $ycenter $zcenter -x $value -y 0 -z 0;
+    else if ($axis == 2)
+        rotate -r -ws -pivot $xcenter $ycenter $zcenter -x 0 -y $value -z 0;
+    else if ($axis == 3)
+        rotate -r -ws -pivot $xcenter $ycenter $zcenter -x 0 -y 0 -z $value;
+    else
+        warning ("No axis defined for rotation");
+
+    }
+else
+    {
+    print ("Rotated " + $value + " degrees around " + $axis + " axis for each selected objects\n");
+
+    setToolTo $gRotate;
+
+    if ($axis == 1)
+        rotate  -r $space $value 0 0;
+    else if ($axis == 2)
+        rotate  -r $space 0 $value 0;
+    else if ($axis == 3)
+        rotate  -r $space 0 0 $value;
+    else
+        warning ("No axis defined for rotation");
+    }
+}
+
+
+global proc bt_rotateSnap (float $snapVal, string $axis)
+{
+    //Snap rotate value of selected object to given interval
+    //and normalize between -360 and 360 degrees
+    //
+
+    string $attr;
+
+    if ($axis == 1)
+        $attr = ".rx";
+    if ($axis == 2)
+        $attr = ".ry";
+    if ($axis == 3)
+        $attr = ".rz";
+
+    string $sel_items[] = `ls -sl` ;
+
+    int $sel_size = `size( $sel_items )` ;
+
+    int $c;
+    for( $c = 0; $c < $sel_size; $c ++ )
+    {
+        float $rot;
+
+        string $obj = $sel_items[$c];
+
+        //get lower snap point
+        $r1 = floor( float( `getAttr ($obj + $attr)` / $snapVal ) ) * $snapVal ;
+        if( $r1 > 360.0 )
+            $r1 -= 360.0 ;
+
+        //get upper snap point
+        $r2 = floor( float( `getAttr ($obj + $attr)` / $snapVal ) ) * $snapVal + $snapVal;
+        if( $r2 > 360.0 )
+            $r2 -= 360.0 ;
+
+        //snap down
+        if ((`getAttr ($obj + $attr)` - $r1) < ($r2 - `getAttr ($obj + $attr)`))
+            {
+            setAttr ($obj + $attr) $r1 ;
+            print ($obj+" "+ $attr +" : snapped to "+$r1+"\n");
+            }
+        //snap up
+        else
+            {
+            setAttr ($obj + $attr) $r2 ;
+            print ($obj+" "+ $attr +" : snapped to "+$r2+"\n");
+            }
+
+    }
+}
+
+
+global proc bt_scaleAll (string $mode, int $x, int $y, int $z, float $value)
+
+{
+
+    float $xval;
+    float $yval;
+    float $zval;
+
+    if ($x == 0)
+        $xval = 1;
+    else
+        $xval = $value / 100;
+    if ($y == 0)
+        $yval = 1;
+    else
+        $yval = $value / 100;
+    if ($z == 0)
+        $zval = 1;
+    else
+        $zval = $value / 100;
+
+    if ($mode == 1)
+        scale -r $xval $yval $zval;
+    if ($mode == 2)
+        scale -a $xval $yval $zval;
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+global proc bt_offsetTransforms ()
+{
+
+    // Initialize Global vars for UI and options
+    // All global vars and optionVars will have an bt_ suffix
+
+    global string $bt_rotateFieldName;
+    global string $bt_moveFieldName;
+    global string $bt_scaleFieldName;
+    global string $bt_snapRotateButtonName;
+    global string $bt_snapMoveButtonName;
+    global string $bt_moveAxisX;
+    global string $bt_moveAxisY;
+    global string $bt_moveAxisZ;
+
+    //Initialize local vars for Transform
+    float $moveValue;
+    float $rotateValue;
+
+
+    //////////////////////
+    //  Translate
+    //
+
+    if (`optionVar -ex bt_moveOffsetAxis` == 0)
+        optionVar -intValue bt_moveOffsetAxis 1;
+    if (`optionVar -ex bt_moveSpace` == 0)
+        optionVar -stringValue bt_moveSpace "-ws";
+    if (`optionVar -ex bt_moveValue` == 0)
+        optionVar -floatValue bt_moveValue 0.5;
+
+
+    //////////////////////
+    //  Rotate
+    //
+
+    if (`optionVar -ex bt_rotateOffsetAxis` == 0)
+        optionVar -intValue bt_rotateOffsetAxis 2;
+    if (`optionVar -ex bt_rotateSpace` == 0)
+        optionVar -stringValue bt_rotateSpace "-os";
+    if (`optionVar -ex bt_rotateValue` == 0)
+        optionVar -floatValue bt_rotateValue 45;
+
+
+
+
+    //////////////////////
+    //  Scale
+    //
+
+    if (`optionVar -ex bt_scaleOffsetX` == 0)
+        optionVar -intValue bt_scaleOffsetX 1;
+    if (`optionVar -ex bt_scaleOffsetY` == 0)
+        optionVar -intValue bt_scaleOffsetY 1;
+    if (`optionVar -ex bt_scaleOffsetZ` == 0)
+        optionVar -intValue bt_scaleOffsetZ 1;
+    if (`optionVar -ex bt_scaleSpace` == 0)
+        optionVar -stringValue bt_scaleSpace "-os";
+    if (`optionVar -ex bt_scaleValue` == 0)
+        optionVar -floatValue bt_scaleValue 150;
+
+
+    // Get main UI settings
+    //
+    $bt_windowHeight = 300;
+    $bt_windowWidth = 300;
+
+    string $tmpWindow;
+
+        //first delete window if it exists already
+        if( (`window -exists bt_offsetTransformsWindow`) == true )
+                {
+                deleteUI bt_offsetTransformsWindow;
+                 //windowPref -remove bt_offsetTransformsWindow;
+                }
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//  			Begin UI Creation
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+         $tmpWindow = `window -s 0 -menuBar true -t "Offset Transform" bt_offsetTransformsWindow`;
+
+            //$bt_form = `formLayout -w $bt_windowWidth bt_form`;
+             $bt_menuBar = `menuBarLayout`;
+
+            menu -tearOff 0 -l "Edit";
+                //menuItem -l "Reset Settings" -ann "Reset all setting to default values." -c "bt_deleteOffsetTransformsOptionVars ;bt_offsetTransformsToolsUI";
+                menuItem -l "Reset Settings" -ann "Reset all setting to default values." -c "bt_deleteOffsetTransformsOptionVars";
+
+
+                columnLayout -adjustableColumn true;
+
+
+                    //////////////////////
+                    //  TRANSLATE
+                    //
+                    source manipMoveOrient; //for edge and face move manip
+
+                    frameLayout -l "Translate" -li 0  -borderStyle "in" ;
+
+                           separator -st single;
+
+                        rowColumnLayout -numberOfColumns 5 -columnWidth 1 ($bt_windowWidth/5 +10) -columnWidth 2 ($bt_windowWidth/5 + 10) -columnWidth 3 ($bt_windowWidth/5 +10) -columnWidth 4 ($bt_windowWidth/5 +10) -columnWidth 5 ($bt_windowWidth/5 -50);
+
+                            text -l "Translate :  " -al right;
+                            $moveValue = `optionVar -q bt_moveValue`;
+                            $bt_moveFieldName = `floatField -minValue 0 -maxValue 100 -value $moveValue -pre 3 -step 5.0 -cc "bt_setFloatFieldValue $bt_moveFieldName bt_moveValue"`;
+                            $units = `currentUnit -query -linear`;
+                            text -l (" "+$units) -al left  -fn boldLabelFont;
+                            separator -st none;
+
+                            //Get state of axis radio buttons
+                            if 	((`optionVar -q bt_moveSpace` == "-os") || (`optionVar -q bt_moveSpace` == "-ws"))
+                                $axisState = 1;
+                            else
+                                $axisState = 0;
+
+                            separator -st none;
+                            text -l "Axis :  " -al right;
+                            radioCollection;
+                                if (`optionVar -q bt_moveOffsetAxis` == 1)
+                                    {
+                                    $bt_moveAxisX = `radioButton -al center -en $axisState -l "X" -sl -onc "optionVar -iv bt_moveOffsetAxis 1"`;
+                                    $bt_moveAxisY = `radioButton -al center -en $axisState -l "Y" -onc "optionVar -iv bt_moveOffsetAxis 2"`;
+                                    $bt_moveAxisZ = `radioButton -al center -en $axisState -l "Z" -onc "optionVar -iv bt_moveOffsetAxis 3"`;
+                                    }
+                                else if (`optionVar -q bt_moveOffsetAxis` == 2)
+                                    {
+                                    $bt_moveAxisX = `radioButton -al center -en $axisState -l "X" -onc "optionVar -iv bt_moveOffsetAxis 1"`;
+                                    $bt_moveAxisY = `radioButton -al center -en $axisState -l "Y" -sl -onc "optionVar -iv bt_moveOffsetAxis 2"`;
+                                    $bt_moveAxisZ = `radioButton -al center -en $axisState -l "Z" -onc "optionVar -iv bt_moveOffsetAxis 3"`;
+                                    }
+                                else if (`optionVar -q bt_moveOffsetAxis` == 3)
+                                    {
+                                    $bt_moveAxisX = `radioButton -al center -en $axisState -l "X" -onc "optionVar -iv bt_moveOffsetAxis 1"`;
+                                    $bt_moveAxisY = `radioButton -al center -en $axisState -l "Y" -onc "optionVar -iv bt_moveOffsetAxis 2"`;
+                                    $bt_moveAxisZ = `radioButton -al center -en $axisState -l "Z" -sl -onc "optionVar -iv bt_moveOffsetAxis 3"`;
+                                    }
+                            separator -st none;
+
+                            radioCollection;
+                                if (`optionVar -q bt_moveSpace` == "-os")
+                                    {
+                                    text -l "Space :  " -al right;
+                                    radioButton -l "Object" -ann "move in object space" -sl -onc "setToolTo $gMove; manipMoveContext -e -mode 0 Move; optionVar -sv bt_moveSpace \"-os\";  radioButton -e -en 1 $bt_moveAxisX; radioButton -e -en 1 $bt_moveAxisY; radioButton -e -en 1 $bt_moveAxisZ";
+                                    radioButton -l "World" -ann "move in world space" -onc "setToolTo $gMove; manipMoveContext -e -mode 1 Move; optionVar -sv bt_moveSpace \"-ws\";  radioButton -e -en 1 $bt_moveAxisX; radioButton -e -en 1 $bt_moveAxisY; radioButton -e -en 1 $bt_moveAxisZ";
+                                    }
+                                else if (`optionVar -q bt_moveSpace` == "-ws")
+                                    {
+                                    text -l "Space :  " -al right;
+                                    radioButton -l "Object" -ann "move in object space" -onc "setToolTo $gMove; manipMoveContext -e -mode 0 Move; optionVar -sv bt_moveSpace \"-os\";  radioButton -e -en 1 $bt_moveAxisX; radioButton -e -en 1 $bt_moveAxisY; radioButton -e -en 1 $bt_moveAxisZ";
+                                    radioButton -l "World" -ann "move in world space" -sl -onc "setToolTo $gMove; manipMoveContext -e -mode 1 Move; optionVar -sv bt_moveSpace \"-ws\";  radioButton -e -en 1 $bt_moveAxisX; radioButton -e -en 1 $bt_moveAxisY; radioButton -e -en 1 $bt_moveAxisZ";
+                                    }
+
+                                setParent ..; //rowColumn
+
+                            rowColumnLayout -numberOfColumns 2 -columnWidth 1 ($bt_windowWidth/2) -columnWidth 2 ($bt_windowWidth/2) -cs 2 3;
+
+                                button -l "Offset -" -ann "Decrement position along selected axis based on value" -c "bt_moveOffset (`optionVar -q bt_moveValue` * -1) `optionVar -q bt_moveOffsetAxis` `optionVar -q bt_moveSpace`" ;
+                                button -l "Offset +" -ann "Increment position along selected axis based on value" -c "bt_moveOffset `optionVar -q bt_moveValue` `optionVar -q bt_moveOffsetAxis` `optionVar -q bt_moveSpace`" ;
+
+                                setParent ..; //rowColumn
+
+                            setParent ..;  //column
+
+
+                    //////////////////////
+                    //  ROTATE
+                    //
+                       frameLayout -l "Rotate";
+
+                      columnLayout -adjustableColumn true;
+
+                        separator -st single;
+
+                        rowColumnLayout -numberOfColumns 5 -columnWidth 1 ($bt_windowWidth/5 +10) -columnWidth 2 ($bt_windowWidth/5) -columnWidth 3 ($bt_windowWidth/5) -columnWidth 4 ($bt_windowWidth/5) -columnWidth 5 ($bt_windowWidth/5 -10);
+
+
+
+                            text -l "Rotate :  " -al right;
+                            $rotateValue = `optionVar -q bt_rotateValue`;
+                            $bt_rotateFieldName = `floatField -minValue 0 -maxValue 360 -value $rotateValue -step 15 -pre 1 -cc "bt_setFloatFieldValue $bt_rotateFieldName bt_rotateValue"`;
+                            text -l " �" -al left  -fn boldLabelFont;
+                            separator -st none;
+                            separator -st none;
+
+                            text -l "Axis :  " -al right;
+                            radioCollection;
+                                if (`optionVar -q bt_rotateOffsetAxis` == 1)
+                                    {
+                                    radioButton -l "X" -al center -sl -onc "optionVar -iv bt_rotateOffsetAxis 1";
+                                    radioButton -l "Y" -al center -onc "optionVar -iv bt_rotateOffsetAxis 2";
+                                    radioButton -l "Z" -al center -onc "optionVar -iv bt_rotateOffsetAxis 3";
+                                    }
+                                else if (`optionVar -q bt_rotateOffsetAxis` == 2)
+                                    {
+                                    radioButton -l "X" -al center -onc "optionVar -iv bt_rotateOffsetAxis 1";
+                                    radioButton -l "Y" -al center -sl -onc "optionVar -iv bt_rotateOffsetAxis 2";
+                                    radioButton -l "Z" -al center -onc "optionVar -iv bt_rotateOffsetAxis 3";
+                                    }
+                                else if (`optionVar -q bt_rotateOffsetAxis` == 3)
+                                    {
+                                    radioButton -l "X" -al center -onc "optionVar -iv bt_rotateOffsetAxis 1";
+                                    radioButton -l "Y" -al center -onc "optionVar -iv bt_rotateOffsetAxis 2";
+                                    radioButton -l "Z" -al center -sl -onc "optionVar -iv bt_rotateOffsetAxis 3";
+                                    }
+                            separator -st none;
+
+                            text -l "Space :  " -al right;
+                            radioCollection;
+                                //text -label "Mode :  " -al right;
+                                //separator -st none;separator -st none;
+                                if (`optionVar -q bt_rotateSpace` == "-os")
+                                    {
+                                    radioButton -l "Local" -ann "rotate in local space" -sl -onc "setToolTo $gRotate; manipRotateContext -e -mode 0 Rotate; optionVar -sv bt_rotateSpace \"-os\"; ";
+                                    radioButton -l "World" -ann "rotate in world space around each object's own pivot" -onc "setToolTo $gRotate; manipRotateContext -e -mode 1 Rotate; optionVar -sv bt_rotateSpace \"-ws\"; ";
+                                    }
+                                else if (`optionVar -q bt_rotateSpace` == "-ws")
+                                    {
+                                    radioButton -l "Local" -ann "rotate in object space" -onc "setToolTo $gRotate; manipRotateContext -e -mode 0 Rotate; optionVar -sv bt_rotateSpace \"-os\"; ";
+                                    radioButton -l "World" -ann "rotate in world space around each object's own pivot" -sl -onc "setToolTo $gRotate; manipRotateContext -e -mode 1 Rotate; optionVar -sv bt_rotateSpace \"-ws\"; ";
+                                    }
+                                separator -st none;
+
+                                setParent ..; //rowColumn
+
+                            separator -st single;
+
+                        rowColumnLayout -numberOfColumns 2 -columnWidth 1 ($bt_windowWidth/2) -columnWidth 2 ($bt_windowWidth/2) -cs 2 3;
+                                separator -st none;separator -st none;
+                                button -l "Offset -" -ann "Decrement rotation along selected axis based on value" -c "bt_rotateOffset (`optionVar -q bt_rotateValue` * -1) `optionVar -q bt_rotateOffsetAxis` `optionVar -q bt_rotateSpace`" ;
+                                button -l "Offset +" -ann "Increment rotation along selected axis based on value" -c "bt_rotateOffset `optionVar -q bt_rotateValue` `optionVar -q bt_rotateOffsetAxis` `optionVar -q bt_rotateSpace`" ;
+
+                                setParent ..; //rowColumn
+
+                            setParent ..; //rowColumn
+
+                        setParent ..;  //column
+
+
+
+
+                    //////////////////////
+                    //  SCALE
+                    //
+                       frameLayout -l "Scale"  -cll 0;
+
+                      columnLayout -adjustableColumn true;
+
+                        separator -st single;
+
+                        rowColumnLayout -numberOfColumns 5 -columnWidth 1 ($bt_windowWidth/5 +10) -columnWidth 2 ($bt_windowWidth/5) -columnWidth 3 ($bt_windowWidth/5) -columnWidth 4 ($bt_windowWidth/5) -columnWidth 5 ($bt_windowWidth/5 -10);
+
+                            text -l "Scale : " -al right  ;
+                            $scaleValue = `optionVar -q bt_scaleValue`;
+                            $bt_scaleFieldName = `floatField -minValue 0 -maxValue 10000 -value $scaleValue -step 15 -pre 1 -cc "bt_setFloatFieldValue $bt_scaleFieldName bt_scaleValue"`;
+                            text -l " %" -al left  -fn boldLabelFont;
+                            separator -st none;
+                            separator -st none;
+
+
+                            text -l "Axis : " -al right  ;
+                            checkBox -l "X" -align "center" -v `optionVar -q bt_scaleOffsetX` -onc "optionVar -iv bt_scaleOffsetX 1" -ofc "optionVar -iv bt_scaleOffsetX 0";
+                            checkBox -l "Y" -align "center" -v `optionVar -q bt_scaleOffsetY` -onc "optionVar -iv bt_scaleOffsetY 1" -ofc "optionVar -iv bt_scaleOffsetY 0";
+                            checkBox -l "Z" -align "center" -v `optionVar -q bt_scaleOffsetZ` -onc "optionVar -iv bt_scaleOffsetZ 1" -ofc "optionVar -iv bt_scaleOffsetZ 0";
+                            separator -st none;
+
+                            setParent ..;  //frame
+
+                        separator -st none;separator -st single;separator -st none;
+
+                        rowColumnLayout -numberOfColumns 2 -columnWidth 1 ($bt_windowWidth/2) -columnWidth 2 ($bt_windowWidth/2) -cs 2 3;
+
+                            button -l "Scale Relative" -ann "Scale relative to current size of all selected objects" -c "setToolTo $gScale; bt_scaleAll (1, `optionVar -q bt_scaleOffsetX`, `optionVar -q bt_scaleOffsetY`, `optionVar -q bt_scaleOffsetZ`,`optionVar -q bt_scaleValue`)";
+                            button -l "Scale Absolute" -ann "Scale all selected objects to absolute size" -c "setToolTo $gScale; bt_scaleAll (2, `optionVar -q bt_scaleOffsetX`, `optionVar -q bt_scaleOffsetY`, `optionVar -q bt_scaleOffsetZ`,`optionVar -q bt_scaleValue`)";
+                            separator -st none;separator -st none;
+
+                            setParent ..;  //frame
+
+                        setParent ..; //rowColumn
+
+                    setParent ..;  //column
+
+
+
+        print ($tmpWindow + "\n");
+
+        showWindow bt_offsetTransformsWindow;
+
+
+
+}
+
+
+bt_offsetTransforms;

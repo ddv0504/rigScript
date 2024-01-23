@@ -1,0 +1,27 @@
+// ===========================================================================
+// Copyright 2022 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+
+global proc bt_nudgeVertWeights (float $value)
+
+{
+		string $joint[] = `ls -sl -type joint`;
+		if (`size $joint` != 1)
+		    error "No joint selected. Select 1 or more vertice along with a single joint in order to nudge the weight value(s) for that joint up or down";
+		string $verts[] = `getVerts`;
+	    if (`size $verts` < 1)
+		    error "No vertices selected. Select 1 or more vertice along with a single joint in order to nudge the weight value(s) for that joint up or down";
+		string $cluster[] = `listConnections -type skinCluster $joint[0]`;
+
+		skinPercent -relative 1 -transformValue $joint[0] $value $cluster[0] $verts;
+
+		select -add $joint[0];
+}

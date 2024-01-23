@@ -1,0 +1,65 @@
+// ===========================================================================
+// Copyright 2023 Autodesk, Inc. All rights reserved.
+//
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//
+// international treaties.
+//
+//
+// Update or create texture swatches for textures in current scene
+//
+// bt_refreshFileTextureSwatches.mel
+//
+// User can apply to either selected textures or all textures based on selection
+//
+// Last updated:      ( 02/01/12 )
+
+global proc bt_refreshFileTextureSwatches(){
+
+	string $nodes[] = `ls -sl -type "file"`;
+	int $count = 0;
+	
+	if (`size $nodes` > 0)
+        {
+            for ($node in $nodes){
+        		string $textureName = `getAttr ($node + ".fileTextureName")`;
+        		string $buffer[];
+        		int $numTokens;
+        		$numTokens = `tokenize $textureName "/." $buffer`;
+                updateFileNodeSwatch $node;
+          		print ("Refreshed or created swatch for " + $node + "\n");
+          		$count++;
+    		}
+          	print ("Refreshed or created swatch for " + $count + " textures\n");
+        }	
+        
+	else
+	{
+	
+    	$response = `confirmDialog -title "Refresh/Create Texture Swatches" 
+    	    -message "No specific textures selected.  Do you want to refresh/create -all- texture swatches?" 
+    	    -button "Yes" -button "No" -defaultButton "Yes" -cancelButton "No" -dismissString "No"`;
+    	
+    
+        if ($response == "Yes")
+            {
+        	string $nodes[] = `ls -type "file"`;
+        	
+        	for ($node in $nodes){
+        		string $textureName = `getAttr ($node + ".fileTextureName")`;
+        		string $buffer[];
+        		int $numTokens;
+        		$numTokens = `tokenize $textureName "/." $buffer`;
+                updateFileNodeSwatch $node;
+          		print ("Refreshed or created swatch for " + $node + "\n");
+              	$count++;
+        		}
+        	print ("Refreshed or created swatch for " + $count + " textures\n");
+        	}
+        else
+            print "Canceled texture swatch refresh";
+    }
+}

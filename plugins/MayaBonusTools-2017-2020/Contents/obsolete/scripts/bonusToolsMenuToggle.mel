@@ -1,5 +1,5 @@
 // ===========================================================================
-// Copyright 2019 Autodesk, Inc. All rights reserved.
+// Copyright 2022 Autodesk, Inc. All rights reserved.
 //
 // Use of this software is subject to the terms of the Autodesk license
 // agreement provided at the time of installation or download, or which
@@ -11,10 +11,7 @@
 
 global proc bonusToolsMenuToggle(){
 
-
-	if (!`optionVar -exists "bonusToolsMenuToggle"`)
-		optionVar -intValue "bonusToolsMenuToggle" 0;
-
+	optionVar -init false -category "Bonus Tools" -iv bonusToolsMenuToggle 0;
 	int $state = `optionVar -query "bonusToolsMenuToggle"`;
 	$state = !($state);
 	optionVar -intValue "bonusToolsMenuToggle" $state;
