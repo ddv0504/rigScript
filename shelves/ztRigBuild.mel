@@ -349,5 +349,40 @@ global proc ztRigBuild () {
         -commandRepeatable 1
         -flat 1
     ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "def jitChaint(*args):\n    elements = cmds.ls(sl=True,fl=True)\n  ..." 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "def jitChaint(*args):\n    elements = cmds.ls(sl=True,fl=True)\n  ..." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "JitChain" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "kinConnect.png" 
+        -image1 "kinConnect.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as cmds\ndef jitChaint(*args):\n    elements = cmds.ls(os=True,fl=True)\n    cmds.select(cl=True)\n    for index, element in enumerate(elements):\n        if not index:\n            cmds.select(element,r=True)\n            cluster = cmds.cluster()[1]\n            cmds.select(cl=True)\n            jnt = cmds.joint()\n            cmds.matchTransform(jnt,cluster)\n            rootJnt = jnt\n            parentJnt = jnt\n            cmds.delete(cluster)\n            continue            \n        cmds.select(element,r=True)\n        cluster = cmds.cluster()[1]\n        cmds.select(cl=True)\n        jnt = cmds.joint()\n        cmds.matchTransform(jnt,cluster)\n        cmds.parent(jnt,parentJnt)\n        parentJnt = jnt\n        cmds.delete(cluster)\n    cmds.select(rootJnt,r=True)\n    return rootJnt\n\ndef jcResample(*args):\n    mel.eval('source \"JcADVUtil.mel\";')\n    jnt = cmds.ls(sl=True)[0]\n    if not cmds.objectType(jnt) == 'joint':\n        return\n    jnts = cmds.listRelatives(jnt,ad=True)\n    startJnt = jnt\n    endJnt = jnts[0]\n    count = len(jnts) + 1\n    mel.eval('jc_AsFitResampleJoints(\"%s\",\"%s\",%d);' % (startJnt,endJnt,count))\n    print(startJnt,endJnt,count)\n\ncmds.undoInfo(ock=True)\njitChaint()\njcResample()\ncmds.select(sorted(cmds.listRelatives(cmds.ls(sl=True),ad=True)),add=True)\n\ncmds.undoInfo(cck=True)   " 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
 
 } 
