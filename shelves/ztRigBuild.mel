@@ -289,6 +289,41 @@ global proc ztRigBuild () {
         -manage 1
         -visible 1
         -preventOverride 0
+        -annotation "import maya.cmds as cmds\nimport maya.mel as mel\ndef jointChain(*..." 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "import maya.cmds as cmds\nimport maya.mel as mel\ndef jointChain(*..." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "JointChain" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "kinJoint.png" 
+        -image1 "kinJoint.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as cmds\nimport maya.mel as mel\ndef jointChain(*args):\n    # mel.eval('source \"JcADVUtil.mel\";')\n    objs = cmds.ls(sl=True)\n    cmds.select(cl=True)\n    for index,obj in enumerate(objs):\n        cmds.select(cl=True)\n        if not index:\n            jnt = cmds.joint()\n            cmds.matchTransform(jnt,obj)\n            continue\n        parentJnt = jnt\n        jnt = cmds.joint()\n        cmds.matchTransform(jnt,obj)\n        cmds.parent(jnt,parentJnt)\n        \ncmds.undoInfo(ock=True)\njointChain()\ncmds.undoInfo(cck=True)" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
         -annotation "import maya.cmds as cmds\nimport maya.mel as mel\ndef jcResample(*..." 
         -enableBackground 0
         -backgroundColor 0 0 0 
@@ -309,7 +344,7 @@ global proc ztRigBuild () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "import maya.cmds as cmds\nimport maya.mel as mel\ndef jcResample(*args):\n    mel.eval('source \"JcADVUtil.mel\";')\n    jnt = cmds.ls(sl=True)[0]\n    if not cmds.objectType(jnt) == 'joint':\n        return\n    jnts = cmds.listRelatives(jnt,ad=True)\n    startJnt = jnt\n    endJnt = sorted(jnts)[-1]\n    count = len(jnts)\n    mel.eval('jc_AsFitResampleJoints(\"%s\",\"%s\",%d);' % (startJnt,endJnt,count))\n    print(startJnt,endJnt,count)\n\njcResample()\n    " 
+        -command "import maya.cmds as cmds\nimport maya.mel as mel\ndef jcResample(*args):\n    mel.eval('source \"JcADVUtil.mel\";')\n    jnt = cmds.ls(sl=True)[0]\n    if not cmds.objectType(jnt) == 'joint':\n        return\n    jnts = cmds.listRelatives(jnt,ad=True)\n    startJnt = jnt\n    endJnt = jnts[0]\n    count = len(jnts) + 1\n    mel.eval('jc_AsFitResampleJoints(\"%s\",\"%s\",%d);' % (startJnt,endJnt,count))\n    print(startJnt,endJnt,count)\n\njcResample()\n    " 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1
