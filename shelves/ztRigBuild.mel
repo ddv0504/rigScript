@@ -279,5 +279,40 @@ global proc ztRigBuild () {
         -commandRepeatable 1
         -flat 1
     ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "import maya.cmds as cmds\nimport maya.mel as mel\ndef jcResample(*..." 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "import maya.cmds as cmds\nimport maya.mel as mel\ndef jcResample(*..." 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "JC_Resample" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "orientJoint.png" 
+        -image1 "orientJoint.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import maya.cmds as cmds\nimport maya.mel as mel\ndef jcResample(*args):\n    mel.eval('source \"JcADVUtil.mel\";')\n    jnt = cmds.ls(sl=True)[0]\n    if not cmds.objectType(jnt) == 'joint':\n        return\n    jnts = cmds.listRelatives(jnt,ad=True)\n    startJnt = jnt\n    endJnt = sorted(jnts)[-1]\n    count = len(jnts)\n    mel.eval('jc_AsFitResampleJoints(\"%s\",\"%s\",%d);' % (startJnt,endJnt,count))\n    print(startJnt,endJnt,count)\n\njcResample()\n    " 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
 
 } 
