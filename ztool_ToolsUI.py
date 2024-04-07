@@ -368,8 +368,8 @@ class toolBox(QMainWindow):
         mainLayout.addWidget(drivenConnectBtn)
 
 
-        srcWidget.itemSelectionChanged.connect(lambda:(self.srcCountLabel.setText(str(len(srcWidget.selectedItems())))))
-        trgWidget.itemSelectionChanged.connect(lambda:(self.trgCountLabel.setText(str(len(trgWidget.selectedItems())))))
+        srcWidget.itemSelectionChanged.connect(lambda:self.srcSelectedItems(srcWidget))
+        trgWidget.itemSelectionChanged.connect(lambda:self.trgSelectedItems(trgWidget))
 
         srcAddBtn.clicked.connect(lambda:(srcWidget.addItems(getObjAttrs())))
         srcRemBtn.clicked.connect(lambda:(removeItems(srcWidget)))
@@ -381,6 +381,22 @@ class toolBox(QMainWindow):
         
         self.connectOptionCB.stateChanged.connect(lambda:self.onebyoneConnect(srcWidget,trgWidget,connectBtn))
         drivenConnectBtn.clicked.connect(lambda:setDrivenKey(srcWidget.selectedItems()[0].text(),[i.text() for i in trgWidget.selectedItems()]))
+    def srcSelectedItems(self,widget,*args):
+        self.srcCountLabel.setText(str(len(widget.selectedItems())))
+        lst = []
+        for item in  widget.selectedItems():
+            lst.append(item.text())
+        cmds.select(lst,r=True)
+        return
+    
+    def trgSelectedItems(self,widget,*args):
+        self.trgCountLabel.setText(str(len(widget.selectedItems())))
+        # cmds.select(widget.selectedItems(),r=True)
+        lst = []
+        for item in  widget.selectedItems():
+            lst.append(item.text())
+        cmds.select(lst,r=True)
+        return
     
     def onebyoneConnect(self,srcWidget,trgWidget,btn):
         try:
