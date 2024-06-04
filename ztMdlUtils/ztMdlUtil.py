@@ -175,4 +175,18 @@ def matchToClosestPoint(trgMesh,vtxLst):
         cmds.progressBar(gMainProgressBar, e=True, step=1)   
     cmds.progressBar(gMainProgressBar, ep=True,e=True)  
     cmds.delete([srcTransform,trgTransform,closestPointNode])
-        
+
+# Symmetry 2 vertices
+def symmetry(vertex1,vertex2):
+    '''
+    Usage: Symmetry 2 vertices
+    '''
+    #Get Position
+    pos1 = cmds.xform(vertex1,q=True,ws=True,t=True)
+    pos2 = cmds.xform(vertex2,q=True,ws=True,t=True)
+    
+    #Symmetry
+    symPos = [pos1[0]*-1,pos1[1],pos1[2]]
+    
+    #Move
+    cmds.move(symPos[0],symPos[1],symPos[2],vertex2,ws=True,a=True,xyz=True)

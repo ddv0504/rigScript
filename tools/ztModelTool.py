@@ -173,6 +173,27 @@ def main(*args):
 	cmds.button('srcVtxsBtn',l='Get Source Vertices',c=lambda x:(cmds.button('srcVtxsBtn',e=True,l=str(cmds.ls(sl=True))),
 	saveData(getMirrorData(vtx=True))))
 	cmds.setParent('..')
-	cmds.button('mirrorBtn',l='Mirror Target',c=lambda x:(
-	mirrorVertex(loadData(),cmds.ls(sl=True)[0])))
+	cmds.button('mirrorBtn',l='Mirror Target',c=lambda x:(mirrorVertex(loadData(),cmds.ls(sl=True)[0])))
+	cmds.setParent('..')
+	# symmetry multi vertices along x axis
+	cmds.frameLayout('symmetryLayout',l='Symmetry')
+	cmds.rowLayout(nc=2)
+	# Source vertices textScrollList
+	cmds.textScrollList('srcVtxsTxtScrList',w=150,h=200,dgc=lambda *args:print('Drag'),dpc=lambda *args:print('Drop'),allowMultiSelection=True)
+	# Target vertices textScrollList
+	cmds.textScrollList('trgVtxsTxtScrList',w=150,h=200)
+	cmds.setParent('..')
+	# rowLayout for buttons
+	cmds.rowLayout(nc=2)
+	# Add selected vertices to source vertices textScrollList
+	cmds.button('addSrcVtxBtn',l='Add Selected to Source',c=lambda x:(cmds.textScrollList('srcVtxsTxtScrList',e=True,a=cmds.ls(sl=True,fl=True))))
+	# Add selected vertices to target vertices textScrollList
+	cmds.button('addTrgVtxBtn',l='Add Selected to Target',c=lambda x:(cmds.textScrollList('trgVtxsTxtScrList',e=True,a=cmds.ls(sl=True,fl=True))))
+	cmds.setParent('..')
+	# columnLayout for buttons
+	cmds.columnLayout()
+	# Execute symmetry
+	cmds.button('symmetryBtn',l='Execute',c=lambda x:(ztMdlUtil.symmetryMesh(cmds.textScrollList('srcVtxsTxtScrList',q=True,si=True),cmds.textScrollList('trgVtxsTxtScrList',q=True,si=True))))
+	cmds.setParent('..')
+	
 	cmds.showWindow()
