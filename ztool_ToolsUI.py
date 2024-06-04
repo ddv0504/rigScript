@@ -56,8 +56,11 @@ class mayaShelfWidget(QWidget):
             cmds.deleteUI(self.name)                        
         shelfLayout = cmds.shelfLayout(self.name,parent=mainWindow.objectName())
         
-        mel.eval(funcName)   
-        ptr = omui.MQtUtil_findControl(shelfLayout)
+        mel.eval(funcName)
+        try:   
+            ptr = omui.MQtUtil_findControl(shelfLayout)
+        except Exception as e:
+            ptr = omui.MQtUtil.findControl(shelfLayout)
         try:   
             return shiboken2.wrapInstance(long(ptr),QWidget)  
         except:
