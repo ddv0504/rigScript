@@ -111,10 +111,17 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         self.camComboBox.addItems([i for i in cmds.ls(type='camera') if not i.startswith('front') and not i.startswith('persp') and not i.startswith('side') and not i.startswith('top')])
         displayLayerLayout.addWidget(self.camComboBox)
         self.createLayerBtn = QPushButton('Create Layer')
-        displayLayerLayout.addWidget(self.createLayerBtn)
+        
+        
+        layerNameLabel = QLabel('Layer Name:')
+        self.layerNameLineEdit = QLineEdit('Ref')
+        
+        displayLayerLayout.addWidget(layerNameLabel)
+        displayLayerLayout.addWidget(self.layerNameLineEdit)
         
         labelLayout.addLayout(displayLayerLayout)
-
+        
+        displayLayerLayout.addWidget(self.createLayerBtn)
         ### Align Widgets ###
         alignLabel= QLabel('Align Keys:')
         alignLeftBtn = QPushButton()
@@ -236,20 +243,43 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
     # Create reference image layers
     def createLayer(self):
         # Get selected camera
-        cam = self.camComboBox.currentText()
-        # Images in the list
+        camShape = self.camComboBox.currentText()
+        camTransNode = cmds.listRelatives(camShape,p=True)[0]
+        # check camShape is exist
+        if not cmds.objExists(camShape):
+            cmds.confirmDialog(m='Camera is not exist')
+            return
         imageItems = self.imageWidget.selectedItems()
         if not imageItems:
-            cmds.warning('Select Image First')
+            cmds.confirmDialog(m='Select Image First')
             return
-        for item in imageItems:
-            image = item.text()
-            # Create image plane
-            img = cmds.createNode('imagePlane',n=os.path.basename(image).split('.')[0])
-            cmds.setAttr(img+'.imageName',image,type='string')
-            # Link image to camera
-            cmds.connectAttr(img+'.message', cam+'.imagePlane[0]', f=True)
-            print('Image linked to the camera.')
+                
+        # for item in imageItems:
+        image = imageItems[0].text()
+        print(image)
+        # Create image plane
+        img = cmds.createNode('imagePlane',n=os.path.basename(image).split('.')[0])
+        cmds.setAttr(img+'.imageName',image,type='string')
+        
+        # Check camera slot is empty
+        n = 0 
+        while cmds.listConnections(camShape+'.imagePlane[%s]' % n):
+            n+=1
+        # cmds.connectAttr(img+'.message', camShape+'.imagePlane[%s]' % n, f=True)
+        
+        # Link image to camera
+        cmds.connectAttr(img+'.message', camShape+'.imagePlane[%s]' % n, f=True)
+
+        # Get Transform node
+        img = cmds.listRelatives(img,p=True)[0]
+        # Image plane parent to camera
+        cmds.parent(img,camTransNode,s=True)
+        # Set image plane to display in to camera
+        cmds.setAttr(img+'.displayOnlyIfCurrent',1)
+        
+        # create display layer
+        layer = cmds.createDisplayLayer(n='%s_lyr' % self.layerNameLineEdit.text())
+        cmds.editDisplayLayerMembers(layer,img,noRecurse=True)
 
     def setPreviewImage(self):
         fileName = cmds.fileDialog2(fm=1,caption='Select Reference Image',okc='Import',ff='Image Files (*.png *.jpg *.jpeg *.bmp *.tiff *.tga *.gif *.exr *.hdr *.psd *.iff *.iff)',ds=1)
