@@ -70,3 +70,40 @@ def TransSkinWeights(*args):
     print('Transfer skin weights job is done.')
     print('#' * 50)
     cmds.select(selList)
+
+def makeDisplayLayer(objs,layerName):
+    if not cmds.objExists(layerName):
+        cmds.createDisplayLayer(name=layerName, number=1, nr=True)
+    cmds.editDisplayLayerMembers(layerName,objs,noRecurse=True)
+    return layerName
+
+def importImagePlane(*args):
+    img = cmds.fileDialog2(fm=1,ds=2,ff='Image Files (*.jpg *.png *.bmp *.tga *.tif *.tiff *.tga *.gif *.hdr *.psd *.exr *.iff *.jpeg *.jpe *.jif *.jfif *.jfi *.jp2 *.j2k *.jpf *.jpx *.jpm *.mj2);;All Files (*.*)')
+    if not img:
+        return
+    img = img[0]
+    imgName = img.split('/')[-1].split('.')[0]
+    cmds.createNode('imagePlane',n=imgName)
+    cmds.setAttr(imgName+'.imageName',img,type='string')
+    if cmds.listRelatives(imgName,p=True):
+        transformNode = cmds.listRelatives(imgName,p=True)[0]
+        # rename the imagePlane transform node
+        transformNode = cmds.rename(transformNode,imgName+'_transform')
+    return transformNode,imgName
+
+def linkImageToCam(cam,img):
+    # Get the camera's shape
+    camShape = cmds.listRelatives(cam, c=True, s=True)[0]
+    # Link the image to the camera
+    cmds.connectAttr(img+'.message', camShape+'.imagePlane[0]', f=True)
+    print('Image linked to the camera.')
+    return img
+
+# import image and link it to the camera
+def importImagePlaneToCam(cam,img=None,*args):
+    if not img:
+        transform,img = importImagePlane()
+    if not img:
+        return
+    linkImageToCam(cam,img)
+    

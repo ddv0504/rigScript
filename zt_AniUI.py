@@ -12,6 +12,7 @@ import maya.cmds as cmds
 import pymel.core as pm
 import maya.mel as mel
 import os
+from ztMisc import ztMisc
 import zt_AniUtil as zAni
 from collections import OrderedDict
 
@@ -81,6 +82,39 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         shelfLayout.addWidget(self.aniShelf)
         shelfLayout.addWidget(self.shelfSaveBtn)
         self.shelfSaveBtn.clicked.connect(self.saveShelf)
+
+        ### Animation Reference Image Importer###
+        
+        
+        refImgBtn = QPushButton('Ref Image')
+        refImgBtn.setIcon(QIcon(':fileOpen.png'))
+        # refImgBtn.clicked.connect(lambda:cmds.fileDialog2(fm=1,caption='Select Reference Image',okc='Import',ff='Image Files (*.png *.jpg *.jpeg *.bmp *.tiff *.tga *.gif *.exr *.hdr *.psd *.iff *.iff)',ds=1))
+        labelLayout.addWidget(refImgBtn)
+        # Image List Widget
+        self.imageWidget = QListWidget()
+        self.imageWidget.setIconSize(QSize(100,100))
+        # self.imageWidget.setFixedHeight(100)
+        labelLayout.addWidget(self.imageWidget)
+
+        # Image Widgets
+        displayLayerLayout = QHBoxLayout()
+        # displayLayerLayout.addWidget(QLabel('Display Layer:'))
+        # displayLayerLayout.addWidget(QPushButton('Create Layer'))
+        # refresh button
+        self.camRefreshBtn = QPushButton()
+        self.camRefreshBtn.setFixedWidth(30)
+        self.camRefreshBtn.setIcon(QIcon(':refresh.png'))
+        displayLayerLayout.addWidget(self.camRefreshBtn)
+        # Camera Combo Box
+        self.camComboBox = QComboBox()
+
+        self.camComboBox.addItems([i for i in cmds.ls(type='camera') if not i.startswith('front') and not i.startswith('persp') and not i.startswith('side') and not i.startswith('top')])
+        displayLayerLayout.addWidget(self.camComboBox)
+        self.createLayerBtn = QPushButton('Create Layer')
+        displayLayerLayout.addWidget(self.createLayerBtn)
+        
+        labelLayout.addLayout(displayLayerLayout)
+
         ### Align Widgets ###
         alignLabel= QLabel('Align Keys:')
         alignLeftBtn = QPushButton()
@@ -190,7 +224,44 @@ class aniToolsUI(MayaQWidgetDockableMixin,QWidget):
         self.dirTreeView.setSortingEnabled(True)
         localLayout.addWidget(self.dirTreeView)
 
+        self.createLayerBtn.clicked.connect(self.createLayer)
+        self.camRefreshBtn.clicked.connect(self.refreshCameraList)
+        refImgBtn.clicked.connect(self.setPreviewImage)
         explanBtn.clicked.connect(self.setToggle)
+
+    def refreshCameraList(self):
+        self.camComboBox.clear()
+        self.camComboBox.addItems([i for i in cmds.ls(type='camera') if not i.startswith('front') and not i.startswith('persp') and not i.startswith('side') and not i.startswith('top')])
+
+    # Create reference image layers
+    def createLayer(self):
+        # Get selected camera
+        cam = self.camComboBox.currentText()
+        # Images in the list
+        imageItems = self.imageWidget.selectedItems()
+        if not imageItems:
+            cmds.warning('Select Image First')
+            return
+        for item in imageItems:
+            image = item.text()
+            # Create image plane
+            img = cmds.createNode('imagePlane',n=os.path.basename(image).split('.')[0])
+            cmds.setAttr(img+'.imageName',image,type='string')
+            # Link image to camera
+            cmds.connectAttr(img+'.message', cam+'.imagePlane[0]', f=True)
+            print('Image linked to the camera.')
+
+    def setPreviewImage(self):
+        fileName = cmds.fileDialog2(fm=1,caption='Select Reference Image',okc='Import',ff='Image Files (*.png *.jpg *.jpeg *.bmp *.tiff *.tga *.gif *.exr *.hdr *.psd *.iff *.iff)',ds=1)
+        if fileName:
+            listWidgetItem = QListWidgetItem()
+            listWidgetItem.setIcon(QIcon(fileName[0]))
+            listWidgetItem.setText(fileName[0])
+            self.imageWidget.addItem(listWidgetItem)
+            
+            # pixmap = QPixmap(fileName[0])
+            # self.urlLineEdit.setText(fileName[0])
+            # self.urlLineEdit.setPixmap(pixmap)
     def saveShelf(self):
         
         name = 'ztAnimation'
