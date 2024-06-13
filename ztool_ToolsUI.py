@@ -5,6 +5,8 @@ import maya.OpenMayaUI as omui
 import maya.cmds as cmds
 import maya.mel as mel
 import os
+from ztMisc import ztMisc
+reload(ztMisc)
 import zt_AniUI
 reload(zt_AniUI) 
 try:    
@@ -234,7 +236,30 @@ class toolBox(QMainWindow):
             channelLayout.addWidget(checkBox)
         channelSpacerItem = QSpacerItem(40,20,QSizePolicy.Expanding,QSizePolicy.Minimum)        
         channelLayout.addSpacerItem(channelSpacerItem)
+        
         self.consLayout.addLayout(channelLayout) 
+        
+        # Connect layout
+        connectLayout = QHBoxLayout()
+        connectLayout.setSpacing(30)
+        connectLst = ['translate','rotate','scale']
+        
+        label = QLabel("Connect:")
+        connectLayout.addWidget(label)
+        
+        for seq,connect  in enumerate(connectLst):
+            checkBox = QCheckBox(connect)
+            checkBox.setObjectName(connect)
+            checkBox.setCheckState(Qt.Checked)
+            checkBox.setLayoutDirection(Qt.RightToLeft)
+            connectLayout.addWidget(checkBox)
+        
+        self.connectBtn = QPushButton('Connect')
+        connectLayout.addWidget(self.connectBtn)
+        self.connectBtn.clicked.connect(self.connect)
+                
+        self.consLayout.addLayout(connectLayout)
+        
                    
     def addKeyframe(self):
         cmdA = lambda cmd: eval('cmds.SetKey%s' % cmd)
@@ -262,7 +287,29 @@ class toolBox(QMainWindow):
             toolBtn = utilBtn(name=name,module=tool)                
             toolBtn.setText(name)
             self.utilLayout.addWidget(toolBtn)
-
+    @ztMisc.undo
+    def connect(self):
+        xyzCheckList = [self.findChild(QCheckBox,"x"),self.findChild(QCheckBox,"y"),self.findChild(QCheckBox,"z")] 
+        transList = [self.findChild(QCheckBox,"translate"),self.findChild(QCheckBox,"rotate"),self.findChild(QCheckBox,"scale")] 
+        attrList = []
+        for i in xyzCheckList:
+            if i.checkState() == Qt.Checked:
+                attrList.append(i.objectName().capitalize())
+        
+        connectList = []
+        for i in transList:
+            if i.checkState() == Qt.Checked:
+                connectList.append(i.objectName())
+        
+        if not attrList or not connectList:
+            return
+        
+        src,trg = cmds.ls(sl=True)
+        for trans in connectList:
+            for attr in attrList:
+                cmds.connectAttr('%s.%s%s' % (src,trans,attr),'%s.%s%s' % (trg,trans,attr),f=True)
+        
+        
     def parentconstraint(self):
         offset = False
         if self.offsetCheckBox.checkState() == Qt.Checked:
@@ -412,6 +459,8 @@ class toolBox(QMainWindow):
             btn.clicked.connect(lambda:connectAttrs(srcWidget.selectedItems()[0].text(),[i.text() for i in trgWidget.selectedItems()]))
         return
 
+    
+    
     def aimconstraint(self):
         skip = self.skipChannel()
         if self.offsetCheckBox.checkState() == Qt.Checked:

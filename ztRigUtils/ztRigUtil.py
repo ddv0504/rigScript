@@ -252,7 +252,13 @@ def createJntToTarget(lst):
         cmds.select(cl=True)
         point = cmds.xform(l,ws=True,q=True,t=True)
         jnt = cmds.joint(n='%s_jnt' % l,p=point)
-     
+
+def offsetJointToGrp(jnt):
+    jnt = pm.ls(jnt)[0]
+    grp = pm.group(empty=True,n='%s_offset' % jnt)
+    pm.matchTransform(grp,jnt)
+    pm.parent(jnt,grp)
+    
 ###### Group ########
 def addOffsetGroup(obj,name=None):
     parent = cmds.listRelatives(obj,p=True)[0] if cmds.listRelatives(obj,p=True) else None
@@ -264,6 +270,8 @@ def addOffsetGroup(obj,name=None):
     cmds.parent(obj,grp)
     if parent:
         cmds.parent(grp,parent)
+
+
 
 
 ###### skin weight ######

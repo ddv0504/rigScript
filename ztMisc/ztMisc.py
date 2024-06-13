@@ -107,3 +107,12 @@ def importImagePlaneToCam(cam,img=None,*args):
         return
     linkImageToCam(cam,img)
     
+# undo decorator
+def undo(func):
+    def wrapper(*args, **kwargs):
+        try:
+            cmds.undoInfo(openChunk=True)
+            return func(*args, **kwargs)
+        finally:
+            cmds.undoInfo(closeChunk=True)
+    return wrapper
