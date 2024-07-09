@@ -76,7 +76,7 @@ class mayaShelfWidget(QWidget):
 
 class toolBox(QMainWindow):
     selList =    ["Polygon","Curves","Locator","Constraint","Hierachy","HideObject","Joint","AnimObject","AnimNode"]
-    constrains = ["ParentConstraint","PointConstraint","OrientConstraint","ScaleConstraint","AimConstraint"]
+    constrains = ["ParentConstraint","PointConstraint","OrientConstraint","ScaleConstraint","AimConstraint","MultiConstraint"]
     keyframes =  ["SetKey","Animated","Translate","Rotate","Scale","HoldCurrentKeys","cutKey","DeleteKeys"]
     def __init__(self,parent=None):
         QMainWindow.__init__(self,parent=maya_main_window())  
@@ -260,7 +260,7 @@ class toolBox(QMainWindow):
                 
         self.consLayout.addLayout(connectLayout)
         
-                   
+
     def addKeyframe(self):
         cmdA = lambda cmd: eval('cmds.SetKey%s' % cmd)
         cmdB = lambda cmd: eval('cmds.%s' % cmd)
@@ -309,7 +309,10 @@ class toolBox(QMainWindow):
             for attr in attrList:
                 cmds.connectAttr('%s.%s%s' % (src,trans,attr),'%s.%s%s' % (trg,trans,attr),f=True)
         
+    
+    def multiconstraint(self):
         
+        return
     def parentconstraint(self):
         offset = False
         if self.offsetCheckBox.checkState() == Qt.Checked:
