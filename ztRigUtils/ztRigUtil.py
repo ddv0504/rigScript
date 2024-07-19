@@ -8,6 +8,18 @@ from collections import OrderedDict
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaAnim as OpenMayaAnim
 
+
+######## decorator ########
+def undo(func):
+    def wrapper(*args, **kwargs):
+        try:
+            cmds.undoInfo(ock=True)
+            result = func(*args, **kwargs)
+        finally:
+            cmds.undoInfo(cck=True)
+        return result
+    return wrapper
+
 ######## attribute operation #######
 
 def addAttr(object,longName,type,default=0,min=0,max=1,parent=None):
@@ -247,6 +259,28 @@ def createJntToCurve(curve):
         cmds.xform(jnt,t=point,ws=True)
         cmds.connectAttr(editPoint,'%s.translate' % jnt,f=True)
 
+# Create joints on curve with group
+@undo
+def createJntOnCurve(name,padding=None,suffix=None,groupname='_grp',connect=False,*args):
+    curve = pm.ls(sl=True)[0]
+    curveShape = curve.getShape()
+    curveShape.getCVs()
+    # jntGrp = pm.group(empty=True,n='%s%s' % (name,groupname))
+    for ep in range(curveShape.numEPs()):
+        cmds.select(cl=True)
+        editPoint = '%s.ep[%s]' % (curve.name(),ep)
+        point = cmds.xform(editPoint,ws=True,t=True,q=True)    
+        jnt = cmds.joint(n='%s_%s%s' % (name,str(ep).zfill(padding),suffix))
+        jntGrp = pm.group(empty=True,n='%s%s' % (jnt,groupname))
+        pm.matchTransform(jntGrp,jnt)
+        pm.parent(jnt,jntGrp)
+        pm.xform(jntGrp,t=point,ws=True)
+        if connect:
+            cmds.connectAttr(editPoint,'%s.translate' % jntGrp,f=True)
+        if not suffix:
+            cmds.rename(jnt,'%s_%s' % (name,str(ep).zfill(padding)))
+
+
 def createJntToTarget(lst):
     for l in lst:
         cmds.select(cl=True)
@@ -437,6 +471,29 @@ def makeCurveToTargets(curveName = None,*args):
         # print(point)
     
     cmds.curve(curveName,d=1,p=pointLst)
+
+# Create curveinfo node from curve and joints
+@undo
+def createPointOnCurveInfo(curve,joints):
+    curve = pm.ls(curve)[0]
+    # curveInfo = pm.createNode('pointOnCurveInfo')
+    # curve.worldSpace >> curveInfo.inputCurve
+    avg = 1.0 / (len(joints) - 1)
+    param = 0
+    for index,jnt in enumerate(joints):
+        jnt = pm.ls(jnt)[0]
+        point = pm.createNode('pointOnCurveInfo')
+        curve.worldSpace >> point.inputCurve
+        point.parameter.set(param)
+        point.turnOnPercentage.set(1)
+        jnt_grp = jnt.listRelatives(p=True)[0]
+        point.position >> jnt_grp.translate
+        param += avg
+
+def rebuildCurve(curve,degree=3,spans=1,*args):
+    curve = pm.ls(curve)[0]
+    pm.rebuildCurve(curve,degree=degree,spans=spans,ch=False,rpo=True,rt=0,end=1,kr=0,kcp=0,kep=1,kt=0,s=0,d=3,tol=0.01)     
+
 class checkMaxSkinInfluences(object):
     ''' This script takes a mesh with a skinCluster and checks it for N skin weights.
     If it has more than N, it selects the verts, so you can edit them.

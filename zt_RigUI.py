@@ -46,8 +46,66 @@ class rigWindow(MayaQWidgetDockableMixin, QMainWindow):
         mainLayout.addWidget(displayBox)
         self.jntWidget = QGroupBox('Joint Operation')          
         self.jntOperationLayout = QHBoxLayout() 
-        self.jntWidget.setLayout(self.jntOperationLayout) 
+        self.jntWidget.setLayout(self.jntOperationLayout)
+
+        # Joint on Curve Layout
+        jntOnCurveLayout = QVBoxLayout()
+        # joint on curve label
+        jntOnCurveLabel = QLabel('Joint on Curve')
+        jntOnCurveLayout.addWidget(jntOnCurveLabel)
+        jntOnCurveNameLayout = QHBoxLayout()
+        # joint on curve name label
+        jntOnCurveNameLabel = QLabel('Name:')
+        jntOnCurveNameLayout.addWidget(jntOnCurveNameLabel)
+        # joint on curve name line edit
+        self.jntOnCurveNameLineEdit = QLineEdit()
+        jntOnCurveNameLayout.addWidget(self.jntOnCurveNameLineEdit)
+        jntOnCurveLayout.addLayout(jntOnCurveNameLayout)
+        # joint name padding label
+        jntOnCurvePaddingLabel = QLabel('Padding:')
+        jntOnCurveNameLayout.addWidget(jntOnCurvePaddingLabel)
+        # jntOnCurvePaddingLayout = QHBoxLayout()
+        # joint on curve padding line edit
+        self.jntOnCurvePaddingLineEdit = QLineEdit('0')
+        jntOnCurveNameLayout.addWidget(self.jntOnCurvePaddingLineEdit)
+        # jntOnCurveName suffix label
+        jntOnCurveSuffixLabel = QLabel('Suffix:')
+        jntOnCurveNameLayout.addWidget(jntOnCurveSuffixLabel)
+        # joint on curve suffix line edit
+        self.jntOnCurveSuffixLineEdit = QLineEdit('_jnt')
+        jntOnCurveNameLayout.addWidget(self.jntOnCurveSuffixLineEdit)
+        jntOnCurveLayout.addLayout(jntOnCurveNameLayout)
+        # joint on curve suffix group name label
+        jntOnCurveSuffixGrpNameLabel = QLabel('Group Name:')
+        jntOnCurveNameLayout.addWidget(jntOnCurveSuffixGrpNameLabel)
+        # joint on curve suffix group name line edit
+        self.jntOnCurveSuffixGrpNameLineEdit = QLineEdit('_grp')
+        jntOnCurveNameLayout.addWidget(self.jntOnCurveSuffixGrpNameLineEdit)
+        jntOnCurveLayout.addLayout(jntOnCurveNameLayout)
+
+        # joint on curve connect checkbox
+        self.jntOnCurveConnectCheckBox = QCheckBox('Connect')
+        jntOnCurveLayout.addWidget(self.jntOnCurveConnectCheckBox)
         
+        # joint on curve button
+        self.jntOnCurveBtn = QPushButton('Create')
+        # jntOnCurveBtn.clicked.connect(ztRigUtil.jointOnCurve)
+        jntOnCurveLayout.addWidget(self.jntOnCurveBtn)
+        mainLayout.addLayout(jntOnCurveLayout)
+
+        # Point on Curve Layout
+        pointOnCurveLayout = QHBoxLayout()
+        # point on curve 
+        pointOnCurveLabel = QLabel('Point on Curve')
+        pointOnCurveLayout.addWidget(pointOnCurveLabel)
+        # point on curve Button
+        self.pointOnCurveBtn = QPushButton('Create')
+        self.pointOnCurveBtn.setToolTip('Select the objects you want to attach to the curve, then select the curve.')
+        pointOnCurveLayout.addWidget(self.pointOnCurveBtn)
+        mainLayout.addLayout(pointOnCurveLayout)
+        
+        mainLayout.addSpacerItem(QSpacerItem(20,20,QSizePolicy.Minimum,QSizePolicy.Expanding))
+
         self.grpWidget = QGroupBox('Group Operation')
         self.grpOperationLayout = QHBoxLayout()
         self.grpWidget.setLayout(self.grpOperationLayout)
@@ -117,7 +175,10 @@ class rigWindow(MayaQWidgetDockableMixin, QMainWindow):
         self.grpOperationLayout.addWidget(suffixLineEdit)
         radioBtnGrp.buttonClicked.connect(lambda:self.offsetGroupSwitch(defaultCheckBox,suffixLineEdit))
         addOffsetBtn.clicked.connect(lambda:self.addOffsetGroup(radioBtnGrp,suffixLineEdit))        
-    
+
+        self.jntOnCurveBtn.clicked.connect(lambda:ztRigUtil.createJntOnCurve(self.jntOnCurveNameLineEdit.text(),int(self.jntOnCurvePaddingLineEdit.text()),self.jntOnCurveSuffixLineEdit.text(),self.jntOnCurveSuffixGrpNameLineEdit.text(),self.jntOnCurveConnectCheckBox.isChecked()))
+        self.pointOnCurveBtn.clicked.connect(lambda:ztRigUtil.createPointOnCurveInfo(cmds.ls(sl=True)[-1],cmds.ls(sl=True)[0:-1]))
+
     def rotToOrient(self):
         cmds.undoInfo(ock=True)
         for jnt in cmds.ls(sl=True):
