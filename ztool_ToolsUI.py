@@ -411,12 +411,37 @@ class toolBox(QMainWindow):
         topLayout.addLayout(srcLayout)
         topLayout.addLayout(trgLayout)
 
+        # Connect type checkbox layout
+        connectBoxLayout = QHBoxLayout()
+        connectBoxLayout.setSpacing(30)
+        # connectLst = ['Multiply-Divide','Add-Substract']
+
+        label = QLabel("Connect Type:")
+        connectBoxLayout.addWidget(label)
+
+        self.multipleConnectCB = QCheckBox('Multiple-Divide')
+        # self.multipleConnectCB.setObjectName('Multiple Connect')
+        connectBoxLayout.addWidget(self.multipleConnectCB)
+
+        self.addConnectCB = QCheckBox('Add-Substract')
+        # self.addConnectCB.setObjectName('Add Connect')
+        connectBoxLayout.addWidget(self.addConnectCB)
+        
+        # for seq,connect  in enumerate(connectLst):
+        #     checkBox = QCheckBox(connect)
+        #     checkBox.setObjectName(connect)
+        #     # checkBox.setCheckState(Qt.Checked)
+        #     checkBox.setLayoutDirection(Qt.RightToLeft)
+        #     connectBoxLayout.addWidget(checkBox)
+
         self.connectOptionCB = QCheckBox('1:1')
         drivenConnectBtn = QPushButton('SetDrivenKey==>')
         connectBtn = QPushButton('<==Connect==>')
 
+        
         mainLayout.addLayout(topLayout)
         mainLayout.addWidget(self.connectOptionCB)
+        mainLayout.addLayout(connectBoxLayout)
         mainLayout.addWidget(connectBtn)
         mainLayout.addWidget(drivenConnectBtn)
 
