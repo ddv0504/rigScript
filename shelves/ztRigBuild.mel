@@ -14,10 +14,12 @@ global proc ztRigBuild () {
         -manage 1
         -visible 1
         -preventOverride 0
+        -annotation "AdvancedSkeleton" 
         -enableBackground 0
         -backgroundColor 0 0 0 
         -highlightColor 0.321569 0.521569 0.65098 
         -align "center" 
+        -label "AdvancedSkeleton" 
         -labelOffset 0
         -rotation 0
         -flipX 0
@@ -26,13 +28,115 @@ global proc ztRigBuild () {
         -font "plainLabelFont" 
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
-        -image "AS5.png" 
-        -image1 "AS5.png" 
+        -image "E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/icons/AS.png" 
+        -image1 "E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/icons/AS.png" 
         -style "iconOnly" 
         -marginWidth 0
         -marginHeight 1
-        -command "mel.eval(\"AdvancedSkeleton5;\")" 
-        -sourceType "python" 
+        -command "source \"E:/rigScript/AdvancedSkeleton/AdvancedSkeleton.mel\";AdvancedSkeleton;" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Selector:biped" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Selector:biped" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/icons/asBiped.png" 
+        -image1 "E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/icons/asBiped.png" 
+        -style "iconOnly" 
+        -marginWidth 0
+        -marginHeight 1
+        -command "source \"E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/Selector/biped.mel\";" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Selector:face" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Selector:face" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/icons/asFace.png" 
+        -image1 "E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/icons/asFace.png" 
+        -style "iconOnly" 
+        -marginWidth 0
+        -marginHeight 1
+        -command "source \"E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/Selector/face.mel\";" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 32
+        -height 32
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "picker" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "picker" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/picker/pickerFiles/icons/picker.png" 
+        -image1 "E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/picker/pickerFiles/icons/picker.png" 
+        -style "iconOnly" 
+        -marginWidth 0
+        -marginHeight 1
+        -command "source \"E:/rigScript/AdvancedSkeleton/AdvancedSkeletonFiles/picker/picker.mel\";" 
+        -sourceType "mel" 
         -commandRepeatable 1
         -flat 1
     ;
@@ -307,7 +411,7 @@ global proc ztRigBuild () {
         -image "kinJoint.png" 
         -image1 "kinJoint.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "import maya.cmds as cmds\nimport maya.mel as mel\ndef jointChain(*args):\n    # mel.eval('source \"JcADVUtil.mel\";')\n    objs = cmds.ls(sl=True)\n    cmds.select(cl=True)\n    for index,obj in enumerate(objs):\n        cmds.select(cl=True)\n        if not index:\n            jnt = cmds.joint()\n            cmds.matchTransform(jnt,obj)\n            continue\n        parentJnt = jnt\n        jnt = cmds.joint()\n        cmds.matchTransform(jnt,obj)\n        cmds.parent(jnt,parentJnt)\n        \ncmds.undoInfo(ock=True)\njointChain()\ncmds.undoInfo(cck=True)" 
         -sourceType "python" 
@@ -342,7 +446,7 @@ global proc ztRigBuild () {
         -image "orientJoint.png" 
         -image1 "orientJoint.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "import maya.cmds as cmds\nimport maya.mel as mel\ndef jcResample(*args):\n    mel.eval('source \"JcADVUtil.mel\";')\n    jnt = cmds.ls(sl=True)[0]\n    if not cmds.objectType(jnt) == 'joint':\n        return\n    jnts = cmds.listRelatives(jnt,ad=True)\n    startJnt = jnt\n    endJnt = jnts[0]\n    count = len(jnts) + 1\n    mel.eval('jc_AsFitResampleJoints(\"%s\",\"%s\",%d);' % (startJnt,endJnt,count))\n    print(startJnt,endJnt,count)\n\njcResample()\n    " 
         -sourceType "python" 
@@ -377,7 +481,7 @@ global proc ztRigBuild () {
         -image "kinConnect.png" 
         -image1 "kinConnect.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "import maya.cmds as cmds\ndef jitChaint(*args):\n    elements = cmds.ls(os=True,fl=True)\n    cmds.select(cl=True)\n    for index, element in enumerate(elements):\n        if not index:\n            cmds.select(element,r=True)\n            cluster = cmds.cluster()[1]\n            cmds.select(cl=True)\n            jnt = cmds.joint()\n            cmds.matchTransform(jnt,cluster)\n            rootJnt = jnt\n            parentJnt = jnt\n            cmds.delete(cluster)\n            continue            \n        cmds.select(element,r=True)\n        cluster = cmds.cluster()[1]\n        cmds.select(cl=True)\n        jnt = cmds.joint()\n        cmds.matchTransform(jnt,cluster)\n        cmds.parent(jnt,parentJnt)\n        parentJnt = jnt\n        cmds.delete(cluster)\n    cmds.select(rootJnt,r=True)\n    return rootJnt\n\ndef jcResample(*args):\n    mel.eval('source \"JcADVUtil.mel\";')\n    jnt = cmds.ls(sl=True)[0]\n    if not cmds.objectType(jnt) == 'joint':\n        return\n    jnts = cmds.listRelatives(jnt,ad=True)\n    startJnt = jnt\n    endJnt = jnts[0]\n    count = len(jnts) + 1\n    mel.eval('jc_AsFitResampleJoints(\"%s\",\"%s\",%d);' % (startJnt,endJnt,count))\n    print(startJnt,endJnt,count)\n\ncmds.undoInfo(ock=True)\njitChaint()\njcResample()\ncmds.select(sorted(cmds.listRelatives(cmds.ls(sl=True),ad=True)),add=True)\n\ncmds.undoInfo(cck=True)   " 
         -sourceType "python" 
@@ -411,7 +515,7 @@ global proc ztRigBuild () {
         -image "rebuildCurve.png" 
         -image1 "rebuildCurve.png" 
         -style "iconOnly" 
-        -marginWidth 1
+        -marginWidth 0
         -marginHeight 1
         -command "RebuildCurveOptions" 
         -sourceType "mel" 
