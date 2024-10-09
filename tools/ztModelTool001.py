@@ -149,7 +149,7 @@ def mirrorVertex(data,trgObj,*args):
 		orgVal = cmds.xform(k,t=True,q=True)
 		cmds.move(orgVal[0]*-1,orgVal[1],orgVal[2],k,xyz=True,ls=True)
 	cmds.progressBar( gMainProgressBar,e=True,ep=1)		 
-def main(*args):
+def execute(*args):
 	if cmds.window('SCCModelTools',ex=True):
 		cmds.deleteUI('SCCModelTools')
 	cmds.window('SCCModelTools',t='Model Tools',wh=(300,420))
