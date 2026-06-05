@@ -1,13 +1,13 @@
-
+﻿
 from zooPy import names
 from zooPy.path import Path
 from zooPy import presets
 from zooPy.strUtils import Mapping
 
-import presetsUI
+from . import presetsUI
 
-from baseMelUI import *
-from mappingUtils import findItem
+from .baseMelUI import *
+from .mappingUtils import findItem
 
 TOOL_NAME = 'zoo'
 TOOL_VER = 1
@@ -311,7 +311,7 @@ class MappingLayout(MelHLayout):
 		self.mapAllSrcItems()
 	def on_removeTgtItem( self, *a ):
 		selTgts = self.getSelectedTgts()
-		for aSrc, tgts in self._srcToTgtDict.iteritems():
+		for aSrc, tgts in self._srcToTgtDict.items():
 			newTgts = [ tgt for tgt in tgts if tgt not in selTgts ]
 			self._srcToTgtDict[ aSrc ] = newTgts
 

@@ -1,6 +1,5 @@
+﻿
 
-
-from __future__ import with_statement
 
 import inspect
 
@@ -11,9 +10,9 @@ from zooPy.path import Path
 from zooPy.presets import PresetManager, Preset, LOCAL, GLOBAL
 from zooPy.names import camelCaseToNice
 
-import apiExtensions
+from . import apiExtensions
 
-from baseSkeletonBuilder import SkeletonPart, setupAutoMirror, TOOL_NAME, buildSkeletonPartContainer
+from .baseSkeletonBuilder import SkeletonPart, setupAutoMirror, TOOL_NAME, buildSkeletonPartContainer
 
 XTN = 'skeleton'
 PRESET_MANAGER = PresetManager( TOOL_NAME, XTN )
@@ -65,7 +64,7 @@ def writeToFilepath( presetFilepath ):
 	try:
 		contents = generatePresetContents()
 	except NoPartsError:
-		print "No parts found in the scene!"
+		print("No parts found in the scene!")
 		return
 
 	Path( presetFilepath ).write( contents )
@@ -98,7 +97,7 @@ def loadFromFilepath( presetFilepath ):
 
 	lines = presetFilepath.read()
 	linesIter = iter( lines )
-	version = linesIter.next().strip()
+	version = next(linesIter).strip()
 
 	try:
 		for line in linesIter:
@@ -109,7 +108,7 @@ def loadFromFilepath( presetFilepath ):
 				continue
 
 			if line == '<part>':
-				partTypeAndBuildKwargLine = linesIter.next().strip()
+				partTypeAndBuildKwargLine = next(linesIter).strip()
 				toks = partTypeAndBuildKwargLine.split( '=' )
 				numToks = len( toks )
 				if numToks == 1:
@@ -123,7 +122,7 @@ def loadFromFilepath( presetFilepath ):
 				partList.append( (partType, partBuildKwargs, partItems) )
 
 				while True:
-					line = linesIter.next().strip()
+					line = next(linesIter).strip()
 
 					#blank line?  skip...
 					if not line:

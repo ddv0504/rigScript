@@ -1,12 +1,12 @@
-
-from baseMelUI import *
+﻿
+from .baseMelUI import *
 
 from zooPy.path import Path
 from zooPy.misc import Callback
 
-import presetsUI
+from . import presetsUI
 
-from melUtils import printWarningStr, openFile, importFile, referenceFile
+from .melUtils import printWarningStr, openFile, importFile, referenceFile
 
 PRESET_ID_STR = 'zoo'
 PRESET_EXTENSION = 'filter'
@@ -179,7 +179,7 @@ class FileListLayout(MelVSingleStretchLayout):
 
 		hasItems = False
 		allFilterPresets = presetsUI.listAllPresets( PRESET_ID_STR, PRESET_EXTENSION )
-		for locale, filterPresets in allFilterPresets.iteritems():
+		for locale, filterPresets in allFilterPresets.items():
 			for item in filterPresets:
 				itemName = item.name()
 				cmd.menuItem( l=itemName, c=Callback( self.setFilter, itemName ) )

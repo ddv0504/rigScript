@@ -1,8 +1,8 @@
-
+﻿
 from zooPy.misc import removeDupes
 from zooPy.devTest import TEST_CASES, runTestCases
 
-from baseMelUI import *
+from .baseMelUI import *
 
 
 class DevTestLayout(MelVSingleStretchLayout):

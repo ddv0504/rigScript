@@ -1,6 +1,6 @@
-sideRight=r_drv
-sideLeft=l_drv
-sideMiddle=drv
+sideRight=r
+sideLeft=l
+sideMiddle=
 sideBeforeName=0
 sideUnderScore=1
 

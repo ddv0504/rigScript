@@ -1,8 +1,8 @@
-
+﻿
 from zooPy import presets
 from zooPy.path import Path
 
-from baseMelUI import *
+from .baseMelUI import *
 
 import maya.cmds as cmd
 
@@ -34,7 +34,7 @@ class PresetOptionMenu(MelOptionMenu):
 		self.update()
 	def update( self ):
 		self.clear()
-		for locale, presets in self._manager.listAllPresets( True ).iteritems():
+		for locale, presets in self._manager.listAllPresets( True ).items():
 			for preset in presets:
 				self.append( preset.name() )
 				self._presets[ preset.name() ] = preset

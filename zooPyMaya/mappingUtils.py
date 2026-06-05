@@ -1,6 +1,6 @@
-
+﻿
 from zooPy import strUtils
-from apiExtensions import *
+from .apiExtensions import *
 
 
 def findItem( itemName ):

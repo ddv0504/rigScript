@@ -68,8 +68,6 @@ createNode joint -n "Root" -p "FitSkeleton";
 	addAttr -ci true -k true -sn "fatZ" -ln "fatZ" -dv 1 -min 0 -at "double";
 	addAttr -ci true -sn "fatYabs" -ln "fatYabs" -at "double";
 	addAttr -ci true -sn "fatZabs" -ln "fatZabs" -at "double";
-	addAttr -ci true -k true -sn "centerBtwFeet" -ln "centerBtwFeet" -dv 1 -min 0 -max 
-		1 -at "bool";
 	addAttr -ci true -k true -sn "numMainExtras" -ln "numMainExtras" -min 0 -at "long";
 	setAttr ".t" -type "double3" 1.9709482123356974e-016 9.8285101990184387 -0.17717208138029261 ;
 	setAttr -l on ".tx";
@@ -86,8 +84,6 @@ createNode joint -n "Root" -p "FitSkeleton";
 	setAttr -k on ".fatY" 0.64999999999999991;
 	setAttr ".fatYabs" 1.1050000190734863;
 	setAttr ".fatZabs" 1.7000000476837158;
-	setAttr -k on ".centerBtwFeet" no;
-
 createNode joint -n "Spine1" -p "Root";
 	addAttr -ci true -k true -sn "fat" -ln "fat" -dv 1.477376426915626 -min 0 -at "double";
 	addAttr -ci true -k true -sn "fatY" -ln "fatY" -dv 1 -min 0 -at "double";

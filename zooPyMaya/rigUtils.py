@@ -1,4 +1,4 @@
-'''
+﻿'''
 this module is simply a miscellaneous module for rigging support code - most of it is maya specific convenience code
 for determining things like aimAxes, aimVectors, rotational offsets for controls etc...
 '''
@@ -12,10 +12,10 @@ from maya import OpenMaya
 from zooPy.vectors import *
 from zooPy import vectors
 
-from melUtils import mel
+from .melUtils import mel
 
-import apiExtensions
-import meshUtils
+from . import apiExtensions
+from . import meshUtils
 
 SPACES = SPACE_WORLD, SPACE_LOCAL, SPACE_OBJECT = range(3)
 
@@ -73,7 +73,7 @@ def cleanDelete( node ):
 	connections = listConnections( node, connections=True, plugs=True )
 	connectionsIter = iter( connections )
 	for srcConnection in connectionsIter:
-		tgtConnection = connectionsIter.next()
+		tgtConnection = next(connectionsIter)
 
 		#we need to test if the connection is valid because a previous disconnection may have affected this one
 		if isConnected( srcConnection, tgtConnection ):
@@ -537,7 +537,7 @@ def resetSkinCluster( skinCluster ):
 
 	iterInputMatrices = iter( skinInputMatrices )
 	for dest in iterInputMatrices:
-		src = iterInputMatrices.next()
+		src = next(iterInputMatrices)
 		srcNode = src.split( '.' )[ 0 ]
 		idx = dest[ dest.rfind( '[' )+1:-1 ]
 		matrixAsStr = ' '.join( map( str, cmd.getAttr( '%s.worldInverseMatrix' % srcNode ) ) )

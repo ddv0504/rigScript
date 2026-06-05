@@ -1,4 +1,4 @@
-'''
+﻿'''
 this script contains a bunch of useful poly mesh functionality.  at this stage its not really
 much more than a bunch of functional scripts - there hasn't been any attempt to objectify any
 of this stuff yet.  as it grows it may make sense to step back a bit and think about how to
@@ -14,9 +14,9 @@ import maya.OpenMaya as OpenMaya
 from zooPy.vectors import Vector, Matrix
 from zooPy.path import Path
 
-from mayaDecorators import d_progress
+from .mayaDecorators import d_progress
 
-import apiExtensions
+from . import apiExtensions
 
 kMAX_INF_PER_VERT = 3
 kMIN_SKIN_WEIGHT_VALUE = 0.05
@@ -124,7 +124,7 @@ def extractFaces( faceList, delete=False ):
 
 	#get a list of meshes present in the facelist
 	cDict = componentListToDict( faceList )
-	for mesh, faces in cDict.iteritems():
+	for mesh, faces in cDict.items():
 		#is the mesh a shape or a transform - if its a shape, get its transform
 		if cmd.nodeType( mesh ) == 'mesh':
 			mesh = cmd.listRelatives( mesh, pa=True, p=True )[ 0 ]
@@ -310,7 +310,7 @@ def findFacesInVolumeForMaya( meshes, volume, contained=False ):
 	'''
 	objFacesDict = findFacesInVolume(meshes, volume, contained)
 	allFaces = []
-	for mesh, faces in objFacesDict.iteritems():
+	for mesh, faces in objFacesDict.items():
 		allFaces.extend( ['%s.%s' % (mesh, f) for f in faces] )
 
 	return allFaces
@@ -323,7 +323,7 @@ def findVertsInVolumeForMaya( meshes, volume ):
 	'''
 	objVertDict = findVertsInVolume(meshes, volume)
 	allVerts = []
-	for mesh, verts in objVertDict.iteritems():
+	for mesh, verts in objVertDict.items():
 		allVerts.extend( ['%s.vtx[%s]' % (mesh, v.id) for v in verts] )
 	return allVerts
 
@@ -335,7 +335,7 @@ def findFacesInVolume( meshes, volume, contained=False ):
 	'''
 	meshVertsWithin = findVertsInVolume(meshes, volume)
 	meshFacesWithin = {}
-	for mesh,verts in meshVertsWithin.iteritems():
+	for mesh,verts in meshVertsWithin.items():
 		if not verts: continue
 		meshFacesWithin[mesh] = []
 		vertNames = ['%s.vtx[%d]' % (mesh, v.id) for v in verts]
@@ -385,7 +385,7 @@ def findVertsInVolume( meshes, volume ):
 	except TypeError: pass
 
 	isContainedMethod = insideDeterminationMethod[type]
-	print 'method for interior volume determination', isContainedMethod.__name__
+	print('method for interior volume determination', isContainedMethod.__name__)
 	sx = volumeScale[0]
 	if Vector(volumeScale).within((sx, sx, sx)):
 		try: isContainedMethod = insideDeterminationIfUniform[type]
@@ -410,7 +410,7 @@ def findVertsInVolume( meshes, volume ):
 		except TypeError: continue
 		count = len(vertPosList)/3
 
-		for idx in xrange(count):
+		for idx in range(count):
 			pos = VertPos(vertPosList.pop(0), vertPosList.pop(0), vertPosList.pop(0), idx)
 			contained = isContainedMethod(pos, volumePos, volumeScale, volumeBasis)
 			if contained:
@@ -510,7 +510,7 @@ def jointVertsForMaya( joint, tolerance=1e-4, onlyVisibleMeshes=True ):
 	converts the dict returned by jointVerts into maya useable component names
 	'''
 	items = []
-	for mesh, data in jointVerts( joint, tolerance, onlyVisibleMeshes ).iteritems():
+	for mesh, data in jointVerts( joint, tolerance, onlyVisibleMeshes ).items():
 		items.extend( ['%s.vtx[%d]' % (mesh, n) for w, n in data] )
 
 	return items
@@ -573,7 +573,7 @@ def stampVolumeToJoint( joint, volume, amount=0.1 ):
 
 	jointPos = Vector(cmd.xform(joint, q=True, ws=True, rp=True))
 	vertsDict = findVertsInVolume(meshes, volume)
-	for mesh, verts in vertsDict.iteritems():
+	for mesh, verts in vertsDict.items():
 		skinCluster = cmd.ls(cmd.listHistory(mesh), type='skinCluster')[0]
 		for vert in verts:
 			vertName = '%s.vtx[%s]' % (mesh, vert.id)
@@ -583,7 +583,7 @@ def stampVolumeToJoint( joint, volume, amount=0.1 ):
 			currentWeight = cmd.skinPercent(skinCluster, vertName, q=True, t=joint, v=True)
 			currentWeight += weight * amount
 			#cmd.skinPercent(skinCluster, vertName, t=joint, v=currentWeight)
-			print vertName, currentWeight
+			print(vertName, currentWeight)
 
 
 @d_progress(t='clamping influence count', st='clamping vert influences to %d' % kMAX_INF_PER_VERT)
@@ -645,7 +645,7 @@ def clampVertInfluenceCount( geos=None ):
 		cmd.setAttr('%s.maxInfluences' % skin, kMAX_INF_PER_VERT)
 		cmd.setAttr('%s.maintainMaxInfluences' % skin, 1)
 
-		print 'fixed skin weights on %d verts' % len( vertsFixed )
+		print('fixed skin weights on %d verts' % len( vertsFixed ))
 		#print '\n'.join( vertsFixed )
 
 

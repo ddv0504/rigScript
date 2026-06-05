@@ -1,10 +1,10 @@
-
+﻿
 from maya.cmds import *
 
 from zooPy.misc import removeDupes
 
-import melUtils
-import triggered
+from . import melUtils
+from . import triggered
 
 
 def create( trigger,

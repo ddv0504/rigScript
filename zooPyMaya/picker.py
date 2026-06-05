@@ -1,5 +1,4 @@
-
-from __future__ import with_statement
+﻿
 
 import re
 
@@ -13,14 +12,14 @@ from zooPy import presets
 from zooPy.path import Path
 from zooPy.vectors import Vector, Colour
 
-from baseMelUI import *
-from melUtils import printErrorStr, printWarningStr
-from mayaDecorators import d_unifyUndo
-from apiExtensions import asMObject, sortByHierarchy
-from cmdStrResolver import resolve
-from triggered import Trigger
+from .baseMelUI import *
+from .melUtils import printErrorStr, printWarningStr
+from .mayaDecorators import d_unifyUndo
+from .apiExtensions import asMObject, sortByHierarchy
+from .cmdStrResolver import resolve
+from .triggered import Trigger
 
-import presetsUI
+from . import presetsUI
 
 eval = __builtins__[ 'eval' ]  #otherwise this gets clobbered by the eval in maya.cmds
 
@@ -88,7 +87,7 @@ def removeRefEdits( objs, cmd=None ):
 			referenceEdit( obj, failedEdits=True, successfulEdits=True, editCommand=cmd, removeEdits=True )
 
 	#now set the refs to their initial load state
-	for node, loadState in refNodeLoadStateDict.iteritems():
+	for node, loadState in refNodeLoadStateDict.items():
 		if loadState:
 			file( loadReference=node )
 
@@ -184,7 +183,7 @@ class Button(object):
 	def __hash__( self ):
 		return hash( self.getNode() )
 	def getNode( self ):
-		return unicode( self.__node )
+		return str( self.__node )
 	def getCharacter( self ):
 		cons = listConnections( self.getNode(), type='objectSet', s=False )
 		if cons:
@@ -287,7 +286,7 @@ class Button(object):
 		#this generally happens if the node is referenced...  its no big deal if the rename fails - renaming just happens to make the sets slightly more comprehendible when outliner surfing
 		except RuntimeError: pass
 	def setObjs( self, val ):
-		if isinstance( val, basestring ):
+		if isinstance( val, str ):
 			val = [ val ]
 
 		if not val:
@@ -432,7 +431,7 @@ class Character(object):
 
 		sets( node, e=True, add=getTopPickerSet() )
 
-		addAttr( node, ln='version', at='long' )
+		addAttr( node, ln='version', at='int' )
 		addAttr( node, ln='name', dt='string' )
 		addAttr( node, ln='bgImage', dt='string' )
 		addAttr( node, ln='bgColour', dt='string' )
@@ -461,7 +460,7 @@ class Character(object):
 	def __ne__( self, other ):
 		return not self.__eq__( other )
 	def getNode( self ):
-		return unicode( self.__node )
+		return str( self.__node )
 	def getButtons( self ):
 		buttonNodes = sets( self.getNode(), q=True ) or []
 
@@ -613,10 +612,10 @@ class Character(object):
 		with open( filepath ) as fOpen:
 			lineIter = iter( fOpen )
 			try:
-				infoLine = lineIter.next()
+				infoLine = next(lineIter)
 				infoDict = eval( infoLine.strip() )
 				while True:
-					buttonLine = lineIter.next()
+					buttonLine = next(lineIter)
 					buttonDict = eval( buttonLine.strip() )
 					buttonDicts.append( buttonDict )
 			except StopIteration: pass
@@ -1084,7 +1083,7 @@ class CmdEditorLayout(MelVSingleStretchLayout):
 		presetMenu = MelMenuItem( menu, l='load preset', sm=True )
 
 		presetManager = presets.PresetManager( TOOL_NAME, TOOL_CMD_EXTENSION )
-		for locale, presets in presetManager.listAllPresets().iteritems():
+		for locale, presets in presetManager.listAllPresets().items():
 			for p in presets:
 				MelMenuItem( presetMenu, l=p.name(), c=Callback( self.loadPreset, p ) )
 
@@ -1683,7 +1682,7 @@ class PickerWindow(BaseMelWindow):
 
 		man = presets.PresetManager( TOOL_NAME, TOOL_EXTENSION )
 		presets = man.listAllPresets()
-		for loc, locPresets in presets.iteritems():
+		for loc, locPresets in presets.items():
 			for p in locPresets:
 				pName = p.name()
 				MelMenuItem( menu, l=pName, c=Callback( self.UI_editor.loadPreset, p ) )

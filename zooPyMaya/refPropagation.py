@@ -1,4 +1,4 @@
-'''
+﻿'''
 general utils to push changes to referenced scene data back to its original source
 
 currently just contains a function to take skin weights from the current scene and push them to the model file
@@ -8,11 +8,11 @@ from maya.cmds import *
 
 from zooPy.path import Path
 
-from melUtils import printWarningStr
+from .melUtils import printWarningStr
 from zooPyMaya.melUtils import mel
-from referenceUtils import stripNamespaceFromNamePath
+from .referenceUtils import stripNamespaceFromNamePath
 
-import skinWeights
+from . import skinWeights
 
 
 def getRefFilepathDictForNodes( nodes ):
@@ -99,13 +99,13 @@ def propagateWeightChangesToModel( meshes ):
 		printWarningStr( "The current scene isn't saved - please save the current scene first before proceeding!" )
 		return
 
-	for refFilepath, refNodeMeshDict in referencedMeshes.iteritems():
+	for refFilepath, refNodeMeshDict in referencedMeshes.items():
 		referencesToUnload = []
 
 		#make sure we don't visit any of the meshes more than once
 		meshesToUpdateWeightsOn = []
 		meshesToUpdateWeightsOn_withNS = []
-		for refNode, refMeshes in refNodeMeshDict.iteritems():
+		for refNode, refMeshes in refNodeMeshDict.items():
 
 			#get the maya filepath for the reference (with the "copy number")
 			mayaFilepathForRef = referenceQuery( refNode, f=True )

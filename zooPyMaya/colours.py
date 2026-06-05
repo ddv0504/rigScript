@@ -1,7 +1,7 @@
-from maya.cmds import *
+﻿from maya.cmds import *
 
 import maya.cmds as cmd
-import vectors
+from zooPy import vectors
 import re
 
 Vector = vectors.Vector

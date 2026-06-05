@@ -120,8 +120,6 @@ createNode nurbsCurve -n "FitSkeletonShape" -p "FitSkeleton";
 		;
 createNode joint -n "Root" -p "FitSkeleton";
 	addAttr -ci true -sn "run" -ln "run" -dt "string";
-	addAttr -ci true -k true -sn "centerBtwFeet" -ln "centerBtwFeet" -dv 1 -min 0 -max 
-		1 -at "bool";
 	addAttr -ci true -k true -sn "numMainExtras" -ln "numMainExtras" -min 0 -at "long";
 	addAttr -ci true -k true -sn "fat" -ln "fat" -dv 2.6513860869518515 -min 0 -at "double";
 	addAttr -ci true -k true -sn "fatY" -ln "fatY" -dv 1 -min 0 -at "double";

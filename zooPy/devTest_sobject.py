@@ -1,11 +1,10 @@
-
-from __future__ import with_statement
+﻿
 
 import os
 import sys
 
-from path import Path
-from sobject import SObject
+from .path import Path
+from .sobject import SObject
 from unittest import TestCase
 
 _BIG_STR = r"""python( "from zooPyMaya import triggered" );
@@ -14,7 +13,7 @@ for( $n in python( "range(len(triggers))" ) ) {
 	print( python("triggers["+ $n +"]") +"\n" );
 	}
 
-print "\n%1 %2 %3\n";
+print("\n%1 %2 %3\n";)
 
 //end
 
@@ -45,7 +44,7 @@ class SObjectTests(TestCase):
 		root.aBool = False
 		root.big_str = _BIG_STR
 
-		root.s2 = SObject( ('some_float', 200.0), ('someBool', True), ('unicode_test', u'some unicode value "with crap in it"\nand a newline!') )
+		root.s2 = SObject( ('some_float', 200.0), ('someBool', True), ('unicode_test', u'some str value "with crap in it"\nand a newline!') )
 		root.s2.crazy_list = [1,2.5,'3',True,False,['nested','lists','are','fun',(7,8,9,{'dict':1,'inside':2,'tuple':(3)})]]
 		root.s2.emptyTuple = ()
 		root.s2.similarKeyDict = {123:'key as int', '123': 'key as str'}
@@ -102,7 +101,7 @@ class SObjectTests(TestCase):
 
 		unserialized = SObject.Load( filepath )
 		assert unserialized == sobject
-		print sobject
+		print(sobject)
 	def testRoundTrip( self ):
 		sobject = self.constructData()
 

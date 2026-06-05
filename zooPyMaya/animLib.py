@@ -1,5 +1,5 @@
-
-import cPickle
+﻿
+import pickle as cPickle
 
 from maya import OpenMaya, OpenMayaUI, mel
 from maya import cmds as cmd
@@ -8,9 +8,9 @@ from zooPy import presets
 from zooPy.strUtils import Mapping
 from zooPy.path import Path
 
-import animClip
+from . import animClip
 
-from melUtils import printInfoStr, printWarningStr, printErrorStr
+from .melUtils import printInfoStr, printWarningStr, printErrorStr
 
 TOOL_NAME = 'animLib'
 VER = 4
@@ -236,7 +236,7 @@ class LibraryManager():
 		'''
 		libraries = set()
 
-		for locale, paths in self.getLibraryPaths().iteritems():
+		for locale, paths in self.getLibraryPaths().items():
 			for p in paths:
 				libName = p.name()
 				libraries.add(libName)
@@ -270,7 +270,7 @@ class LibraryManager():
 	def getLibraryClips( self, library ):
 		clips = {presets.LOCAL: [], presets.GLOBAL: []}
 		possibleTypes = AnimClipPreset, PoseClipPreset
-		for locale, localeClips in clips.iteritems():
+		for locale, localeClips in clips.items():
 			for dir in self._presetManager.getPresetDirs(locale):
 				dir += library
 				if not dir.exists():

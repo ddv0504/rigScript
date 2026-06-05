@@ -1,4 +1,4 @@
-
+﻿
 import os
 import sys
 import inspect
@@ -11,12 +11,12 @@ from zooPy.misc import removeDupes
 from zooPy.vectors import Vector
 from zooPy import colours
 
-import rigUtils
-import triggered
-import meshUtils
+from . import rigUtils
+from . import triggered
+from . import meshUtils
 
-from apiExtensions import asMObject, MObject
-from melUtils import mel, printErrorStr
+from .apiExtensions import asMObject, MObject
+from .melUtils import mel, printErrorStr
 
 SPACE_WORLD = rigUtils.SPACE_WORLD
 SPACE_LOCAL = rigUtils.SPACE_LOCAL
@@ -148,7 +148,7 @@ class PlaceDesc(object):
 		elif p == self.PIVOT_OBJ:
 			p = self._placeData[ 2 ]
 
-		if isinstance( p, basestring ): return p
+		if isinstance( p, str ): return p
 		if isinstance( p, int ): return self.WORLD
 		if p is None: return self.WORLD
 
@@ -699,7 +699,7 @@ def getShapeStrs( obj ):
 
 def getControlShapeFiles():
 	dir = CONTROL_DIRECTORY
-	if isinstance( dir, basestring ):
+	if isinstance( dir, str ):
 		dir = Path( dir )
 
 	if not isinstance( dir, Path ) or not dir.exists():

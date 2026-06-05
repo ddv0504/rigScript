@@ -1,13 +1,13 @@
-
+﻿
 import os
 
 import maya.cmds as cmd
 
-from baseMelUI import *
+from .baseMelUI import *
 from zooPy.path import Path
 
-import poseSym
-import mayaDecorators
+from . import poseSym
+from . import mayaDecorators
 
 
 class PoseSymLayout(MelVSingleStretchLayout):

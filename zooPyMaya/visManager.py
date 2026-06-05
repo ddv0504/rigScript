@@ -1,12 +1,12 @@
-
+﻿
 import datetime
 
 from zooPy import presets
 
 import maya.cmds as cmd
-import melUtils
+from . import melUtils
 
-from mayaDecorators import d_showWaitCursor
+from .mayaDecorators import d_showWaitCursor
 
 mel = melUtils.mel
 melecho = melUtils.melecho

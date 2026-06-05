@@ -1,26 +1,26 @@
-
+﻿
 import re
 
 from zooPy.misc import removeDupes
 from zooPy.names import camelCaseToNice
 
-from triggered import Trigger
-from control import getNiceName
-from apiExtensions import asMObject, cleanShortName
+from .triggered import Trigger
+from .control import getNiceName
+from .apiExtensions import asMObject, cleanShortName
 from maya.cmds import *
 
 import maya.cmds as cmd
 
-import apiExtensions
-import triggered
-import rigUtils
-import control
+from . import apiExtensions
+from . import triggered
+from . import rigUtils
+from . import control
 
 attrState = control.attrState
 AXES = rigUtils.Axis.BASE_AXES
 
 
-class ChangeSpaceCmd(unicode):
+class ChangeSpaceCmd(str):
 	'''
 	contains a bunch of higher level tools to querying the space changing command string
 	'''

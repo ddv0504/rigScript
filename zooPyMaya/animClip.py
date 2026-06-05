@@ -1,4 +1,4 @@
-
+﻿
 import maya
 import maya.OpenMayaAnim
 import maya.cmds as cmd
@@ -6,10 +6,10 @@ from maya.cmds import getAttr, setAttr, deleteAttr, objExists, createNode, xform
 
 from zooPy import strUtils
 from zooPy.vectors import Vector, Matrix
-from mayaDecorators import d_unifyUndo, d_noAutoKey, d_maintainSceneSelection
-import cmdStrResolver
-import mappingUtils
-import constants
+from .mayaDecorators import d_unifyUndo, d_noAutoKey, d_maintainSceneSelection
+from . import cmdStrResolver
+from . import mappingUtils
+from . import constants
 
 class AnimLibError(Exception): pass
 
@@ -259,7 +259,7 @@ def _getAttrNames( obj, attrNamesToSkip=() ):
 	itAliass = iter( aliass )
 	for attr in itAliass:
 		objAttrs.append( attr )
-		itAliass.next()
+		next(itAliass)
 
 	filteredAttrs = []
 	for attr in objAttrs:
@@ -397,7 +397,7 @@ class TransformClip(BaseClip):
 		self._keyTimeDataDict = keyTimeDataDict
 	def getNodes( self ):
 		nodes = set()
-		for _x, nodeDataDict in self._keyTimeDataDict.iteritems():
+		for _x, nodeDataDict in self._keyTimeDataDict.items():
 			nodes.update( set( nodeDataDict.keys() ) )
 
 		return list( nodes )
@@ -411,9 +411,9 @@ class TransformClip(BaseClip):
 		return cmdDict
 	def setMapping( self, mapping ):
 		newKeyTimeDataDict = {}
-		for _t, nodeDict in self._keyTimeDataDict.iteritems():
+		for _t, nodeDict in self._keyTimeDataDict.items():
 			newNodeDict = {}
-			for src, tgt in mapping.iteritems():
+			for src, tgt in mapping.items():
 				if not tgt:
 					continue
 
@@ -469,7 +469,7 @@ class TransformClip(BaseClip):
 		for transformedKeyTime in iterAtTimes( sortedKeyTimes ):
 			keyTime = transformedKeyTimes[ transformedKeyTime ]
 			nodesAtTimeDict = self._keyTimeDataDict[ keyTime ]
-			for node, (pos, rot, storedRotateOrder) in nodesAtTimeDict.iteritems():
+			for node, (pos, rot, storedRotateOrder) in nodesAtTimeDict.items():
 				move( pos[0], pos[1], pos[2], node, ws=True, a=True, rpr=True )
 
 				roAttrpath = '%s.ro' % node
@@ -518,7 +518,7 @@ class ChannelClip(BaseClip):
 		return self._nodeDict.keys()
 	def setMapping( self, mapping ):
 		newNodeDict = {}
-		for src, tgt in mapping.iteritems():
+		for src, tgt in mapping.items():
 			if src in self._nodeDict:
 				newNodeDict[ tgt ] = self._nodeDict[ src ]
 
@@ -542,7 +542,7 @@ class ChannelClip(BaseClip):
 		for node in nodes:
 			if node in self._nodeDict:
 				dataDict = self._nodeDict[ node ]
-				for attrName, keyData in dataDict.iteritems():
+				for attrName, keyData in dataDict.items():
 					attrPath = '%s.%s' % (node, attrName)
 					try:
 						keyData.apply( attrPath, applySettings.sourceRange, timeOffset, additive )
@@ -616,7 +616,7 @@ class PoseClip(BaseClip):
 		assert isinstance( mapping, strUtils.Mapping )
 		newNodeAttrDict = {}
 		newNodeWorldDict = {}
-		for src, tgt in mapping.iteritems():
+		for src, tgt in mapping.items():
 			if src in self._nodeAttrDict:
 				newNodeAttrDict[ tgt ] = self._nodeAttrDict[ src ]
 
@@ -629,11 +629,11 @@ class PoseClip(BaseClip):
 	@d_maintainSceneSelection
 	def apply( self, nodes=None, applySettings=None, worldSpace=False, additive=False ):
 		if nodes is None:
-			nodes = self._nodeAttrDict.iterkeys()
+			nodes = self._nodeAttrDict.keys()
 
 		for node in nodes:
 			if node in self._nodeAttrDict:
-				for attr, value in self._nodeAttrDict[ node ].iteritems():
+				for attr, value in self._nodeAttrDict[ node ].items():
 					attrpath = '%s.%s' % (node, attr)
 					if objExists( attrpath ):
 						if additive:
@@ -671,18 +671,18 @@ class PoseClip(BaseClip):
 		assert isinstance( other, PoseClip )
 
 		#this simplifies the code below as we don't have to check which values exist in one dict and not the other
-		for key, value in self._nodeAttrDict.iteritems():
+		for key, value in self._nodeAttrDict.items():
 			other._nodeAttrDict.setdefault( key, value )
 
-		for key, value in other._nodeAttrDict.iteritems():
+		for key, value in other._nodeAttrDict.items():
 			self._nodeAttrDict.setdefault( key, value )
 
 		#build new dicts by blending values from the two clips
 		newNodeAttrDict = {}
-		for node, nodeAttrDict in self._nodeAttrDict.iteritems():
+		for node, nodeAttrDict in self._nodeAttrDict.items():
 			otherNodeAttrDict = other._nodeAttrDict[ node ]
 			newNodeAttrDict[ node ] = newAttrDict = {}
-			for attr, value in nodeAttrDict.iteritems():
+			for attr, value in nodeAttrDict.items():
 				if attr in otherNodeAttrDict:
 					otherValue = otherNodeAttrDict[ attr ]
 				else:
@@ -694,7 +694,7 @@ class PoseClip(BaseClip):
 					newAttrDict[ attr ] = (value * (1-amount)) + (otherValue * amount)
 
 		newWorldAttrDict = {}
-		for node, (pos, rot, ro) in self._nodeWorldDict.iteritems():
+		for node, (pos, rot, ro) in self._nodeWorldDict.items():
 			if node in other._nodeWorldDict:
 				otherPos, otherRot, otherRo = other._nodeWorldDict[node]
 				#if ro != otherRo things get a bit more complicated...
@@ -801,7 +801,7 @@ class Tracer(object):
 		targetNodeInitialRotateOrderDict = {}
 
 		#pre-lookup this data - otherwise we have to do a maya query within the loop below
-		for node, targetNode in mapping.iteritems():
+		for node, targetNode in mapping.items():
 			targetRotateOrder = getAttr( '%s.ro' % targetNode )
 			storedRotateOrder = getAttr( '%s.ro' % node )
 			rotateOrderMatches = storedRotateOrder == targetRotateOrder
@@ -834,7 +834,7 @@ class Tracer(object):
 				startTime = keyTime
 
 			nodesAtTime = set( keyServer.getNodes() )
-			for node, targetNode in mapping.iteritems():
+			for node, targetNode in mapping.items():
 				if node not in nodesAtTime:
 					continue
 
@@ -860,11 +860,11 @@ class Tracer(object):
 
 		endTime = keyTime
 		if copyTangencyData:
-			for src, tgt in mapping.iteritems():
+			for src, tgt in mapping.items():
 				srcCurves = cmd.listConnections( src, type='animCurve', d=False, c=True ) or []
 				iterSrcCurves = iter( srcCurves )
 				for srcAttrpath in iterSrcCurves:
-					srcCurve = iterSrcCurves.next()
+					srcCurve = next(iterSrcCurves)
 					attrname = '.'.join( srcAttrpath.split( '.' )[ 1: ] )
 					destAttrpath = '%s.%s' % (tgt, attrname)
 					TangencyCopier( srcAttrpath, destAttrpath ).copy( startTime, endTime )
@@ -906,7 +906,7 @@ def autoGeneratePostTraceScheme( mapping ):
 	cmdStr = 'rotate -r -os %0.2f %0.2f %0.2f #; move -r -os %0.4f %0.4f %0.4f #;'
 	cmdFunc = bakeManualRotateDelta
 
-	for src, tgt in mapping.iteritems():
+	for src, tgt in mapping.items():
 		if not src:
 			continue
 
@@ -922,10 +922,10 @@ def autoGeneratePostTraceScheme( mapping ):
 		except RuntimeError: pass
 
 
-class PostTraceNode(unicode):
+class PostTraceNode(str):
 	_POST_TRACE_ATTR_NAME = 'xferPostTraceCmd'
 	def __new__( cls, node ):
-		new = unicode.__new__( cls, node )
+		new = str.__new__( cls, node )
 		try:
 			new._cmdStr = getAttr( '%s.%s' % (node, cls._POST_TRACE_ATTR_NAME) )
 		except ValueError: new._cmdStr = ''
@@ -957,7 +957,7 @@ class AnimCurveDuplicator(object):
 	@d_unifyUndo
 	@d_maintainSceneSelection
 	def apply( self, mapping ):
-		for src, tgt in mapping.iteritems():
+		for src, tgt in mapping.items():
 			for attrname in getNodeAttrNames( src ):
 				tgtAttrpath = '%s.%s' % (tgt, attrname)
 				if objExists( tgtAttrpath ):

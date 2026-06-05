@@ -126,8 +126,6 @@ createNode joint -n "Root" -p "FitSkeleton";
 	addAttr -ci true -k true -sn "fatZ" -ln "fatZ" -dv 1 -min 0 -at "double";
 	addAttr -ci true -sn "fatYabs" -ln "fatYabs" -at "double";
 	addAttr -ci true -sn "fatZabs" -ln "fatZabs" -at "double";
-	addAttr -ci true -k true -sn "centerBtwFeet" -ln "centerBtwFeet" -dv 1 -min 0 -max 
-		1 -at "bool";
 	addAttr -ci true -k true -sn "numMainExtras" -ln "numMainExtras" -min 0 -at "long";
 	setAttr ".t" -type "double3" 1.9777608368304725e-035 11.179489570395555 -1.7599493296292579 ;
 	setAttr -l on ".tx";

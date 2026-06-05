@@ -29,7 +29,21 @@ This is a legal agreement between you and AnimationStudios covering your use of 
    In no event shall AnimationStudios or anyone else who has been involved in the creation, development,
    production, or delivery of this software be liable for any direct, incidental or consequential
    damages, such as, but not limited to, loss of anticipated profits, benefits, use, or data resulting
-   rom the use of this software, or arising out of any breach of warranty.
+   from the use of this software, or arising out of any breach of warranty.
+
+7) Code Originality Representation
+   AnimationStudios represents and warrants that AdvancedSkeleton, is original to AnimationStudios and has not been sourced, derived,
+   or copied from any third-party intellectual property without appropriate permissions.
+
+8) Indemnification
+   AnimationStudios agrees to defend the User against any claims, damages, liabilities, arising from any third-party claims
+   alleging that the Software infringes or misappropriates any copyright, patent, trademark, or other intellectual property rights.
+
+9) Exclusion
+   AdvancedSkeleton has buttons to Download external software, for using the functions "Auto-LipSync", and "Video-MotionCapture"
+   These buttons can download the following Software: "FFmpeg", "montreal-forced-aligner" & "Google media pipe".
+   AnimationStudios have not created these external tools, and do not have the rights to them.
+   So for these Tools, and any other Tools that AdvancedSkeleton offers the user to Download separately, none of the above clauses apply.
 
 
 Internet: http://www.animationstudios.com.au

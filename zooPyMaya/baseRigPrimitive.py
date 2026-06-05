@@ -1,4 +1,4 @@
-
+﻿
 from zooPy import typeFactories
 from zooPy.path import Path
 from zooPy.vectors import Vector, Matrix, Axis
@@ -7,19 +7,19 @@ from zooPy.names import Parity, Name, camelCaseToNice, stripParity
 from maya.cmds import *
 from maya import cmds as cmd
 
-from rigUtils import *
-from control import *
-from skeletonBuilder import *
-from mayaDecorators import d_unifyUndo, d_showWaitCursor
-from melUtils import printInfoStr, printWarningStr, printErrorStr, referenceFile
+from .rigUtils import *
+from .control import *
+from .skeletonBuilder import *
+from .mayaDecorators import d_unifyUndo, d_showWaitCursor
+from .melUtils import printInfoStr, printWarningStr, printErrorStr, referenceFile
 
-import apiExtensions
-import skeletonBuilder
-import spaceSwitching
-import poseSym
-import control
+from . import apiExtensions
+from . import skeletonBuilder
+from . import spaceSwitching
+from . import poseSym
+from . import control
 
-from triggered import Trigger, setKillState
+from .triggered import Trigger, setKillState
 
 AXES = Axis.BASE_AXES
 
@@ -117,7 +117,7 @@ def buildContainer( typeClass, kwDict, nodes, controls, namedNodes=() ):
 	addAttr( theContainer, ln='_rigPrimitive', attributeType='compound', numberOfChildren=7 )
 	addAttr( theContainer, ln='typeName', dt='string', parent='_rigPrimitive' )
 	addAttr( theContainer, ln='script', dt='string', parent='_rigPrimitive' )
-	addAttr( theContainer, ln='version', at='long', parent='_rigPrimitive' )
+	addAttr( theContainer, ln='version', at='int', parent='_rigPrimitive' )
 	addAttr( theContainer, ln='skeletonPart', at='message', parent='_rigPrimitive' )
 	addAttr( theContainer, ln='buildKwargs', dt='string', parent='_rigPrimitive' )
 	addAttr( theContainer, ln='controls',
@@ -231,7 +231,7 @@ class RigPart(typeFactories.trackableClassFactory()):
 		return u"%s_%d( %r )" % (self.__class__.__name__, self.getIdx(), self._container)
 	__str__ = __unicode__
 	def __repr__( self ):
-		return repr( unicode( self ) )
+		return repr( str( self ) )
 	def __hash__( self ):
 		'''
 		the hash for the container mobject uniquely identifies this rig control

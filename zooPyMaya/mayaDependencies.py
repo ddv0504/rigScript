@@ -1,4 +1,4 @@
-
+﻿
 import os
 import sys
 
@@ -8,8 +8,8 @@ from zooPy.path import Path
 import maya
 import maya.cmds as cmd
 
-import melUtils
-import baseMelUI
+from . import melUtils
+from . import baseMelUI
 
 
 def flush():
@@ -34,7 +34,7 @@ def flush():
 			BUTTONS = YES, NO = 'Yes', 'NO'
 			ret = cmd.confirmDialog( t='Plugins in Use!', m="Your scene has python plugins in use - these need to be unloaded to properly flush.\n\nIs it cool if I close the current scene?  I'll prompt to save your scene...\n\nNOTE: No flushing has happened yet!", b=BUTTONS, db=NO )
 			if ret == NO:
-				print "!! FLUSH ABORTED !!"
+				print("!! FLUSH ABORTED !!")
 				return
 
 			initialScene = cmd.file( q=True, sn=True )
@@ -62,7 +62,7 @@ def flush():
 		if Path( initialScene ).exists():
 			cmd.file( initialScene, o=True )
 
-	print "WARNING: You'll need to close and re-open any python based tools that are currently open..."
+	print("WARNING: You'll need to close and re-open any python based tools that are currently open...")
 
 
 def reconnect():
@@ -75,7 +75,7 @@ def reconnect():
 	try:
 		debugger = wingdbstub.debugger
 	except AttributeError:
-		print "No debugger found!"
+		print("No debugger found!")
 	else:
 		if debugger is not None:
 			debugger.StopDebug()

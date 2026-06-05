@@ -1,13 +1,13 @@
-
+﻿
 from maya.cmds import *
 from maya import cmds as cmd
-from baseMelUI import *
+from .baseMelUI import *
 
 from zooPy import names
 
-import control
-import baseMelUI
-import spaceSwitching
+from . import control
+from . import baseMelUI
+from . import spaceSwitching
 
 
 class ParentsScrollList(MelObjectScrollList):

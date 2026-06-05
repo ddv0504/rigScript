@@ -15,6 +15,7 @@ if (`window -q -ex asSelectorface`)
 string $asSelectorScriptLocation=`asSelectorScriptLocation`;
 string $asIconLocation=$asSelectorScriptLocation+"face/";
 window -rtf 1 -mb 1 -t face asSelectorface;
+asSetFilterUpdateWindowTitle asSelectorface;
 menu -l File;
 	menuItem -l "Create Reference.." -c "asReferenceBrowser 0";
 	menuItem -l "Reference Editor" -c "asReferenceEditor";
@@ -44,6 +45,7 @@ menu -l Pose -aob 1;
 	menuItem -d 1;
 	menuItem -l Mirror -c "asMirror asSelectorface";
 	menuItem -optionBox 1 -c "asMirrorOptions asSelectorface";
+	menuItem -d 1;
 	setParent..;
 menu -l Anim;
 	menuItem -l Copy -c "asCopyToClipBoard asSelectorface 1";
@@ -56,9 +58,11 @@ menu -l Anim;
 	menuItem -l SwitchFKIK -c asAutoSwitchFKIK;
 	menuItem -l SwitchPivot -c asAutoSwitchPivot;
 	menuItem -d 1;
+	menuItem -l PivotControl -c asPivotControl;
+	menuItem -d 1;
 	menuItem -l QuickIK -c asQuickIK;
 	menuItem -d 1;
-	menuItem -l TwistFlip -c "asTwistFlipUI asSelectorface";
+	menuItem -l HumanIK -c "asHumanIKUI asSelectorbiped";
 	menuItem -d 1;
 	menuItem -l MoCapMatcher -c "asMoCapMatcherUI asSelectorface";
 	menuItem -l MoCapLibrary -c "asMoCapLibraryUI asSelectorface";
@@ -73,6 +77,7 @@ menu -l Anim;
 	menuItem -l "Audio2Face" -c "asAudio2FaceUI asSelectorface";
 	menuItem -d 1;
 	menuItem -l "Deformable" -c "asDeformableUI asSelectorface";
+	menuItem -l "TimeEcho" -c "asTimeEchoUI asSelectorface";
 menu -l Dynamics;
 	menuItem -l "Add to selected (Standard)" -c "asDynAdd asSelectorface";
 	menuItem -l "Add to selected (HairSystem)" -c "asDynAddHairSystem asSelectorface";
@@ -89,7 +94,7 @@ menu -l Parent;
 columnLayout -adj 1;
 text -m 0 -l "FaceControlSet " asSelectorfaceControlSetsText;
 rowLayout -nc 5 -adj 1 -cat 1 right 0 -cw 2 30 -cw 3 65 -cw 4 50 -cw 5 60;
-optionMenu -cc asSelChange asSelectorfaceOptionMenu;
+optionMenu -cc "asNameSpaceChange asSelectorface" asSelectorfaceOptionMenu;
 button -l set -c "asSetNameSpaceFromSelection asSelectorface";
 checkBox -v `optionVar -q asShowSelection` -cc "optionVar -iv asShowSelection #1;asSelChangeToggle;" -l Selection asSelectorfaceSelectionCheckBox;
 checkBox -v `optionVar -q asShowKeyed` -cc "optionVar -iv asShowKeyed #1;asSelChangeToggle;" -l Keyed asSelectorfaceKeyedCheckBox;
@@ -807,7 +812,7 @@ asSelectorface;
 //-- ASTools Procedures Starts Here --//
 global proc string asGetASToolsProceduresVersionAsString ()
 {
-string $asToolsProceduresVersion=6.410;
+string $asToolsProceduresVersion=6.630;
 return $asToolsProceduresVersion;
 }
 
@@ -986,6 +991,66 @@ for ($i=0;$i<size($sel);$i++)
 if ($undoState) undoInfo -stateWithoutFlush 1;
 }
 
+global proc asNameSpaceChange (string $name)
+{
+string $nameSpace;
+string $allAttrs[],$poses[],$menuItemArray[];
+string $skipAttrs[]={"run","preRebuildScript","postRebuildScript","objectsSkin","objectsAll","objectsRightEye","objectsLeftEye"};
+
+//re-populate Poses
+if (`window -q -ex $name` && `optionMenu -q -ex ($name+"OptionMenu")`)
+	{
+	$nameSpace=`asNameSpaceFromUIName $name`;
+	if (!`objExists ($nameSpace+"FitSkeleton")`)
+		return;
+	$allAttrs=`listAttr -ud ($nameSpace+"FitSkeleton")`;
+	for ($i=0;$i<size($allAttrs);$i++)
+		if (`getAttr -type ($nameSpace+"FitSkeleton."+$allAttrs[$i])`=="string")
+			if (!`stringArrayCount $allAttrs[$i] $skipAttrs`)
+				$poses[size($poses)]=$allAttrs[$i];
+
+	$menuArray=`window -q -menuArray $name`;
+	for ($i=0;$i<size($menuArray);$i++)
+		if (`menu -q -l $menuArray[$i]`=="Pose")
+			{
+			$menuItemArray=`menu -q -itemArray $menuArray[$i]`;
+			for ($y=0;$y<size($menuItemArray);$y++)
+				if (`gmatch $menuItemArray[$y] "asCustomPoseCommandsMenuItem*"`)
+					deleteUI $menuItemArray[$y];
+			setParent -menu $menuArray[$i];
+
+			for ($y=0;$y<size($poses);$y++)
+				menuItem -l $poses[$y] -c ("asPoseAttributeCommand "+$nameSpace+"FitSkeleton."+$poses[$y]) ("asCustomPoseCommandsMenuItem"+$name+$y);
+			}
+	}
+
+asSelChange;
+}
+
+global proc asPoseAttributeCommand (string $objAttr)
+{
+int $numTok;
+string $tempString[],$cmdBuffer[],$spaceBuffer[];
+string $nameSpace,$stringAttr,$cmd;
+
+tokenize $objAttr ":" $tempString;
+for ($i=0;$i<size($tempString)-1;$i++)
+	$nameSpace+=$tempString[$i]+":";
+
+$stringAttr=`getAttr $objAttr`;
+tokenize $stringAttr ";" $cmdBuffer;
+for ($z=0;$z<size($cmdBuffer);$z++)
+	{
+	$numTok=`tokenize $cmdBuffer[$z] $spaceBuffer`;
+	if ($nameSpace!="" && $numTok>2)//insert nameSpace
+		$cmd+=`substitute $spaceBuffer[1] $cmdBuffer[$z] ($nameSpace+$spaceBuffer[1])`+";";
+	else
+		$cmd+=$cmdBuffer[$z]+";";
+	}
+
+evalEcho ($cmd);
+}
+
 global proc float asGetScale ()
 {
 float $scale=1;
@@ -1040,6 +1105,9 @@ if (`objExists $parents[0]`)
 	parent $object $parents[0];
 else
 	parent -w $object;
+
+if ($generatedXform!="")
+	delete $generatedXform;
 
 if ($jointOrient && !$rotate)
 	{
@@ -1258,7 +1326,7 @@ eval ($alignSwitchCmd+" \""+$nameSpace+"\" "+$IK+" "+$side+" "+$W2K);
 global proc asAlignFKIK (string $name, string $IK, string $side, string $W2K)
 {
 global int $asBakeFKIK;
-int $isSplineIK,$numIkCtrls,$cvNr,$ikNr,$bakingMoCap,$opm,$c,$ikCtrlNr,$y;
+int $isSplineIK,$numIkCtrls,$cvNr,$ikNr,$bakingMoCap,$opm,$c,$ikCtrlNr,$y,$hasBiasWarned;
 float $IKCurveLenght,$stiff,$middleJointLenght,$endJointLenght,$joFac,$maxJo,$shiftDist,$samplerDist,$value,$version,$u;
 float $shiftPolarity=1;
 float $b=1;
@@ -1593,8 +1661,7 @@ if ($W2K=="IK2FK" && !$isSplineIK)
 
 	//scale (hands/feet)
 	$sca=`xform -q -os -r -s ($nameSpace+"IK"+$IK+$side)`;
-print ("xform -os -a -s "+$sca[0]+" "+$sca[1]+" "+$sca[2]+" FK"+$startMiddleEnd[2]+$side+";\n");
-	xform -os -a -s $sca[0] $sca[1] $sca[2] ("FK"+$startMiddleEnd[2]+$side);
+	xform -os -a -s $sca[0] $sca[1] $sca[2] ($nameSpace+"FK"+$startMiddleEnd[2]+$side);
 
 	if (`objExists ($nameSpace+$toesJoint)` && `objExists ($nameSpace+"IKXToes"+$side)`)
 		{
@@ -1649,15 +1716,30 @@ if ($W2K=="IK2FK" && $isSplineIK)
 			continue;
 		if (!`sets -im ($nameSpace+"ControlSet") ($nameSpace+"FK"+$chainJoints[$i])`)
 			continue;
+/*
 		// RootX_M.legLock warning
 		if ($chainJoints[$i]=="Root")
 			if (`attributeExists legLock RootX_M`)
 				if (`getAttr RootX_M.legLock`!=10)
 					print ("// Switching from IK to FK for the Spine, Set RootX_M.legLock to 10, for more accurate switching.\n");
+*/
+/*
+		// bias
+		if (`attributeExists bias ($nameSpace+"FK"+$chainJoints[$i])`)
+			if (`getAttr ($nameSpace+"FK"+$chainJoints[$i]+".bias")`!=10)
+				{
+				if (!$hasBiasWarned)
+					warning ("Settting \"bias\" attribute of Fk-controllers to 10, for improved accuracy");
+				setAttr ($nameSpace+"FK"+$chainJoints[$i]+".bias") 10;
+				$hasBiasWarned=1;
+				}
+*/		
 		$pos=`xform -q -ws -t ($nameSpace+"IKX"+$chainJoints[$i])`;
 		$rot=`xform -q -ws -ro ($nameSpace+"IKX"+$chainJoints[$i])`;
-//		xform -ws -t $pos[0] $pos[1] $pos[2] -ro $rot[0] $rot[1] $rot[2] ($nameSpace+"FK"+$chainJoints[$i]);
 
+		xform -ws -t $pos[0] $pos[1] $pos[2] -ro $rot[0] $rot[1] $rot[2] ($nameSpace+"FK"+$chainJoints[$i]);
+		xform -ws -t $pos[0] $pos[1] $pos[2] -ro $rot[0] $rot[1] $rot[2] ($nameSpace+"FK"+$chainJoints[$i]);
+/*
 		clear $w;
 		for ($y=0;$y<99;$y++)
 			if (`attributeExists ("w"+$y) ($nameSpace+"FK"+$chainJoints[$i])`)
@@ -1720,6 +1802,7 @@ if ($W2K=="IK2FK" && $isSplineIK)
 			$pos=`xform -q -ws -t ($nameSpace+"IKX"+$chainJoints[$i])`;
 			xform -ws -t $pos[0] $pos[1] $pos[2] ($nameSpace+"FK"+$chainJoints[$i]);
 			}
+*/
 		}
 	}
 
@@ -1764,7 +1847,7 @@ if (!`objExists ($nameSpace+"Pole"+$IK+$side)`)
 string $requiredObj[]={($nameSpace+"Main"),($nameSpace+"FKX"+$startJoint+$side),($nameSpace+"IKX"+$startJoint+$side),($nameSpace+"IKX"+$middleJoint+$side)};
 if ($isSplineIK)
 	{
-	$chainJoints=`asgetChainJoints ($nameSpace+$startJoint) ($nameSpace+$endJoint)`;
+	$chainJoints=`asgetChainJoints ($nameSpace+$startJoint+$side) ($nameSpace+$endJoint+$side)`;
 	for ($i=0;$i<size($chainJoints);$i++)
 		$chainJoints[$i]=`substitute $nameSpace $chainJoints[$i] ""`;
 	for ($i=1;$i<99;$i++)
@@ -1883,10 +1966,10 @@ for ($a=0;$a<2;$a++)
 			{
 			setKeyframe ($controlCurve+".FKIKBlend");
 			for ($i=0;$i<size($chainJoints);$i++)
-				if (`objExists ($nameSpace+"FK"+$chainJoints[$i]+$side)`)
+				if (`objExists ($nameSpace+"FK"+$chainJoints[$i])`)
 					{
-					setKeyframe ($nameSpace+"FK"+$chainJoints[$i]+$side+".t");
-					setKeyframe ($nameSpace+"FK"+$chainJoints[$i]+$side+".r");
+					setKeyframe ($nameSpace+"FK"+$chainJoints[$i]+".t");
+					setKeyframe ($nameSpace+"FK"+$chainJoints[$i]+".r");
 					}
 			for ($i=1;$i<$numIkCtrls+1;$i++)
 				{
@@ -1900,6 +1983,29 @@ for ($a=0;$a<2;$a++)
 					setKeyframe ($nameSpace+"IKhybrid"+$IK+$i+$side+".t");
 					setKeyframe ($nameSpace+"IKhybrid"+$IK+$i+$side+".r");
 					}
+				}
+			//LegLock
+			if (`attributeExists legLock ($nameSpace+"FKRoot_M")`)
+				{
+				setKeyframe ($nameSpace+"FKRoot_M.legLock");
+				if ($a==0)
+					{
+					if (!$bakeRange)
+						print ("// Settting \"FKRoot_M.legLock\" to 0, and \"FK*.bias\" to 10, for improved IK-to-FK-accuracy.\n");
+					setKeyframe -t $currentTime -v 0 ($nameSpace+"FKRoot_M.legLock");
+					}
+				}
+			//Bias
+			for ($i=0;$i<size($chainJoints);$i++)
+				{
+				if (`attributeExists bias ($nameSpace+"FK"+$chainJoints[$i])`)
+					{
+					setKeyframe ($nameSpace+"FK"+$chainJoints[$i]+".bias");
+					if ($a==0)
+						setKeyframe -t $currentTime -v 10 ($nameSpace+"FK"+$chainJoints[$i]+".bias");
+					}
+				if (`attributeExists inbetweenVis ($nameSpace+"FK"+$chainJoints[$i])`)
+					setAttr ($nameSpace+"FK"+$chainJoints[$i]+".inbetweenVis") 1;
 				}
 			}
 		if ($legAimRotCmd!="")
@@ -2080,6 +2186,7 @@ global proc asPopulateNameSpaceMenu (string $name)
 {
 string $optionMenu=$name+"OptionMenu";
 string $nameSpacesList[]=`namespaceInfo -r -lon`;
+string $menuArray[];
 $nameSpacesList=`stringArrayRemove {"UI"} $nameSpacesList`;
 $nameSpacesList[size($nameSpacesList)]="";
 string $itemList[]=`optionMenu -q -ils $optionMenu`;
@@ -2102,6 +2209,8 @@ if (!`optionMenu -q -ni ($name+"OptionMenu")`)
 	else
 		menuItem -p $optionMenu -l ":";
 	}
+	
+asNameSpaceChange $name;
 }
 
 global proc int asFilterCheck (string $name, string $nameSpace)
@@ -2142,6 +2251,27 @@ global proc asSetFilterNameSpaceMenu (string $name)
 string $filterString=`textFieldGrp -q -tx ("asSelectorFilterTextFieldGrp_"+$name)`;
 optionVar -sv ("asSelectorFilter_"+$name) $filterString;
 asPopulateNameSpaceMenu $name;
+asSetFilterUpdateWindowTitle $name;
+}
+
+global proc asSetFilterUpdateWindowTitle (string $name)
+{
+string $newTitle,$oldTitle;
+string $filterString=`optionVar -q ("asSelectorFilter_"+$name)`;
+string $tempString[];
+
+if (`window -q -ex $name`) $oldTitle=`window -q -t $name`;
+if (`workspaceControl -q -ex ($name+"WorkspaceControl")`) $oldTitle=`workspaceControl -q -l ($name+"WorkspaceControl")`;
+
+tokenize $oldTitle $tempString;
+$oldTitle=$tempString[0];
+$newTitle=$oldTitle;
+if ($filterString!="" && $filterString!="0")
+	$newTitle+=" filter:"+$filterString;
+if (`window -q -ex $name`)
+	window -e -t $newTitle $name;
+if (`workspaceControl -q -ex ($name+"WorkspaceControl")`)
+	workspaceControl -e -l $newTitle ($name+"WorkspaceControl");
 }
 
 global proc asSetNameSpaceFromSelection (string $uiName)
@@ -2809,12 +2939,14 @@ for ($i=0;$i<size($optionVars);$i++)
 
 global proc asMirror (string $uiName)
 {
+int $axesZMinusY;
 string $side="asMOSideR2L";
 string $space="asMOSpaceMain";
 string $axis="asMOAxisX";
 string $selOnly="asMOSelOnlyAll";
-string $sel[]=`ls -sl`;
 string $nameSpace;
+string $sel[]=`ls -sl`;
+string $controls[];
 
 string $controlSets[],$sortedControls[];
 
@@ -2827,8 +2959,9 @@ if (!size($controlSets))
 if (!size($controlSets))
 	error "No controlSets detected. select a controller";
 
-string $controls[]=`sets -q $controlSets`;
-$controls=`sort $controls`;//first alphanum sort, so e.g.IKhybridSpline1 comes before 2
+if (`attributeExists primaryAxis FitSkeleton` && `attributeExists secondaryAxis FitSkeleton`)
+	if (`getAttr FitSkeleton.primaryAxis`==2 && `getAttr FitSkeleton.secondaryAxis`==4)
+		$axesZMinusY=1;
 
 if (`window -q -ex asMirrorOptions`)
 	{
@@ -2850,6 +2983,11 @@ if (`optionVar -ex asMOAxis`)
 if (`optionVar -ex asMOSelOnly`)
 	$selOnly=`optionVar -q asMOSelOnly`;
 
+$controls=`sets -q $controlSets`;
+if ($selOnly=="asMOSelOnlySel")
+	$controls=$sel;
+$controls=`sort $controls`;//first alphanum sort, so e.g.IKhybridSpline1 comes before 2
+
 for ($i=0;$i<size($controls);$i++)
 	if ($controls[$i]==($nameSpace+"Main"))
 		$sortedControls={($nameSpace+"Main"),($nameSpace+"RootX_M"),($nameSpace+"RootExtraX_M")};
@@ -2858,14 +2996,34 @@ for ($i=0;$i<size($controls);$i++)
 	if (`gmatch $controls[$i] ($nameSpace+"IKhybrid*")`)
 		$sortedControls[size($sortedControls)]=$controls[$i];
 
+//End-SplineIk before mid, as mid are inbetw Start/End, Here First For Spine (as other limbs could be attached to Spine)
+for ($i=0;$i<size($controls);$i++)
+	if (`gmatch $controls[$i] ($nameSpace+"IK*Spine*")`)
+		if (`attributeExists stiff $controls[$i]`)
+			$sortedControls[size($sortedControls)]=$controls[$i];
+
+//as other limbs could be attached to Spine
 for ($i=0;$i<size($controls);$i++)
 	if (`gmatch $controls[$i] ($nameSpace+"IK*Spine*")`)
 		$sortedControls[size($sortedControls)]=$controls[$i];
 
 for ($i=0;$i<size($controls);$i++)
-	if (`gmatch $controls[$i] ($nameSpace+"IKSpline*")`)
+	if (`gmatch $controls[$i] ($nameSpace+"FK*Spine*")` || $controls[$i]==$nameSpace+"FKRoot_M" || $controls[$i]==$nameSpace+"FKChest_M")
 		$sortedControls[size($sortedControls)]=$controls[$i];
 
+//End-SplineIk before mid, as mid are inbetw Start/End, Here First For After
+for ($i=0;$i<size($controls);$i++)
+	if (`gmatch $controls[$i] ($nameSpace+"IK*")`)
+		if (!`gmatch $controls[$i] ($nameSpace+"IK*Spine*")`)
+			if (`attributeExists stiff $controls[$i]`)
+				$sortedControls[size($sortedControls)]=$controls[$i];
+
+//commented out in v 6.5473, as it cause issues with Dragon Neck
+/*
+for ($i=0;$i<size($controls);$i++)
+	if (`gmatch $controls[$i] ($nameSpace+"IKSpline*")`)
+		$sortedControls[size($sortedControls)]=$controls[$i];
+*/
 for ($i=0;$i<size($controls);$i++)
 	if (`gmatch $controls[$i] ($nameSpace+"IK*Leg*")` || `gmatch $controls[$i] ($nameSpace+"IK*Arm*")`)
 		$sortedControls[size($sortedControls)]=$controls[$i];
@@ -2898,8 +3056,7 @@ for ($i=0;$i<size($controls);$i++)
 		$sortedControls[size($sortedControls)]=$controls[$i];
 
 $controls=$sortedControls;
-if ($selOnly=="asMOSelOnlySel")
-	$controls=$sel;
+
 string $allKeyableAttrs[],$tempString[];
 string $source,$dest,$destAttr,$cmd,$loc1,$loc2;
 float $pos[3],$rot[3],$pos2[3],$rot2[3],$wsScales[3];
@@ -2985,6 +3142,7 @@ for ($i=0;$i<size($controls);$i++)
 			{
 			if (`gmatch $controls[$i] ($nameSpace+"FK*_L")` || `gmatch $controls[$i] ($nameSpace+"FK*_R")`
 			 || `gmatch $controls[$i] ($nameSpace+"Bend*_L")` || `gmatch $controls[$i] ($nameSpace+"Bend*_R")`
+			 || `gmatch $controls[$i] ($nameSpace+"Micro*_L")` || `gmatch $controls[$i] ($nameSpace+"Micro*_R")`
 			 || `attributeExists ikLocal $controls[$i]`
 			 || $isClusterLocalOrientControl)
 			 	{
@@ -2992,8 +3150,16 @@ for ($i=0;$i<size($controls);$i++)
 			 		$flip=-1;
 			 	}
 			else
+				{
 				if ($destAttr=="tz" || $destAttr=="rx" || $destAttr=="ry")
 					$flip=-1;
+			 	if ($axesZMinusY)
+			 		{
+			 		$flip=1;
+					if ($destAttr=="tx" || $destAttr=="ry" || $destAttr=="rz")
+						$flip=-1;
+					}
+				}
 			}
 
 		if ($isFaceControl)
@@ -3005,7 +3171,7 @@ for ($i=0;$i<size($controls);$i++)
 		$wsXformAttr=0;
 		if ($wsScales[2]>0)
 			if (`gmatch $controls[$i] ($nameSpace+"IK*")` || `gmatch $controls[$i] ($nameSpace+"Pole*")`
-			|| `gmatch $controls[$i] ($nameSpace+"Roll*")`
+			|| `gmatch $controls[$i] ($nameSpace+"Roll*")` || `gmatch $controls[$i] ($nameSpace+"Pivot*")`
 			|| `gmatch $controls[$i] ($nameSpace+"RootX_M*")` || ($isClusterControl && !$isClusterLocalOrientControl))
 				if ((!`gmatch $controls[$i] ($nameSpace+"IKLocal*")`) && !`attributeExists ikLocal $controls[$i]`)
 					if (!`gmatch $controls[$i] ($nameSpace+"IKhybrid*")`)
@@ -3392,7 +3558,7 @@ if ($restoreCmd!="")
 global proc asDynAddHairSystem (string $uiName)
 {
 float $pos[];
-string $nameSpace,$offsetNode,$dynTopJoint;
+string $nameSpace,$offsetNode,$dynTopJoint,$nucleus;
 string $sel[]=`ls -sl`;
 string $tempString[],$allBefore[],$allAfter[];
 
@@ -3410,6 +3576,10 @@ for ($i=0;$i<size($tempString);$i++)
 	if (`gmatch $tempString[$i] "*Offset"`)
 		$offsetNode=$tempString[$i];
 
+$tempString=`ls -type nucleus`;
+if ($tempString[0]!="")
+	$nucleus=$tempString[0];
+
 $tempString=`listRelatives -c -type joint$offsetNode`;
 $dynTopJoint=$tempString[0];
 
@@ -3424,7 +3594,7 @@ $tempString=`ls -sl`;
 for ($i=0;$i<size($tempString);$i++)
 	{
 	if (`gmatch $tempString[$i] "hairSystem[0-9]"`) rename $tempString[$i] ("hairSystem"+$name);
-	if (`gmatch $tempString[$i] "nucleus*"`) rename $tempString[$i] ("nucleus"+$name);
+	if (`gmatch $tempString[$i] "nucleus*"`) {rename $tempString[$i] ("nucleus"+$name);$nucleus="nucleus"+$name;}
 	if (`gmatch $tempString[$i] "hairSystem[0-9]OutputCurves"`) rename $tempString[$i] ("hairSystemOutputCurves"+$name);
 	}
 $tempString=`listRelatives -c -type transform ("hairSystemOutputCurves"+$name)`;
@@ -3433,7 +3603,7 @@ $tempString=`listRelatives -c -type transform $dynTopNode`;
 for ($i=0;$i<size($tempString);$i++)
 	if (`gmatch $tempString[$i] "follicle*"`) rename $tempString[$i] ("follicle"+$name);
 
-parent ("hairSystem"+$name) ("nucleus"+$name) ("hair"+$name) $dynTopNode;
+parent ("hairSystem"+$name) $nucleus ("hair"+$name) $dynTopNode;
 parent $dynTopJoint $dynTopNode;
 parent ("follicle"+$name) $dynTopJoint $offsetNode;
 delete ("hairSystemOutputCurves"+$name);
@@ -3742,18 +3912,20 @@ evalEcho InteractivePlayback;
 
 global proc asParentAdd (string $uiName, int $extra)
 {
+int $plugNr;
+string $parent,$child,$attrName,$parentConstraint;
+string $nameSpace=`asNameSpaceFromUIName $uiName`;
+string $tempString[],$udAttrs[];
 string $sel[]=`ls -sl`;
-string $child;
-string $tempString[];
 
 if (`asHotKeyCheck ("asParentAdd \"\" "+$extra)`) return;
 
 if (size($sel)<2) error "Select at least 2 objects";
 
-string $parent=$sel[size($sel)-1];
+$child=$sel[size($sel)-1];
 for ($i=0;$i<size($sel)-1;$i++)
 	{
-	$child=$sel[$i];
+	$parent=$sel[$i];
 	if ($extra)
 		{
 		$tempString=`listRelatives -p $child`;
@@ -3762,9 +3934,48 @@ for ($i=0;$i<size($sel)-1;$i++)
 		else
 			print ("// No Extra control found for \""+$child+"\".\n");
 		}
-	$tempString=`parentConstraint -mo $parent $child`;
-	parent -w $tempString[0];
+
+	if (!`objExists Parenting`)
+		createNode -n Parenting transform;
+		if (!`objExists ($nameSpace+"Parenting")`)
+			createNode -n ($nameSpace+"Parenting") -p Parenting transform;
+	if (`objExists ($child+"ParentedTo"+$parent)`)
+		delete ($child+"ParentedTo"+$parent);
+	createNode -n ($child+"ParentedTo"+$parent) -p ($nameSpace+"Parenting") transform;
+	createNode -n ($parent+"Follower") -p ($nameSpace+"Parenting") transform;
+	asAlign ($parent+"Follower") $child 1 1 0 0;
+	parentConstraint -mo $parent ($parent+"Follower");
+	if ($i==0 && !`objExists ($child+"Static")`)
+		{
+		spaceLocator -n ($child+"Static");
+		asAlign ($child+"Static") $child 1 1 0 0;
+		parent ($child+"Static") ($nameSpace+"Parenting");
+		parentConstraint ($child+"Static") $child;
+		}
+
+	$tempString=`parentConstraint ($parent+"Follower") $child`;
+	$parentConstraint=$tempString[0];
+	$udAttrs=`listAttr -ud $parentConstraint`;
+
+	tokenize $parent ":" $tempString;
+	$attrName="parentTo"+`substitute $nameSpace $parent ""`;
+	addAttr -k 1 -dv 1 -ln $attrName -at double -min 0 -max 1 $child;
+	connectAttr ($child+"."+$attrName) ($parentConstraint+"."+$udAttrs[size($udAttrs)-1]);
+
+	if (!`objExists ($child+"ParentedMax")`)
+		createNode -n ($child+"ParentedMax") max;
+	if (!`objExists ($child+"ParentedReverse")`)
+		{
+		createNode -n ($child+"ParentedReverse") reverse;
+		connectAttr ($child+"ParentedMax.output") ($child+"ParentedReverse.inputX");
+		connectAttr ($child+"ParentedReverse.outputX") ($parentConstraint+"."+$udAttrs[0]);
+		}
+	$plugNr=`getAttr -s ($child+"ParentedMax.input")`;
+	connectAttr ($child+"."+$attrName) ($child+"ParentedMax.input["+$plugNr+"]");
 	}
+select $sel;
+select -d $parent;
+print "// ParentConstraint added.\n";
 }
 
 global proc string asFindFKIKCtrl (string $obj)
@@ -3917,6 +4128,37 @@ if ($autoKey)
 
 select $extraControl;
 print ("// \""+$extraControl+"\" aligned to \""+$target+"\".\n");
+}
+
+global proc asPivotControl ()
+{
+int $numCtrls;
+float $diameter,$scale;
+string $sel[]=`ls -sl`;
+string $tempString[];
+
+if (`asHotKeyCheck "asPivotControl"`) return;
+
+for ($i=0;$i<size($sel);$i++)
+	{
+	if (`gmatch $sel[$i] "*_PivotControl"`)
+		error "Selected object is already a PivotController.";
+	$pivotControl=$sel[$i]+"_PivotControl";
+	if (`objExists $pivotControl`)
+		delete $pivotControl;
+	spaceLocator -n $pivotControl;
+	parent -r $pivotControl $sel[$i];
+
+	$diameter=`asControlDiameter $sel[$i]`;
+	$scale=$diameter*0.75;
+	if ($scale==0) $scale=1;//shapeLess xform. e.g. ExtraCtrl
+	setAttr ($pivotControl+".localScale") -type float3 $scale $scale $scale;
+	connectAttr ($pivotControl+".t") ($sel[$i]+".rotatePivot");
+	connectAttr ($pivotControl+".t") ($sel[$i]+".scalePivot");
+
+	$numCtrls++;
+	}
+print ("// Pivot-Locators added for: "+$numCtrls+" Controllers.\n");
 }
 
 global proc asQuickIK ()
@@ -4117,7 +4359,26 @@ for ($i=0;$i<size($fkXJoints);$i++)
 	}
 }
 
+global proc asHumanIKUI (string $uiName)
+{
+string $nameSpace=`asNameSpaceFromUIName $uiName`;
+if (`asHotKeyCheck "asHumanIKUI \"\""`) return;
 
+if (`window -q -ex asHumanIK`)
+    deleteUI asHumanIK;
+window -t HumanIK asHumanIK;
+columnLayout;
+text -m 0 -l $uiName asHumanIKUiNameText;
+text -m 0 -l $nameSpace asHumanIKNameSpaceText;
+separator -h 15 -st none;
+button -w 190 -l "Create HumanIK" -c asCreateHumanIK;
+separator -h 15 -st none;
+button -w 190 -l "Delete HumanIK" -c asDeleteHumanIK;
+
+showWindow;
+}
+
+/*
 global proc asTwistFlipUI (string $uiName)
 {
 if (`asHotKeyCheck "asTwistFlipUI \"\""`) return;
@@ -4146,18 +4407,6 @@ rowLayout -en 0 -nc 4 asTwistFlipCacheRowLayout;
 	separator -w 10 -st none;
 	button -w 80 -l "Delete" -c ("asTwistFlipSet \""+$uiName+"\" cacheDelete");
 showWindow;
-
-//detect current option, and set OptionMenu accordingly
-//removed since this can now be launched from shelf, and we do not choose $nameSpace until we execute
-/*
-string $twistConstraints[]=`ls -type parentConstraint ($nameSpace+"TwistBalancer*")`;
-if (size($twistConstraints))
-	if (`getAttr ($twistConstraints[0]+".interpType")`!=1)
-		{
-		optionMenu -e -v "360" asTwistFlipOptionMenu;
-		rowLayout -e -en 1 asTwistFlipCacheRowLayout;
-		}
-*/
 }
 
 global proc asTwistFlipSet (string $uiName, string $action)
@@ -4191,6 +4440,7 @@ if ($nameSpace=="")
 else
 	print ("// Ok TwistFlip ( for nameSpace:\""+$nameSpace+"\" ) has been \""+$action+"\".\n");
 }
+*/
 
 global proc asAnimBake (string $uiName)
 {
@@ -4217,6 +4467,7 @@ columnLayout;
 	//	menuItem -l "AnimationControls to BakeSkeleton";
 	//	menuItem -l "MotionCapture to FKControls";
 		menuItem -l "ExtraControls to Controls";
+		menuItem -l "Controls to ExtraControls";
 		menuItem -l "QuickIK to FKControls";
 		for ($i=0;$i<size($FkIks);$i++)
 			menuItem -l ("FK to IK : "+$FkIks[$i]);
@@ -4258,6 +4509,8 @@ if (!size($controlSets))
 //	asAnimBakeSkeleton $uiName;
 if ($bake=="ExtraControls to Controls")
 	asAnimBakeExtra $uiName;
+if ($bake=="Controls to ExtraControls")
+	asAnimBakeToExtra $uiName;
 if ($bake=="QuickIK to FKControls")
 	asAnimBakeQuickIK $uiName;
 if (`gmatch $bake "FK to IK : *"`)
@@ -4272,11 +4525,49 @@ if (`gmatch $bake "IK to FK : *"`)
 	}
 }
 
+global proc asAnimBakeToExtra (string $uiName)
+{
+float $defaultValue;
+string $nameSpace,$nonExtra;
+string $tempString[],$controls[],$controlSets[];
+string $trs[]={"t","r","s"};
+string $xyz[]={"x","y","z"};
+
+$nameSpace=`asNameSpaceFromUIName $uiName`;
+$controlSets=`asNameControlSetsFromUiName $uiName`;
+if (!size($controlSets))
+	error "No controlSets detected. select a controller";
+
+select $controlSets;
+evalEcho "delete -staticChannels -unitlessAnimationCurves false -hierarchy none -controlPoints 0 -shape 1";
+select -cl;
+
+$controls=`sets -q $controlSets`;
+for ($i=0;$i<size($controls);$i++)
+	if (`gmatch $controls[$i] ($nameSpace+"*Extra*")`)
+		for ($y=0;$y<size($trs)-1;$y++)
+			{
+			$defaultValue=0;
+			if ($trs[$y]=="s") $defaultValue=1;
+			for ($z=0;$z<size($xyz);$z++)
+				{
+				$nonExtra=`substitute "Extra" $controls[$i] ""`;
+				$tempString=`listConnections -s 1 -d 0 -p 1 -c 1 ($nonExtra+"."+$trs[$y]+$xyz[$z])`;
+				if ($tempString[0]=="")
+					continue;
+				connectAttr $tempString[1] ($controls[$i]+"."+$trs[$y]+$xyz[$z]);
+				disconnectAttr $tempString[1] $tempString[0];
+				setAttr ($nonExtra+"."+$trs[$y]+$xyz[$z]) $defaultValue;
+				}
+			}
+print "// Animations Moved from Controllers to ExtraControllers.\n";
+}
+
 global proc asAnimBakeExtra (string $uiName)
 {
 float $curTime=`currentTime -q`;
 string $nameSpace;
-string $tempString[],$tempString2[],$tempString3[],$controls[],$extraControls[],$bakeControls[],$animCurves[];
+string $tempString[],$tempString2[],$tempString3[],$controls[],$extraControls[],$bakeControls[],$animCurves[],$controlSets[];
 
 $nameSpace=`asNameSpaceFromUIName $uiName`;
 $controlSets=`asNameControlSetsFromUiName $uiName`;
@@ -4348,7 +4639,9 @@ if (!size($controlSets))
 $controls=`sets -q $controlSets`;
 for ($i=0;$i<size($controls);$i++)
 	{
-	$tempString=`listConnections -type constraint $controls[$i]`;
+	$tempString=`listConnections -s 1 -d 0 -type constraint $controls[$i]`;
+	if (!size($tempString))
+		$tempString=`listConnections -s 1 -d 0 -type pairBlend $controls[$i]`;
 	if (size($tempString))
 		$bakeControls[size($bakeControls)]=$controls[$i];
 	}
@@ -4695,6 +4988,12 @@ global proc asConnectARKit (string $uiName)
 asEnsureAsGetScriptLocation;//needs asDsSdk
 int $createCtrlMode,$connectToCtrlMode,$snapChat;
 int $autoKeyState=`autoKeyframe -q -state`;
+int $audio2FaceViaConnectARKitUI=`objExists Audio2FaceViaConnectARKitUI`;
+if ($audio2FaceViaConnectARKitUI)
+	delete Audio2FaceViaConnectARKitUI;
+int $mouthCloseIncMouthOpen;
+if (`checkBox -q -ex asAudio2FaceMouthCloseIncMouthOpenCheckBox`)
+	$mouthCloseIncMouthOpen=`checkBox -q -v asAudio2FaceMouthCloseIncMouthOpenCheckBox`;
 float $v=1;
 float $posA[],$posB[];
 string $ctrl="ctrlARKit_M";
@@ -4726,7 +5025,10 @@ if ($createCtrlMode)
 	}
 else
 	{
-	$bs=`optionMenu -q -v asConnectARKitBSOptionMenu`;
+	if ($audio2FaceViaConnectARKitUI)
+		$bs=`optionMenu -q -v asAudio2FaceBSOptionMenu`;
+	else
+		$bs=`optionMenu -q -v asConnectARKitBSOptionMenu`;
 	if (!$connectToCtrlMode)
 		if (`attributeExists RigType ($nameSpace+"FaceFitSkeleton")`)
 			if (`getAttr ($nameSpace+"FaceFitSkeleton.RigType")`==1)
@@ -4798,12 +5100,19 @@ for ($i=0;$i<size($arShapes);$i++)
 		continue;
 		}
 
-	setAttr ($bs+"."+$attr) 0;
+//	setAttr ($bs+"."+$attr) 0;//removed since audio2face via ACE bs attrs are locked via connection
 
 	if ($connectToCtrlMode)
 		{
 		catch (`setDrivenKeyframe -itt "linear" -ott "linear" -v 0 -dv 0  -cd ($bs+"."+$attr) ($nameSpace+$ctrl+"."+$name)`);
 		catch (`setDrivenKeyframe -itt "linear" -ott "linear" -v 10 -dv 1 -cd ($bs+"."+$attr) ($nameSpace+$ctrl+"."+$name)`);
+
+		if ($arShapes[$i]=="mouthClose" && $mouthCloseIncMouthOpen)
+			{
+			catch (`setDrivenKeyframe -itt "linear" -ott "linear" -v 0 -dv 0  -cd ($bs+"."+$attr) ($nameSpace+$ctrl+".jawOpen")`);
+			catch (`setDrivenKeyframe -itt "linear" -ott "linear" -v 10 -dv 1 -cd ($bs+"."+$attr) ($nameSpace+$ctrl+".jawOpen")`);
+			}
+
 		continue;
 		}
 
@@ -4818,7 +5127,8 @@ for ($i=0;$i<size($arShapes);$i++)
 		if ($arShapes[$i]=="eyeLookOut"+$leftRight) asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlEye"+$side+".tx") $v (-1*$b);
 		if ($arShapes[$i]=="eyeLookUp"+$leftRight) asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlEye"+$side+".ty") $v 1;
 		if ($arShapes[$i]=="eyeSquint"+$leftRight) asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlEye"+$side+".squint") $v 10;
-		if ($arShapes[$i]=="eyeWide"+$leftRight) asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlEye"+$side+".blink") $v -2;
+//		if ($arShapes[$i]=="eyeWide"+$leftRight) asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlEye"+$side+".blink") $v -2;
+		if ($arShapes[$i]=="eyeWide"+$leftRight) asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlEye"+$side+".wide") $v 10;
 		if ($arShapes[$i]=="mouthDimple"+$leftRight) asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlMouthCorner"+$side+".tx") $v 0.3;
 		if ($arShapes[$i]=="browOuterUp"+$leftRight) asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlBrow"+$side+".outerUpDown") $v 7.5;
 		if ($arShapes[$i]=="noseSneer"+$leftRight) asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlNose"+$side+".ty") $v 0.5;
@@ -4884,14 +5194,14 @@ for ($i=0;$i<size($arShapes);$i++)
 		}
 
 	//Middle shapes
-	if (`attributeExists jawForward ctrlMouth_M`)//backwards compataqbility for rigs<v5.750
+	if (`attributeExists jawForward ($nameSpace+"ctrlMouth_M")`)//backwards compataqbility for rigs<v5.750
 		{
 		if ($arShapes[$i]=="jawForward") asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlMouth_M.jawForward") $v 5;
 		if ($arShapes[$i]=="jawRight") asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlMouth_M.jawSide") $v -5;
 		if ($arShapes[$i]=="jawLeft")  asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlMouth_M.jawSide") $v 5;
 		}
 	if ($arShapes[$i]=="jawOpen") asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlMouth_M.ty") $v -1;
-	if ($arShapes[$i]=="mouthClose")//mixed with the opposite amount of JawOpen gives stickylips 
+	if ($arShapes[$i]=="mouthClose")//mixed with the opposite amount of JawOpen gives stickylips
 		{
 		setAttr ($nameSpace+"ctrlMouth_M.ty") 0;
 		$posA=`xform -q -ws -t ($nameSpace+"lowerLip_M")`;
@@ -4903,6 +5213,8 @@ for ($i=0;$i<size($arShapes);$i++)
 		setAttr ($nameSpace+"lowerLip_M.t") -type float3 0 0 0;
 		asDsSdk ($bs+"."+$attr) ($nameSpace+"SDKlowerLip_M.ty") $v ($posA[1]/2.0);
 		asDsSdk ($bs+"."+$attr) ($nameSpace+"SDKupperLip_M.ty") $v ($posA[1]/-2.0);
+		if ($mouthCloseIncMouthOpen)//option to conpensate for audio2face bug
+			asDsSdk ($bs+"."+$attr) ($nameSpace+"ctrlMouth_M.ty") $v -1;
 		}
 	if ($arShapes[$i]=="mouthPucker")
 		{
@@ -4937,6 +5249,14 @@ for ($i=0;$i<size($arShapes);$i++)
 		asDsSdk ($bs+"."+$attr) ($nameSpace+"SDKTongue0_M.rz") $v 15;
 		}
 	}
+/*
+if ($audio2FaceViaConnectARKitUI)
+	{
+	setAttr ($nameSpace+"Lip_R.followJawFollow_R") 2.5;
+	setAttr ($nameSpace+"Lip_L.followJawFollow_L") 2.5;
+	setAttr ($nameSpace+"lowerLip_M.followJawFollow_M") 5;
+	}
+*/
 if ($autoKeyState) autoKeyframe -state 1;
 dgdirty -a;
 if (`objExists ARKitQuickConnecting`) delete ARKitQuickConnecting;
@@ -4980,6 +5300,31 @@ select $controls;
 evalEcho "delete -staticChannels -unitlessAnimationCurves false -hierarchy none -controlPoints 0 -shape 1";
 select -cl;
 print ("// ARKit bake complete.\n");
+}
+
+global proc asConnectAudio2Face (string $uiName)
+{
+createNode -n Audio2FaceViaConnectARKitUI transform;
+asConnectARKit $uiName;
+}
+
+global proc asDisconnectAudio2Face (string $uiName)
+{
+string $nameSpace=`asNameSpaceFromUIName $uiName`;
+string $bs=`optionMenu -q -v asAudio2FaceBSOptionMenu`;
+string $tempString[],$controls[];
+
+if (!`objExists ($nameSpace+"FaceControlSet")`)
+	error "No controlSets detected. select a controller";
+
+if (!`objExists $bs`)
+	error ("BlendShape Node:\""+$bs+"\" Not found");
+$tempString=`listConnections -s 0 -d 1 -type animCurve $bs`;
+for ($i=0;$i<size($tempString);$i++)
+	delete $tempString[$i];
+
+asGoToBuildPoseOptions $nameSpace "FaceControlSet";
+print ("// Audio2Face disconnected.\n");
 }
 
 global proc asConnectMocapX (string $uiName)
@@ -5343,7 +5688,8 @@ for ($x=1;$x>-2;$x=$x-2)
 		if (size($tempString)<2)
 			$nonNsName=$tempString[0];
 		else
-			$nonNsName=$tempString[1];
+//			$nonNsName=$tempString[1];
+			$nonNsName=$tempString[size($tempString)-1];//could be nested nameSpaces
 		$animCurve=`substitute "[.]" $nonNsName "_"`;
 		if (`objExists $animCurve`)
 			delete $animCurve;
@@ -5364,8 +5710,10 @@ for ($x=1;$x>-2;$x=$x-2)
 			{
 			$keyXValues=`keyframe -q -tc $animCurve`;
 			$keyYValues=`keyframe -q -vc $animCurve`;
+
 			for ($z=1;$z<size($keyXValues);$z++)
-				if ($keyYValues[$z]<=0 && $keyYValues[($z+1)]<=0 && $keyYValues[($z-1)]<=0)//and next/prev key is zero
+//				if ($keyYValues[$z]<=0 && $keyYValues[($z+1)]<=0 && $keyYValues[($z-1)]<=0)//and next/prev key is zero
+				if ($keyYValues[$z]<0.001 && $keyYValues[$z]>-0.001)
 					cutKey -t $keyXValues[$z] $animCurve;
 			if (!`objExists $animCurve`)
 				continue;//all keys were at zero
@@ -5737,6 +6085,73 @@ rowLayout -nc 2;
 showWindow;
 }
 
+global proc asTimeEchoUI (string $uiName)
+{
+string $nameSpace=`asNameSpaceFromUIName $uiName`;
+
+if (`window -q -ex asTimeEchoUI`)
+	deleteUI asTimeEchoUI;
+window -t "TimeEcho Controllers" asTimeEchoUI;
+columnLayout;
+text -m 0 -l $nameSpace asDeformableNameSpaceText;
+separator -h 5 -w 300 -st none;
+text -l "Make controller Echo another controller";
+separator -h 15 -st none;
+text -l "First select \"Source\" controller, then select \"Echo\" controller";
+separator -h 30 -st none;
+rowLayout -nc 2;
+	separator -w 20 -st none;
+	columnLayout;
+		intFieldGrp -l "Time Delay  frames" -v1   5 -cw2 110 60 asTimeEchoTDIntFieldGrp;
+		intFieldGrp -l "Time Decay\t\t\t\t\t\t\t\t% " -v1 100 -cw2 110 60 asTimeEchoVIntFieldGrp;
+		separator -h 10 -st none;
+		button -l "Apply TimeEcho to selected controllers" -c asTimeEcho;
+		setParent..;
+	setParent..;
+separator -h 30 -st none;
+rowLayout -nc 2;
+	separator -w 20 -st none;
+	button -l "Remove TimeEcho from selected controllers" -c "delete `listConnections -s 1 -d 0 -scn 1 -type expression`";
+showWindow;
+}
+
+global proc asTimeEcho ()
+{
+int $td=`intFieldGrp -q -v1 asTimeEchoTDIntFieldGrp`;
+int $tc=`intFieldGrp -q -v1 asTimeEchoVIntFieldGrp`;
+string $sel[]=`ls -sl -type transform`;
+string $trs[]={"t","r","s"};
+string $xyz[]={"x","y","z"};
+string $source,$exp,$expName;
+string $nameSpace=`text -q -l asDeformableNameSpaceText`;
+
+if (size($sel)<2)
+	error "Minimum two controllers must be selected (Source + Destination)";
+$source=$sel[0];
+
+for ($i=1;$i<size($sel);$i++)
+	{
+	if (!`attributeExists timeDelay $sel[$i]`) addAttr -k 1 -ln timeDelay -at double $sel[$i];
+	if (!`attributeExists timeDecay $sel[$i]`) addAttr -k 1 -ln timeDecay -at double $sel[$i];
+	setAttr ($sel[$i]+".timeDelay") $td; 
+	setAttr ($sel[$i]+".timeDecay") $tc; 
+
+	for ($y=0;$y<size($trs)-1;$y++)
+		for ($z=0;$z<size($xyz);$z++)
+			{
+			$exp="$t=`currentTime -q`;\n";
+			$exp+="$td="+$sel[$i]+".timeDelay;\n";
+			$exp+="$tc="+$sel[$i]+".timeDecay;\n";
+			$exp+=$sel[$i]+"."+$trs[$y]+$xyz[$z]+"=`getAttr -t ($t-$td) "+$sel[0]+"."+$trs[$y]+$xyz[$z]+"`*($tc/100.0);\n";
+			$expName=$sel[$i]+"_"+$trs[$y]+$xyz[$z]+"Expression";
+			if (`objExists $expName`)
+				delete $expName;
+			expression -n $expName -s $exp -o $sel[$i] -ae 1 -uc all ;
+			}
+	}
+
+}
+
 global proc asDeformable ()
 {
 int $hasSettable,$checkingHierarcyByJoints;
@@ -5932,6 +6347,18 @@ select $deformableControlsObject;
 print ("// Deformable Controller Object created, you can now apply Deformers to this object.\n");
 }
 
+global proc asBrowseToTextField (string $textField)
+{
+int $fileMode=1;
+if ($textField=="asAudio2FaceFolderTextField")
+	$fileMode=3;
+string $result[]=`fileDialog2 -fm $fileMode -cap folder -okc Choose`;
+if (!`file -q -ex $result[0]` || $result[0]=="")
+	return;
+textField -e -tx $result[0] -bgc 0 0 0 $textField;
+optionVar -sv $textField $result[0];
+}
+
 global proc asVideoMoCapUI (string $uiName)
 {
 int $haveVideoMoCap;
@@ -6011,7 +6438,7 @@ columnLayout;
 	rowLayout -nc 3;
 		text -w 100 -l "Video file:";
 		textField -w 300 -tx $file asVideoMoCapTextField;
-		iconTextButton -i "menuIconFile.png" -c "asAudio2FaceBrowse asVideoMoCapTextField";
+		iconTextButton -i "menuIconFile.png" -c "asBrowseToTextField asVideoMoCapTextField";
 		setParent..;
 	rowLayout -nc 2;
 		separator -w 10 -st none;
@@ -6960,436 +7387,58 @@ print "// VideoMoCap Baked.\n";
 
 global proc asAudio2FaceUI (string $uiName)
 {
-string $folder="C:/Users/"+`getenv "USER"`+"/Documents/Kit/shared/capture";
-//string $asset="C:/Users/"+`getenv "USER"`+"/AppData/Local/ov/pkg/audio2face-2021.3.3/exts/omni.audio2face.wizard/assets/demo.usda";
-string $pkgFolder="C:/Users/"+`getenv "USER"`+"/AppData/Local/ov/pkg";
-string $asset,$latestPkg;
-string $tempString[];
-
-//could be custom installation path used for audio2face
-if (`optionVar -ex asAudio2FacePkgFolder`)
-	$pkgFolder=`optionVar -q asAudio2FacePkgFolder`;
-if (!`file -q -ex $pkgFolder`)
-	{
-	$tempString=`fileDialog2 -fm 3 -cap "Choose the Omniverse \"pkg\" folder" -okc Choose`;
-	if (!`file -q -ex $tempString[0]` || $tempString[0]=="")
-		return;
-	$pkgFolder=$tempString[0];
-	optionVar -sv asAudio2FacePkgFolder $pkgFolder;
-	}
-
-//assume asset from latest found version of Audio2Face
-$tempString=`getFileList -fld $pkgFolder -fs "audio2face-*"`;
-if (!size($tempString))
-	error ("Unable to determine which version of Audio2Face to use, as no folders found matching the name \"audio2face-\" in the \""+$pkgFolder+"\" folder");
-$tempString=`sort $tempString`;
-$latestPkg=$tempString[size($tempString)-1];
-//$asset="C:/Users/"+`getenv "USER"`+"/AppData/Local/ov/pkg/"+$latestPkg+"/exts/omni.audio2face.wizard/assets/demo_regular.usda";
-$asset="C:/Users/"+`getenv "USER"`+"/AppData/Local/ov/pkg/"+$latestPkg+"/assets/male/mesh/male_fullface_model.usd";
-if (!`file -q -ex $asset`)
-	{
-	$tempString[0]="C:/Users/"+`getenv "USER"`+"/AppData/Local/ov/pkg/"+$latestPkg+"/exts/omni.audio2face.tool/deps/audio2face-assets/mark/mesh/mark_fullface_model.usd";
-	if (`file -q -ex $tempString[0]`)
-	$asset=$tempString[0];
-	}
-
 string $nameSpace=`asNameSpaceFromUIName $uiName`;
-if (`optionVar -ex asAudio2FaceFolderTextField`)
-	$folder=`optionVar -q asAudio2FaceFolderTextField`;
-if (`optionVar -ex asAudio2FaceAssetTextField`)
-	$asset=`optionVar -q asAudio2FaceAssetTextField`;
+string $blendShapes[]=`ls -type blendShape`;
 
 if (`window -q -ex asAudio2FaceUI`)
 	deleteUI asAudio2FaceUI;
 window -t Audio2Face asAudio2FaceUI;
-columnLayout;
+columnLayout -adj 1;
 	text -m 0 -l $nameSpace asAudio2FaceNameSpaceText;
 	rowLayout -nc 2;
 		separator -w 100 -st none;
-		button -l "visit nvidia.com/audio2face" -c "showHelp -a \"https://www.nvidia.com/en-us/omniverse/apps/audio2face/\"";
+		button -l "visit nvidia.com/audio2face" -c "showHelp -a \"https://docs.nvidia.com/ace/maya-ace/latest/index.html\"";
 		setParent..;
 	separator -h 5 -st none;
-	rowLayout -nc 3;
-		text -w 40 -l "Folder:";
-		textField -w 300 -tx $folder asAudio2FaceFolderTextField;
-		iconTextButton -i "menuIconFile.png" -c "asAudio2FaceBrowse asAudio2FaceFolderTextField";
-		setParent..;
-	rowLayout -nc 3;
-		text -w 40 -l "Asset:";
-		textField -w 300 -tx $asset asAudio2FaceAssetTextField;
-		iconTextButton -i "menuIconFile.png" -c "asAudio2FaceBrowse asAudio2FaceAssetTextField";
-		setParent..;
-	separator -h 10 -st none;
-	checkBox -v 1 -l "include eyeBrow animation" asAudio2FaceIncEyeBrowCheckBox;
-	checkBox -v 1 -l "include eyeLid animation" asAudio2FaceIncEyeLidCheckBox;
-	separator -h 10 -st none;
-	rowLayout -nc 6;
-		separator -w 10 -st none;
-		button -l "Apply" -c asAudio2FaceApply;
-		separator -w 10 -st none;
-		button -l "Bake" -c asAudio2FaceBake;
-		separator -w 10 -st none;
-		button -l "Remove" -c asAudio2FaceRemove;
-showWindow;
 
-if (!`file -q -ex $asset`)
-	textField -e -bgc 1 0 0 asAudio2FaceAssetTextField;
-}
-
-global proc asAudio2FaceBrowse (string $textField)
-{
-int $fileMode=1;
-if ($textField=="asAudio2FaceFolderTextField")
-	$fileMode=3;
-string $result[]=`fileDialog2 -fm $fileMode -cap folder -okc Choose`;
-if (!`file -q -ex $result[0]` || $result[0]=="")
-	return;
-textField -e -tx $result[0] -bgc 0 0 0 $textField;
-optionVar -sv $textField $result[0];
-}
-
-global proc asAudio2FaceApply ()
-{
-int $incEyeBrow=`checkBox -q -v asAudio2FaceIncEyeBrowCheckBox`;
-int $incEyeLid=`checkBox -q -v asAudio2FaceIncEyeLidCheckBox`;
-float $s,$scale,$onFaceCtrlScale,$eyeLidMultiplierDefaultValue;
-float $posA[],$posB[],$posC[],$posD[];
-string $xmlFile,$assetHead,$side,$cache;
-string $nameSpace=`text -q -l asAudio2FaceNameSpaceText`;
-string $folder=`textField -q -tx asAudio2FaceFolderTextField`;
-string $asset=`textField -q -tx asAudio2FaceAssetTextField`;
-string $tempString[],$tempString2[],$allAsAfter[],$allAsBefore[];
-
-$scale=`getAttr ($nameSpace+"FaceFitSkeleton.faceScale")`;
-$onFaceCtrlScale=`getAttr ($nameSpace+"OnFacecontrols.sx")`;
-
-if (!`file -q -ex $folder`)
-	error ("Folder: \""+$folder+"\" not found");
-if (!`file -q -ex $asset`)
-	error ("Asset: \""+$asset+"\" not found");
-
-$tempString2=`getFileList -fld $folder`;
-for ($i=0;$i<size($tempString2);$i++)
-	{
-//	if (`gmatch $tempString2[$i] "*head*[.]xml"`)
-	if (`gmatch $tempString2[$i] "*[.]xml"`)
-		$xmlFile=$folder+"/"+$tempString2[$i];
-	}
-if ($xmlFile=="" || !`file -q -ex $xmlFile`)
-	error ("XML file not found in the folder");
-
-if (`objExists a2fXfer`)
-	asAudio2FaceRemove;
-
-if (`objExists ($nameSpace+"FaceControlSet")`)
-	asGoToBuildPoseOptions $nameSpace "FaceControlSet";
-
-createNode -n a2fXfer transform;
-if (`objExists a2fImported`)
-	delete a2fImported;
-createNode -n a2fImported transform;
-
-$allAsBefore=`ls -as`;
-evalEcho ("file -i -type \"USD Import\" \""+$asset+"\"");// -type "USD Import"
-select `ls -as`;
-select -d $allAsBefore;
-$allAsAfter=`ls -sl`;
-if (!size($allAsAfter))
-	error "Import failed";
-parent $allAsAfter a2fImported;
-
-$tempString=`listRelatives -ad -type mesh a2fImported`;
-for ($i=0;$i<size($tempString);$i++)
-	if (`gmatch $tempString[$i] "*head*"`)
+	optionMenu -l "BlendShape Node" asAudio2FaceBSOptionMenu;
+	for ($i=0;$i<size($blendShapes);$i++)
 		{
-		$tempString2=`listRelatives -p $tempString[$i]`;
-		$assetHead=$tempString2[0];
+		if (`gmatch $blendShapes[$i] ($nameSpace+"*asFace*")`
+		 || `gmatch $blendShapes[$i] ($nameSpace+"*Close*BS*")`
+		 || `gmatch $blendShapes[$i] ($nameSpace+"*SquintRightToLeft*")`)
+			continue;
+		if (`objExists ($nameSpace+"FaceAllSet")`)
+			if (`sets -im ($nameSpace+"FaceAllSet") $blendShapes[$i]`)
+				continue;
+		menuItem -l $blendShapes[$i];
 		}
 
-parent $assetHead a2fXfer;
-createNode -n a2fCurves -p a2fXfer transform;
-createNode -n a2fLocs -p a2fXfer transform;
-createNode -n a2fXforms -p a2fXfer transform;
-setAttr a2fXforms.s -type float3 $onFaceCtrlScale $onFaceCtrlScale $onFaceCtrlScale;
-circle -n a2fCtrl -c 0 0 0 -nr 0 0 1 -sw 360 -r ($scale/10.0) -d 3 -ut 0 -tol 0.01 -s 8 -ch 0;
-setAttr a2fCtrl.overrideEnabled 1;
-parent a2fCtrl a2fXfer;
-setAttr a2fCtrl.overrideColor 17;
-$posA=`xform -q -ws -t ($nameSpace+"ctrlBox")`;
-xform -ws -t ($posA[0]*1.5) $posA[1] $posA[2] a2fCtrl;
-asLockAttr a2fCtrl 1 1 1 1;
-addAttr -k 1 -ln LipMultiplier -at double -smn 0 -hsn 1 -smx 1 -hsx 1 -dv 1 a2fCtrl;
-addAttr -k 1 -ln JawMultiplier -at double -smn 0 -hsn 1 -smx 1 -hsx 1 -dv 1 a2fCtrl;
-if ($incEyeBrow)
-	addAttr -k 1 -ln EyeBrowMultiplier -at double -smn 0 -hsn 1 -smx 10 -hsx 1 -dv 1 a2fCtrl;
-if ($incEyeLid)
-	addAttr -k 1 -ln EyeLidMultiplier -at double -smn 0 -hsn 1 -smx 10 -hsx 1 -dv 1 a2fCtrl;
-addAttr -k 1 -ln TranslateZMultiplier -at double -smn 0 -hsn 1 -smx 1 -hsx 1 -dv 0.5 a2fCtrl;
+	separator -st none -h 20;
+	checkBox -v 1 -l "mouthClose includes mouthOpen" asAudio2FaceMouthCloseIncMouthOpenCheckBox;
+	separator -st none -h 20;
+	button -l "Connect" -c ("asConnectAudio2Face \""+$uiName+"\"");
+	button -l "Disconnect" -c ("asDisconnectAudio2Face \""+$uiName+"\"");
+	separator -st none -h 10;
+	button -l "bake" -c ("asBakeAudio2Face \""+$uiName+"\"");
 
-//Reduced LipMultiplier engages stickyLip
-/* removed in v 6.045 as this does not work as well for V6 FaceSetup
-for ($b=1;$b>-2;$b=$b-2)
-	{
-	if ($b==1)  $side="_R";
-	if ($b==-1) $side="_L";
-
-	if (`attributeExists zip ($nameSpace+"Lip"+$side)`)
-		$stickyAttrName="zip";//v5
-	else
-		$stickyAttrName="sticky";//v6
-	setDrivenKeyframe -itt "linear" -ott "linear" -v 0 -dv 1 -cd a2fCtrl.LipMultiplier ($nameSpace+"Lip"+$side+"."+$stickyAttrName);
-	setDrivenKeyframe -itt "linear" -ott "linear" -v 10 -dv 0 -cd a2fCtrl.LipMultiplier ($nameSpace+"Lip"+$side+"."+$stickyAttrName);
-	}
-*/
-//Off Follow, as it interfers with multipliers
-/*
-setAttr ($nameSpace+"lowerLip_M.followJawFollow_M") 0;
-setAttr ($nameSpace+"upperLip_M.followJawFollow_M") 0;
-for ($b=1;$b>-2;$b=$b-2)
-	{
-	if ($b==1)  $side="_R";
-	if ($b==-1) $side="_L";
-
-	setAttr ($nameSpace+"Cheek"+$side+".followJawFollow"+$side) 0;
-	setAttr ($nameSpace+"lowerLipA"+$side+".followlowerLip_M") 0;
-	setAttr ($nameSpace+"lowerLipB"+$side+".followlowerLip_M") 0;
-	setAttr ($nameSpace+"Lip"+$side+".followJawFollow"+$side) 0;
-	setAttr ($nameSpace+"upperLipB"+$side+".followupperLip_M") 0;
-	setAttr ($nameSpace+"upperLipA"+$side+".followupperLip_M") 0;
-	}
-*/
-$posA=`xform -q -ws -t c_headWatertight_hi.vtx[37489]`;
-$posB=`xform -q -ws -t c_headWatertight_hi.vtx[48699]`;
-$posC=`xform -q -ws -t ($nameSpace+"Jaw")`;
-$posD=`xform -q -ws -t ($nameSpace+"innerLid_R")`;
-setAttr c_headWatertight_hi.ty (($posA[1]*-1)+$posC[1]);
-setAttr c_headWatertight_hi.tz ($posC[2]-$posA[2]);
-$s=($posD[1]-$posC[1])/($posB[1]-$posA[1]);
-scale -r -p 0 $posC[1] $posD[2] $s $s $s c_headWatertight_hi;
-$posA=`xform -q -ws -t ($nameSpace+"JawPivot")`;
-move -r -os -wd ($posA[0]*2.5) 0 0 c_headWatertight_hi;
-
-if (!`exists importCacheFile`)
-	evalEcho ("source doImportCacheArgList");
-select c_headWatertight_hi;
-importCacheFile $xmlFile "xml";
-select -cl;
-
-playbackOptions -min 0;
-currentTime 0;
-$tempString=`listHistory -interestLevel 1 c_headWatertight_hi`;
-for ($i=0;$i<size($tempString);$i++)
-	if (`objectType $tempString[$i]`=="cacheFile")
-		$cache=$tempString[$i];
-playbackOptions -max `getAttr ($cache+".sourceEnd")`;
-
-setAttr ($nameSpace+"Lip_R.followJawFollow_R") 2.5;
-setAttr ($nameSpace+"Lip_L.followJawFollow_L") 2.5;
-setAttr ($nameSpace+"lowerLip_M.followJawFollow_M") 5;
-
-asAudio2FaceEdge2Curve 8512 Jaw_M;
-//asAudio2FaceEdge2Curve 54824 lowerLip_M;
-//asAudio2FaceEdge2Curve 55242 upperLip_M;
-
-asAudio2FaceEdge2Curve 72676 Lip_R;
-asAudio2FaceEdge2Curve 54826 upperLipA_R;
-asAudio2FaceEdge2Curve 54042 upperLipB_R;
-//asAudio2FaceEdge2Curve 53761 upperLipC_R;
-asAudio2FaceEdge2Curve 54776 lowerLipA_R;
-asAudio2FaceEdge2Curve 54178 lowerLipB_R;
-//asAudio2FaceEdge2Curve 54434 lowerLipC_R;
-asAudio2FaceEdge2Curve 21212 Lip_L;
-asAudio2FaceEdge2Curve 2453 upperLipA_L;
-asAudio2FaceEdge2Curve 1859 upperLipB_L;
-//asAudio2FaceEdge2Curve 1367 upperLipC_L;
-asAudio2FaceEdge2Curve 2399 lowerLipA_L;
-asAudio2FaceEdge2Curve 1960 lowerLipB_L;
-//asAudio2FaceEdge2Curve 2051 lowerLipC_L;
-
-asAudio2FaceEdge2Curve 59041 Cheek_R;
-asAudio2FaceEdge2Curve 76762 NoseCorner_R;
-asAudio2FaceEdge2Curve 9731 Cheek_L;
-asAudio2FaceEdge2Curve 23642 NoseCorner_L;
-
-if ($incEyeLid)
-	{
-	asAudio2FaceEdge2Curve 91623 upperLid_R;
-	asAudio2FaceEdge2Curve 91857 lowerLid_R;
-//	asAudio2FaceEdge2Curve 93186 innerLid_R;
-//	asAudio2FaceEdge2Curve 90572 outerLid_R;
-
-	asAudio2FaceEdge2Curve 40425 upperLid_L;
-	asAudio2FaceEdge2Curve 39777 lowerLid_L;
-//	asAudio2FaceEdge2Curve 41101 innerLid_L;
-//	asAudio2FaceEdge2Curve 38483 outerLid_L;
-	}
-
-if ($incEyeBrow)
-	{
-	asAudio2FaceEdge2Curve 87840 EyeBrowInner_R;
-	asAudio2FaceEdge2Curve 82598 EyeBrowOuter_R;
-	asAudio2FaceEdge2Curve 35788 EyeBrowInner_L;
-	asAudio2FaceEdge2Curve 30426 EyeBrowOuter_L;
-	}
-
-if ($incEyeLid)
-	{
-	//EyeLid multiplyer to default to relative size-difference of eye-lid-opening
-	$posA=`xform -q -ws -t A2F_upperLid_R_Loc`;
-	$posB=`xform -q -ws -t A2F_lowerLid_R_Loc`;
-	$posC=`xform -q -ws -t ($nameSpace+"upperLid_R")`;
-	$posD=`xform -q -ws -t ($nameSpace+"lowerLid_R")`;
-	$eyeLidMultiplierDefaultValue=($posC[1]-$posD[1]) / ($posA[1]-$posB[1]);
-	setAttr a2fCtrl.EyeLidMultiplier `asRoundOff $eyeLidMultiplierDefaultValue 2`;
-	}
-
-select a2fCtrl;
-print "// Audio2Face Applied, You can now adjust the Multipliers.\n";
+showWindow;
 }
 
-global proc asAudio2FaceEdge2Curve (int $edgeNr, string $name)
-{
-float $scale;
-string $side;
-string $region="Lip";
-string $nameSpace=`text -q -l asAudio2FaceNameSpaceText`;
-string $tempString[];
-string $xyz[]={"x","y","z"};
-string $XYZ[]={"X","Y","Z"};
-tokenize $name "_" $tempString;
-$side="_"+$tempString[1];
-
-if ($name=="Jaw_M") $region="Jaw";
-if (`gmatch $name "EyeBrow*"`) $region="EyeBrow";
-if (`gmatch $name "*Lid*"`) $region="EyeLid";
-
-$scale=`getAttr ($nameSpace+"FaceFitSkeleton.faceScale")`;
-select -r ("c_headWatertight_hi.e["+$edgeNr+"]");
-duplicateCurve -n ("A2F_"+$name+"Curve") -ch 1 -rn 0 -local 0;
-parent ("A2F_"+$name+"Curve") a2fCurves;
-spaceLocator -n ("A2F_"+$name+"_Loc");
-setAttr ("A2F_"+$name+"_Loc.localScale") -type float3 ($scale/50.0) ($scale/50.0) ($scale/50.0);
-setAttr ("A2F_"+$name+"_Loc.overrideEnabled") 1;
-setAttr ("A2F_"+$name+"_Loc.overrideColor") 13;
-//setAttr ("A2F_"+$name+"_Loc.displayLocalAxis") 1;
-parent ("A2F_"+$name+"_Loc") a2fLocs;
-createNode -n ("A2F_"+$name+"MotionPath") motionPath;
-connectAttr ("A2F_"+$name+"Curve.worldSpace") ("A2F_"+$name+"MotionPath.geometryPath");
-setAttr ("A2F_"+$name+"MotionPath.fractionMode") 1;
-setAttr ("A2F_"+$name+"MotionPath.worldUpType") 0;
-setAttr ("A2F_"+$name+"MotionPath.frontAxis") 2;
-setAttr ("A2F_"+$name+"MotionPath.upAxis") 1;
-if ($name=="upperLip_M")
-	setAttr ("A2F_"+$name+"MotionPath.inverseFront") 1;
-connectAttr ("A2F_"+$name+"MotionPath.allCoordinates") ("A2F_"+$name+"_Loc.t");
-connectAttr ("A2F_"+$name+"MotionPath.rotate") ("A2F_"+$name+"_Loc.r");
-
-createNode -n ("A2F_"+$name+"_XformA") -p a2fXforms transform;
-asAlign ("A2F_"+$name+"_XformA") ("A2F_"+$name+"_Loc") 1 0 0 0;
-asAlign ("A2F_"+$name+"_XformA") ($nameSpace+$name) 0 1 0 0;
-createNode -n ("A2F_"+$name+"_XformB") -p ("A2F_"+$name+"_XformA") transform;
-pointConstraint ("A2F_"+$name+"_Loc") ("A2F_"+$name+"_XformB");
-
-createNode -n ("A2F_"+$name+"MPD") multiplyDivide;
-for ($z=0;$z<size($XYZ);$z++)
-	connectAttr ("a2fCtrl."+$region+"Multiplier") ("A2F_"+$name+"MPD.input1"+$XYZ[$z]);
-//override, Tz of Lip as it will easily crash back into teeth
-connectAttr -f ("a2fCtrl.TranslateZMultiplier") ("A2F_"+$name+"MPD.input1Z");
-connectAttr ("A2F_"+$name+"_XformB.t") ("A2F_"+$name+"MPD.input2");
-
-if (`gmatch $name "EyeBrowOuter_*"`)
-	{
-	createNode -n ("A2F_EyeBrowBrowMixer"+$side+"MPD") multiplyDivide;
-	createNode -n ("A2F_EyeBrowBrowMixer"+$side+"PMA") plusMinusAverage;
-	connectAttr ("A2F_EyeBrowOuter"+$side+"MPD.outputY") ("A2F_EyeBrowBrowMixer"+$side+"MPD.input1X");
-	setAttr ("A2F_EyeBrowBrowMixer"+$side+"MPD.input2X") -1;
-	connectAttr ("A2F_EyeBrowInner"+$side+"MPD.outputY") ("A2F_EyeBrowBrowMixer"+$side+"PMA.input1D[0]");
-	connectAttr ("A2F_EyeBrowBrowMixer"+$side+"MPD.outputX") ("A2F_EyeBrowBrowMixer"+$side+"PMA.input1D[1]");
-	connectAttr ("A2F_EyeBrowBrowMixer"+$side+"PMA.output1D") ($nameSpace+"ctrlBrow"+$side+".tx");
-	connectAttr ("A2F_EyeBrowOuter"+$side+"MPD.outputY") ($nameSpace+"ctrlBrow"+$side+".ty");
-	}
-else if ($region=="Lip")
-	{
-	$tempString=`listRelatives -p ($nameSpace+$name)`;
-//	$tempString[0]=`substitute $side ($nameSpace+$name) ("Offset"+$side)`;
-	createNode -n ("A2F_"+$name+"_XformC") -p $tempString[0] transform;
-//	pointConstraint -mo ("A2F_"+$name+"_XformB") ("A2F_"+$name+"_XformC");
-	connectAttr ("A2F_"+$name+"_XformB.t") ("A2F_"+$name+"_XformC.t");
-	connectAttr -f ("A2F_"+$name+"_XformC.t") ("A2F_"+$name+"MPD.input2");
-	connectAttr ("A2F_"+$name+"MPD.outputX") ($nameSpace+$name+".tx");
-	connectAttr ("A2F_"+$name+"MPD.outputY") ($nameSpace+$name+".ty");
-	connectAttr ("A2F_"+$name+"MPD.outputZ") ($nameSpace+$name+".tz");
-	//override, Tz of Lip as it will easily crash back into teeth
-//	connectAttr -f ("a2fCtrl.JawMultiplier") ("A2F_"+$name+"MPD.input1Y");
-	}
-else
-	{
-	connectAttr ("A2F_"+$name+"MPD.output") ($nameSpace+$name+".t");
-	}
-
-if ($name=="lowerLip_M" || $name=="upperLip_M")
-	{
-	orientConstraint -mo ("A2F_"+$name+"_Loc") ("A2F_"+$name+"_XformB");
-	createNode -n ("A2F_"+$name+"RotateMPD") multiplyDivide;
-	for ($z=0;$z<size($XYZ);$z++)
-		connectAttr ("a2fCtrl."+$region+"Multiplier") ("A2F_"+$name+"RotateMPD.input1"+$XYZ[$z]);
-	connectAttr ("A2F_"+$name+"_XformB.r") ("A2F_"+$name+"RotateMPD.input2");
-	connectAttr ("A2F_"+$name+"RotateMPD.output") ($nameSpace+$name+".r");
-	}
-
-//pointConstraint -mo ("A2F_"+$name+"_XformB") ($nameSpace+$name);
-}
-
-global proc asAudio2FaceBake ()
+global proc asBakeAudio2Face (string $uiName)
 {
 float $curTime=`currentTime -q`;
 string $nameSpace=`text -q -l asAudio2FaceNameSpaceText`;
 string $side;
-string $ctrls[]={"Jaw_M","lowerLip_M","upperLip_M"};
+string $ctrls[]=`sets -q ($nameSpace+"FaceControlSet")`;
 
-for ($b=1;$b>-2;$b=$b-2)
-	{
-	if ($b==1)  $side="_R";
-	if ($b==-1) $side="_L";
-
-	$ctrls[size($ctrls)]="ctrlBrow"+$side;
-	$ctrls[size($ctrls)]="Lip"+$side;
-	$ctrls[size($ctrls)]="lowerLipA"+$side;
-	$ctrls[size($ctrls)]="upperLipA"+$side;
-	$ctrls[size($ctrls)]="Cheek"+$side;
-	$ctrls[size($ctrls)]="NoseCorner"+$side;
-	$ctrls[size($ctrls)]="upperLid"+$side;
-	$ctrls[size($ctrls)]="lowerLid"+$side;
-	}
-for ($i=0;$i<size($ctrls);$i++)
-	$ctrls[$i]=$nameSpace+$ctrls[$i];
 bakeResults -simulation true -t (`playbackOptions -q -min`+":"+`playbackOptions -q -max`) -sampleBy 1 -disableImplicitControl true -preserveOutsideKeys false -sparseAnimCurveBake false -removeBakedAttributeFromLayer false 
 	-bakeOnOverrideLayer false -controlPoints false -shape false $ctrls;
 currentTime $curTime;
 select $ctrls;
 evalEcho "delete -staticChannels -unitlessAnimationCurves false -hierarchy none -controlPoints 0 -shape 1";
-asAudio2FaceRemove;
+//asDisconnectAudio2Face $uiName;
 print "// Audio2Face Baked.\n";
-}
-
-global proc asAudio2FaceRemove ()
-{
-string $nameSpace=`text -q -l asAudio2FaceNameSpaceText`;
-string $tempString[];
-
-if (`objExists a2fXfer`)
-	delete a2fXfer;
-else
-	error "asAudio2Face node \"a2fXfer\" not found";
-if (`objExists a2fImported`)
-	delete a2fImported;
-$tempString=`ls "A2F_*MPD"`;
-if (size($tempString))
-	delete $tempString;
-if (`objExists ($nameSpace+"FaceControlSet")`)
-	asGoToBuildPoseOptions $nameSpace "FaceControlSet";
-
-print "// Audio2Face Removed.\n";
 }
 
 global proc asAutoLipSyncUI (string $uiName)
@@ -8699,8 +8748,10 @@ for ($a=0;$a<2;$a++)
 	if ($language=="mandarin")
 		$zipFileUrl="https://github.com/MontrealCorpusTools/mfa-models/raw/main/g2p/1.0/"+$language+"_pinyin_g2p.zip";//_pinyin variant
 
+//	if ($language=="korean")
+//		$zipFileUrl="https://github.com/MontrealCorpusTools/mfa-models/raw/main/g2p/1.0/"+$language+"_jamo_g2p.zip";//_jamo variant (not hangul)
 	if ($language=="korean")
-		$zipFileUrl="https://github.com/MontrealCorpusTools/mfa-models/raw/main/g2p/1.0/"+$language+"_jamo_g2p.zip";//_jamo variant (not hangul)
+		$zipFileUrl="https://github.com/MontrealCorpusTools/mfa-models/raw/main/g2p/1.0/"+$language+"_g2p.zip";//_jamo variant (not hangul)
 
 	if (`about -mac` || `about -linux`)
 		{
@@ -8899,8 +8950,10 @@ return $phonemes;
 
 global proc asDynBake (string $uiName)
 {
+int $opm;
 float $pos[],$rot[];
 string $lastToken;
+string $nameSpace=`asNameSpaceFromUIName $uiName`;
 string $tempString[],$tempString2[],$dynJoints[],$softDynCurves[],$fkCtrls[],$bakeXforms[];
 
 if (`asHotKeyCheck "asDynBake \"\""`) return;
@@ -8913,11 +8966,18 @@ if (`confirmDialog -title "Confirm" -message "Bake all dynamics ?"
 if (!`objExists Dynamics`)
 	error "Dynamics not found";
 
+if (`attributeExists useOffsetParentMatrix ($nameSpace+"FitSkeleton")`)
+	$opm=`getAttr ($nameSpace+"FitSkeleton.useOffsetParentMatrix")`;
+
 createNode -n BakeXforms transform;
 $dynJoints=`listRelatives -type joint -ad Dynamics`;
 for ($y=0;$y<size($dynJoints);$y++)
 	{
 	$tempString=`listConnections ($dynJoints[$y]+".r")`;
+	if (`objectType $tempString[0]`=="parentConstraint")//opm
+		$tempString=`listConnections ($tempString[0]+".constraintRotate")`;
+	if ($tempString[0]=="")
+		continue;
 	if (`objectType $tempString[0]`=="pairBlend")
 		$tempString=`listConnections ($tempString[0]+".outRotate.outRotateX")`;
 //	$fkCtrl="FK"+$tempString[0];
@@ -9423,6 +9483,214 @@ print "// Knee & Elbow joints have been moved, to make poleVector straight.\n";
 select $sel;
 }
 
+global proc asMLToolsUI ()
+{
+if (`window -q -ex asMLToolsUI`)
+    deleteUI asMLToolsUI;
+window -t "ML Tools" asMLToolsUI;
+columnLayout;
+	separator -h 25 -st none;
+	text -l "For use with Machine Learning Deformers";
+	separator -h 25 -st none;
+/*
+	text -l "New Base Model:";
+	text -l "Select objects to deform, then:";
+	rowLayout -nc 6;
+		button -w 140 -l "+ Select DeformJoints" -c asSelectDeformJoints;
+		separator -w 10 -st none;
+		button -l "deselect slider-joints" -c "select -d `ls -type joint \"*Slider*\" \"*Partial*\"`";
+		separator -w 10 -st none;
+		button -w 140 -l "Set Smooth Bind Options" -c asSetSmoothBindOptions;
+		setParent..;
+	separator -h 20 -st none;
+*/
+	text -l "Training Animation:";
+	button -w 140 -l "Set rig to all FK" -c ("asSetAllFK \"\"");
+//	intFieldGrp -l "Training Frames:" -v1 5000 -cw2 90 60 asMLToolsTFIntFieldGrp;
+	checkBox -v 1 -l "skip twist" asMLToolsSTcheckBox;
+	button -w 140 -l "Apply Training Animation" -c asMLToolsATA;
+	separator -h 20 -st none;
+	button -l "Remove Training Animation" -c "asMCLRemoveBody \"\"";
+showWindow;
+}
+
+global proc asMLToolsATA ()
+{
+int $t,$singleAxisNeg,$numChar;
+int $skipTwist=`checkBox -q -v asMLToolsSTcheckBox`;
+float $v;
+string $side,$singleAxis,$mainAxis,$rotateCtrl,$extraCtrl;
+string $sideCtrls[]={"FKKnee","FKElbow","FKHip","FKScapula","FKShoulder","FKWrist","FKAnkle"};
+string $middleCtrls[]={"FKRoot","FKSpine1","FKChest","FKNeck","FKHead"};
+string $ctrls[]=`stringArrayCatenate $sideCtrls $middleCtrls`;
+string $xyz[]={"x","y","z","yx","zx"};//
+	
+for ($i=0;$i<size($ctrls);$i++)
+	{
+	$rotateCtrl=$ctrls[$i];
+	$singleAxis="";
+	$singleAxisNeg=0;
+	if ($ctrls[$i]=="FKKnee") {$singleAxis="z";$singleAxisNeg=1;}
+	if ($ctrls[$i]=="FKElbow") $singleAxis="z";
+	$extraCtrl="FKExtra"+`substring $ctrls[$i] 3 99`;
+
+	for ($b=1;$b>-2;$b=$b-2)
+		{
+		if ($b==1) $side="_R";
+		else $side="_L";
+		if (`stringArrayCount $ctrls[$i] $middleCtrls`)
+			{
+			if ($b== 1) $side="_M";
+			if ($b==-1) continue;
+			}
+		if (!`objExists ($ctrls[$i]+$side)`)
+			{
+			print ("Controller not found:\""+$ctrls[$i]+$side+"\", skipping this\n");
+			continue;
+			}
+
+		for ($z=0;$z<size($xyz);$z++)
+			{
+			$mainAxis=$xyz[$z];
+			$mixAxis="";
+			$numChar=size($xyz[$z]);
+			if ($numChar==2)
+				{
+				$mainAxis=`substring $xyz[$z] 1 1`;
+				if ($singleAxis=="")
+					$mixAxis=`substring $xyz[$z] 2 2`;
+				}
+
+			if ($singleAxis!="" && $singleAxis!=$mainAxis)
+				continue;
+			if ($skipTwist && `gmatch $xyz[$z] "*x*"`)
+				continue;
+
+
+			for ($q=1;$q>-2;$q=$q-2)//pos/neg $mixAxis
+				{
+				if ($mixAxis=="" && $q==-1)
+					continue;
+
+				if ($mixAxis!="")
+					{
+					if ($q==1 && $z==3)
+						setKeyframe -v 0       -t ($t-1) -itt linear -ott linear ($ctrls[$i]+$side+".r"+$mixAxis);
+					setKeyframe -v (90*$q) -t $t     -itt linear -ott linear ($ctrls[$i]+$side+".r"+$mixAxis);
+					setKeyframe -v (90*$q) -t ($t+7) -itt linear -ott linear ($ctrls[$i]+$side+".r"+$mixAxis);
+					setKeyframe -v 0       -t ($t+8) -itt linear -ott linear ($ctrls[$i]+$side+".r"+$mixAxis);
+
+					$rotateCtrl=$extraCtrl;
+					}
+
+				for ($p=1;$p>-2;$p=$p-2)//pos/neg
+					{
+					$v=0;
+					if ($singleAxis!="")
+						{
+						if ($p== 1 &&  $singleAxisNeg) continue;
+						if ($p==-1 && !$singleAxisNeg) continue;
+						}
+
+					setKeyframe -v $v -t $t -itt linear -ott linear ($rotateCtrl+$side+".r"+$mainAxis);
+					if ($singleAxis!="")
+						{
+						$v=120*$p;
+						$t+=4;
+						}
+					else
+						{
+						$v=90*$p;
+						$t+=3;
+						}
+/*
+					//special case FKHip.ry inwards
+					if ($rotateCtrl=="FKHip" && $mainAxis=="y" && $p==1)
+						{
+						$v=30*$p;
+						$t=$t-2;
+						}
+*/
+					setKeyframe -v $v -t $t -itt linear -ott linear ($rotateCtrl+$side+".r"+$mainAxis);
+					$t+=1;
+					setKeyframe -v 0 -t $t -itt linear -ott linear ($rotateCtrl+$side+".r"+$mainAxis);
+					}
+				}
+//			if ($z<size($xyz)-1)
+//				$t=$t-1;//overLap on switchAxis
+			}
+//		if ($side=="_R")
+//			$t=$t-1;//overLap on switchSide
+		}
+//	$t=$t-1;//overLap on switchCtrl
+	}
+
+if (`attributeExists w0 FKRoot_M`)
+	setKeyframe -v 0 -t 0 -itt linear -ott linear FKRoot_M.w0;
+playbackOptions -min 0 -ast 0 -max $t -aet $t;
+currentTime 183;
+refresh;
+currentTime 0;
+select -cl;
+print "// Training Animation Applied.\n";
+}
+
+/* Old Random Pose Version
+global proc asMLToolsATA ()
+{
+global string $gMainProgressBar;
+float $min,$max;
+float $end=`intFieldGrp -q -v1 asMLToolsTFIntFieldGrp`;
+string $controlSetMembers[]=`sets -q ControlSet`;
+string $xyz[];
+
+//select -cl;
+evalDeferred ("progressBar -e -ep "+$gMainProgressBar);
+progressBar -e -st "Applying Training Animation" -bp -ii 1 -min 0 -max (size($controlSetMembers)) $gMainProgressBar;
+playbackOptions -min 0 -ast 0 -max $end -aet $end;
+for ($i=0;$i<size($controlSetMembers);$i++)
+	{
+	if (`progressBar -q -ic $gMainProgressBar`)
+		break;
+	progressBar -e -s 1 $gMainProgressBar;
+	if (!`gmatch $controlSetMembers[$i] "FK*"`)
+		continue;
+	if (`gmatch $controlSetMembers[$i] "FKExtra*"` || `gmatch $controlSetMembers[$i] "FKIK*"`)
+		continue;	
+	$xyz={"x","y","z"};
+	$min=-120;
+	$max=120;
+	if (`gmatch $controlSetMembers[$i] "FKElbow*"`)
+		{
+		$xyz={"z"};
+		$min=0;
+		$max=135;
+		}
+	if (`gmatch $controlSetMembers[$i] "FKKnee*"`)
+		{
+		$xyz={"z"};
+		$min=-135;
+		$max=0;
+		}
+	if (`gmatch $controlSetMembers[$i] "FK*Finger*"`)
+		{
+		$xyz={"y"};
+		$min=-20;
+		}
+	for ($y=0;$y<$end+1;$y++)
+		for ($z=0;$z<size($xyz);$z++)
+			{
+			if ($y==0)
+				setKeyframe -v 0 -t 0 -itt stepnext -ott stepnext ($controlSetMembers[$i]+".r"+$xyz[$z]);
+			else
+				setKeyframe -v `rand $min $max` -t $y -itt stepnext -ott stepnext ($controlSetMembers[$i]+".r"+$xyz[$z]);
+			}
+	}
+currentTime 1;
+refresh;
+currentTime 0;
+}
+*/
 global proc asNameMatcherUI ()
 {
 asMappingUI nameMatcher "";
@@ -9584,7 +9852,7 @@ frameLayout -p asMappingUIColumnLayout1 -w 320 -cll 1 -cl 1 -cc asFL -ec asFL -l
 					separator -st none -h 5;
 					rowLayout -nc 2;
 						separator -st none -w 80;
-						button -w 150 -l "Build AdvancedSkeleton" -c asReBuildAdvancedSkeleton;
+						button -w 150 -l "Build AdvancedSkeleton;" -c asReBuildAdvancedSkeleton;
 						setParent..;
 					separator -st none -h 20;
 					rowLayout -nc 2;
@@ -9678,7 +9946,8 @@ if (size(`ls -r 1 abdomenLower`)) catchQuiet(`optionMenu -e -v Daz3d asMappingUI
 if (size(`ls -r 1 RightFinger5Proximal`)) catchQuiet(`optionMenu -e -v Rokoko asMappingUIFiles`);
 //if (size(`ls -r 1 wrist_inner_l`)) catchQuiet(`optionMenu -e -v MetaHumanFBX asMappingUIFiles`);//MetaHuman from Unreal>FbxExport
 //Removed in v6.2616, since this means Unreal5 get wrongly detected as MetaHuman
-if (size(`ls -r 1 wrist_innerOff_l_drv`)) catchQuiet(`optionMenu -e -v MetaHuman asMappingUIFiles`);
+if (size(`ls -r 1 wrist_inner_l`)) catchQuiet(`optionMenu -e -v MetaHuman asMappingUIFiles`);
+if (size(`ls -r 1 wrist_innerOff_l_drv`)) catchQuiet(`optionMenu -e -v MetaHuman_old asMappingUIFiles`);
 if (size(`ls -r 1 Armature`)) catchQuiet(`optionMenu -e -v ReadyPlayerMe asMappingUIFiles`);
 if (size(`ls -r 1 "mixamorig:*"`))
 	{
@@ -10072,6 +10341,7 @@ if (`getAttr top.rx`>-89)
 		FrameAllInAllViews;
 		}
 
+/*
 if (`objExists head_drv` && `objExists root_drv`)
 	{
 	$isMetaHuman=1;
@@ -10116,10 +10386,13 @@ if (`objExists head_drv` && `objExists root_drv`)
 					}
 				}
 	}
+*/
+if (`objExists CTRL_faceGUIfollowHead`)
+	$isMetaHuman=1;
 
 //"Go to BindPose" (by bindPreMatrix)
 $firstAlert=1;
-if ($nameSpaceB!="")
+if ($nameSpaceB!="" && `objExists ($nameSpaceB+":"+$otherTopNode)`)
 	$otherTopNode=$nameSpaceB+":"+$otherTopNode;
 $tempString=`listRelatives -ad -type joint $otherTopNode`;
 for ($i=size($tempString)-1;$i>-1;$i--)
@@ -10191,7 +10464,8 @@ if (size($nonDefaultXformObjs))
 			$tempString=`listConnections -s 1 -d 0 -type animCurve $nonDefaultXformObjs[$i]`;
 			if (size($tempString))
 				delete $tempString;
-			asLockAttr $nonDefaultXformObjs[$i] 0 0 0 0;
+			if (!`referenceQuery -isNodeReferenced $nonDefaultXformObjs[$i]`)
+				asLockAttr $nonDefaultXformObjs[$i] 0 0 0 0;
 			makeIdentity -a 1 -t 1 -r 1 -s 1 $nonDefaultXformObjs[$i];
 			for ($y=0;$y<size($trs);$y++)
 				for ($z=0;$z<size($xyz);$z++)
@@ -10235,7 +10509,7 @@ if (!`asNameMatcherCheck`)
 $upAxisDirection=`upAxis -q -ax`;//run here as this could have changed within above `asNameMatcherCheck` proc
 $nameSpaceB=`textField -q -tx asMappingUINameSpacesTextFieldB1`;
 $otherTopNode=`textField -q -tx asMappingUITopNodeTextFieldB1`;
-if ($nameSpaceB!="")
+if ($nameSpaceB!="" && `objExists ($nameSpaceB+":"+$otherTopNode)`)
 	$otherTopNode=$nameSpaceB+":"+$otherTopNode;
 
 //remove existing FitSkeleton
@@ -10419,7 +10693,8 @@ int $sideBeforeName=`checkBox -q -v asMappingUISideBeforeNameCheckBox`;
 int $sideUnderScore=`checkBox -q -v asMappingUISideUnderScoreCheckBox`;
 int $numChar,$numChar2,$numConnectedJoints,$hitXferredJoint,$useTPoseFile,$useExtra,$useIkFeet;
 int $autoKeyState=`autoKeyframe -q -state`;
-float $pos[],$posA[],$posB[],$rot[];
+int $opm=`asGetOpm`;
+float $pos[],$posA[],$posB[],$posC[],$rot[];
 float $height=10;
 float $dist,$minDist,$currentTime,$min,$max,$animationStartTime,$animationEndTime;
 if (`objExists "Main"`)
@@ -10517,13 +10792,20 @@ for ($i=0;$i<size($deformJoints);$i++)
 
 		//some packages makes locked or limited atrributes, so open up these first
 		transformLimits -erx 0 0 -ery 0 0 -erz 0 0 -etx 0 0 -ety 0 0 -etz 0 0 -esx 0 0 -esy 0 0 -esz 0 0 $target;
-		asLockAttr $target 0 0 0 0;
+		if (!`referenceQuery -isNodeReferenced $target`)
+			asLockAttr $target 0 0 0 0;
 
 		select $target;
 		if (`objExists ($target+"_parentConstraint1")`) delete ($target+"_parentConstraint1");
 		if (`objExists ($target+"_scaleConstraint1")`) delete ($target+"_scaleConstraint1");
-		parentConstraint -mo $deformJoints[$i] $target;
-		scaleConstraint -mo $deformJoints[$i] $target;//sometime mixamo character have non-1 scaled joints
+// removed, as this means MetaHumans doe not get Corrective-Joints Driven
+//		if ($opm)
+//			asParentConstraint $deformJoints[$i] $target "-mo";
+//		else
+			{
+			parentConstraint -mo $deformJoints[$i] $target;
+			scaleConstraint -mo $deformJoints[$i] $target;//sometime mixamo character have non-1 scaled joints
+			}
 		}
 
 	//AutoRigTransferSkinning
@@ -10603,9 +10885,50 @@ for ($i=0;$i<size($deformJoints);$i++)
 			{
 			print ("// connecting IK-Feet:"+$deformJoints[$i]+"\n");
 			$dest=$nameSpaceA+"IKLeg"+$side;
-			if ($useExtra)
-				$dest=$nameSpaceA+"IKExtraLeg"+$side;
+			if ($useExtra) $dest=$nameSpaceA+"IKExtraLeg"+$side;
 			$tempString=`parentConstraint -mo $target $dest`;
+			connectAttr MoCapConstraints.disableConstraints ($tempString[0]+".nodeState");
+			}
+		if ($useIkFeet && `gmatch $deformJoints[$i] ($nameSpaceA+"Toes_*")`)
+			{
+			$dest=$nameSpaceA+"IKToes"+$side;
+			if ($useExtra) $dest=$nameSpaceA+"IKExtraToes"+$side;
+			$tempString=`parentConstraint -mo $target $dest`;
+			connectAttr MoCapConstraints.disableConstraints ($tempString[0]+".nodeState");
+			}
+		//More advanced for poleVectorPlacement
+		if ($useIkFeet && `gmatch $deformJoints[$i] ($nameSpaceA+"Knee_*")`)
+			{
+			$dest=$nameSpaceA+"PoleLeg"+$side;
+			if ($useExtra) $dest=$nameSpaceA+"PoleExtraLeg"+$side;
+
+			$tempString=`listRelatives -p $target`;
+			$hip=$tempString[0];
+			$knee=$target;
+			$tempString=`listRelatives -c $target`;
+			$ankle=$tempString[0];
+
+			createNode -n ("PoleVectorLocatorOffsetA"+$side) -p MoCapConstraints transform;
+			createNode -n ("PoleVectorLocatorOffsetB"+$side) -p ("PoleVectorLocatorOffsetA"+$side) transform;
+			createNode -n ("PoleVectorLocator"+$side) -p ("PoleVectorLocatorOffsetB"+$side) transform;
+
+			$posA=`xform -q -ws -t $hip`;
+			$posB=`xform -q -ws -t $knee`;
+			$posC=`xform -q -ws -t $ankle`;
+			$distA=`mag<<$posA[0]-$posB[0],$posA[1]-$posB[1],$posA[2]-$posB[2]>>`;
+			$distB=`mag<<$posB[0]-$posC[0],$posB[1]-$posC[1],$posB[2]-$posC[2]>>`;
+
+			pointConstraint -w $distB $hip ("PoleVectorLocatorOffsetA"+$side);
+			pointConstraint -w $distA $ankle ("PoleVectorLocatorOffsetA"+$side);
+			orientConstraint ($nameSpaceA+"RootX_M") ("PoleVectorLocatorOffsetA"+$side);
+			//avoid flippped knee when straight leg
+			setAttr ("PoleVectorLocatorOffsetB"+$side+".tz") (($distA+$distB)/-10.0);
+
+			aimConstraint -aimVector 1 0 0 -upVector 0 1 0 -worldUpType "vector" -worldUpVector 0 1 0 $knee ("PoleVectorLocatorOffsetB"+$side);
+			select $hip $ankle;
+			setAttr ("PoleVectorLocator"+$side+".tx") (($distA+$distB)/1.0);
+
+			$tempString=`pointConstraint ("PoleVectorLocator"+$side) $dest`;
 			connectAttr MoCapConstraints.disableConstraints ($tempString[0]+".nodeState");
 			}
 		}
@@ -10746,6 +11069,7 @@ if ($function=="CreateBSControl" && !`objExists FRM_faceGUI`)//skip for MH, as i
 			}
 		circle -n ($blendShape+"Ctrl") -c 0 0 0 -nr 0 1 0 -sw 360 -r 1 -d 3 -ut 0 -tol 0.01 -s 8 -ch 0;
 		parentConstraint Head_M ($blendShape+"Ctrl");
+		scaleConstraint Head_M ($blendShape+"Ctrl");
 		setAttr ($blendShape+"Ctrl_parentConstraint1.target[0].targetOffsetTranslateX") (($height/40.0)*$i);
 		setAttr ($blendShape+"Ctrl_parentConstraint1.target[0].targetOffsetTranslateZ") ($height/-10.0);
 		setAttr ($blendShape+"CtrlShape.overrideEnabled") 1;
@@ -10893,6 +11217,7 @@ asAnimBakeFKIK $limb 1 $uiName;
 global proc asMoCapLibraryUI (string $uiName)
 {
 asEnsureAsGetScriptLocation;
+string $asScriptLocation=`asGetScriptLocation`;
 string $frameLayouts[]={"asMCLBody","asMCLMoCapMaya","asMCLCNU","asMCLMoCapCustom","asMCLEdit","asMCLFace"};
 
 if (`asHotKeyCheck "asMoCapLibraryUI \"\""`) return;
@@ -10947,6 +11272,18 @@ columnLayout -adj 1;
 				button -w 100 -l "apply" -c ("asMCLCNUApply \""+$uiName+"\"") asMCLCNUApplyButton;
 				setParent..;
 			setParent..;
+
+		frameLayout -cll 1 -cl `optionVar -q asMTBodyFrameLayout` -cc asFL -ec asFL -l " Motion Test" asMTBodyFrameLayout;
+			columnLayout;
+				rowLayout -nc 3;
+					separator -h 20 -w 50 -st none;
+					optionMenu asMTBodyOptionMenu;
+					button -l apply -c ("asMCLApply \""+$uiName+"\" MotionTest");
+					setParent..;
+				setParent..;
+			setParent..;
+
+		separator -h 5;
 		frameLayout -cll 1 -cl `optionVar -q asMCLEditFrameLayout` -cc asFL -ec asFL -l " Edit" asMCLEditFrameLayout;
 			rowLayout -nc 3 -cw3 50 120 150;
 				text -l "Edit:";
@@ -10981,9 +11318,10 @@ columnLayout -adj 1;
 			setParent..;
 
 asPopulateMCLMoCapsOptionMenu;
-asPopulateMCLMoCapCustomOptionMenu;
+asPopulateWithFilesOptionMenu asMCLMoCapCustomOptionMenu `optionVar -q asMCLMoCapCustomPathTextField`;
 asPopulateMCLCNU1OptionMenu;
-asPopulateMCLFaceOptionMenu;
+asPopulateWithFilesOptionMenu asMTBodyOptionMenu  ($asScriptLocation+"/AdvancedSkeletonFiles/div/motionTest/body");
+asPopulateWithFilesOptionMenu asMCLFaceOptionMenu ($asScriptLocation+"/AdvancedSkeletonFiles/div/motionTest/face");
 
 showWindow asMoCapLibraryUI;
 }
@@ -10996,7 +11334,7 @@ if ($textField=="asMCLMoCapCustomPathTextField")
 string $result[]=`fileDialog2 -fm $fileMode -cap folder -okc Choose`;
 textField -e -tx $result[0] $textField;
 optionVar -sv $textField $result[0];
-asPopulateMCLMoCapCustomOptionMenu;
+asPopulateWithFilesOptionMenu asMCLMoCapCustomOptionMenu `optionVar -q asMCLMoCapCustomPathTextField`;
 }
 
 global proc asPopulateMCLMoCapsOptionMenu ()
@@ -11007,24 +11345,6 @@ if (!`file -q -ex $mocapFbxLocation`)
 	return;
 string $files[]=`getFileList -fs "*.fbx" -fld $mocapFbxLocation`;
 setParent -menu asMCLMoCapMayaOptionMenu;
-for ($i=0;$i<size($files);$i++)
-	menuItem -l $files[$i];
-}
-
-global proc asPopulateMCLMoCapCustomOptionMenu ()
-{
-string $path=`textField -q -tx asMCLMoCapCustomPathTextField`;
-string $tempString[];
-
-if ($path=="")
-	return;
-
-$tempString=`optionMenu -q -ill asMCLMoCapCustomOptionMenu`;
-for ($y=0;$y<size($tempString);$y++)
-	deleteUI $tempString[$y];
-
-string $files[]=`getFileList -fs "*.*" -fld $path`;
-setParent -menu asMCLMoCapCustomOptionMenu;
 for ($i=0;$i<size($files);$i++)
 	menuItem -l $files[$i];
 }
@@ -11097,26 +11417,16 @@ for ($i=0;$i<size($clips);$i++)
 asUpdateMoCapCNUApplyButton;
 }
 
-global proc asPopulateMCLFaceOptionMenu ()
+global proc asPopulateWithFilesOptionMenu (string $optionMenu, string $fld)
 {
-string $asScriptLocation=`asGetScriptLocation`;
-string $moCapFacelibDir=$asScriptLocation+"/AdvancedSkeletonFiles/faceLibrary";
-string $files[]=`getFileList -fld $moCapFacelibDir`;
-setParent -menu asMCLFaceOptionMenu;
-for ($i=0;$i<size($files);$i++)
-	{
-	if ($files[$i]=="incrementalSave")
-		continue;
-	menuItem -l $files[$i];
-	}
-}
+string $files[]=`getFileList -fld $fld`;
+string $tempString[];
 
-global proc asPopulateATFaceOptionMenu ()
-{
-string $asScriptLocation=`asGetScriptLocation`;
-string $moCapFacelibDir=$asScriptLocation+"/AdvancedSkeletonFiles/faceLibrary";
-string $files[]=`getFileList -fld $moCapFacelibDir`;
-setParent -menu asATFaceOptionMenu;
+$tempString=`optionMenu -q -ill $optionMenu`;
+for ($y=0;$y<size($tempString);$y++)
+	deleteUI $tempString[$y];
+
+setParent -menu $optionMenu;
 for ($i=0;$i<size($files);$i++)
 	{
 	if ($files[$i]=="incrementalSave")
@@ -11169,7 +11479,7 @@ float $posA[],$posB[],$keyTimes[],$rot[],$rotA[],$rotB[];
 string $mayaLocation=`getenv MAYA_LOCATION`;
 string $asScriptLocation=`asGetScriptLocation`;
 string $mocapFbxLocation;
-string $fileName,$file,$moCapCNUlibDir,$clipLongName,$clipShortName,$topNode,$tPoseNameSpace;
+string $fileName,$fld,$file,$moCapCNUlibDir,$clipLongName,$clipShortName,$topNode,$tPoseNameSpace;
 string $rightShoulder,$rightArm,$rightForeArm,$rightHand,$rightUpLeg,$rightLeg,$rightFoot;
 string  $leftShoulder, $leftArm, $leftForeArm, $leftHand, $leftUpLeg, $leftLeg, $leftFoot;
 string $basename=`basenameEx $file`;
@@ -11201,6 +11511,15 @@ if ($type=="CNU")
 	$clipShortName=$tempString[0];
 	$file=$moCapCNUlibDir+"/"+$clipShortName+".ma";
 	}
+if ($type=="MotionTest") 
+	{
+	$fld=$asScriptLocation+"/AdvancedSkeletonFiles/div/motionTest/body";
+	if (`optionMenu -q -ex asMTBodyOptionMenu`)
+		$fileName=`optionMenu -q -v asMTBodyOptionMenu`;
+	else
+		$fileName=`optionMenu -q -v asATMotionTestOptionMenu`;
+	$file=$fld+"/"+$fileName;
+	}
 
 if ($file=="")
 	error "No MotionCapture Example choosen";
@@ -11208,6 +11527,16 @@ if (!`file -q -ex $file`)
 	error ("File not found:\""+$file+"\"");
 
 asMCLRemoveBody $uiName;
+
+//Special case, user might have Preferences set to:
+// Preferences->Settings->Files/Projects->File Dialog->Dialog Style == "OS native"
+// This must be changed to "Maya default"
+if (`optionVar -ex "FileDialogStyle"`)
+	if (`optionVar -q "FileDialogStyle"`==1)
+		{
+		evalDeferred "optionVar -iv FileDialogStyle 1";
+		optionVar -iv FileDialogStyle 2;
+		}
 
 $topNodesBefore=`ls -as`;
 
@@ -11223,7 +11552,8 @@ $topNodesAfter=`ls -as`;
 for ($i=0;$i<size($topNodesAfter);$i++)
 	if (!`stringArrayCount $topNodesAfter[$i] $topNodesBefore`)
 		{
-		$tempString=`listRelatives -type joint -c $topNodesAfter[$i]`;
+//		$tempString=`listRelatives -type joint -c $topNodesAfter[$i]`;
+		$tempString=`listRelatives -type joint -ad $topNodesAfter[$i]`;
 		if (size($tempString))
 			{
 			$topNode=$topNodesAfter[$i];
@@ -11242,6 +11572,7 @@ if ($moCapNs=="")
 	if (!`namespace -ex MotionCaptureLibrary`)
 		namespace -addNamespace MotionCaptureLibrary;
 	namespace -setNamespace MotionCaptureLibrary;
+	evalDeferred ("namespace -setNamespace \":\"");
 	$tempString=`listRelatives -ad -type transform $topNode`;
 	$tempString[size($tempString)]=$topNode;
 	for ($i=0;$i<size($tempString);$i++)
@@ -11259,10 +11590,12 @@ $moCapJoints=`listRelatives -type joint -ad $topNode`;
 currentTime 0;
 if (`nodeType $topNode`=="joint" && `getAttr ($topNode+".ty")`>0)//chek ty>0 as this could be Unreal-root, which is not $hipsJoint;
 	$hipsJoint=$topNode;
+else if (`objExists MotionCaptureLibrary:pelvis`)
+	$hipsJoint="MotionCaptureLibrary:pelvis";
 else
 	{
-	$tempString=`listRelatives -type joint -c $topNode`;
-	$hipsJoint=$tempString[0];
+	$tempString=`listRelatives -type joint -ad $topNode`;
+	$hipsJoint=$tempString[size($tempString)-1];
 	}
 
 createNode -n MotionCaptureLibraryScale transform;
@@ -11290,6 +11623,8 @@ if (`objExists ($moCapNs+"upperarm_r")`)
 	if (!`objExists "root"`)//might already be working with a rig that has UnrealJoints added
 		{
 		createNode -n asMoCapMatcherCreatingUnrealMannequinJoints transform;
+		addAttr -ln nameSpace -dt "string" asMoCapMatcherCreatingUnrealMannequinJoints;
+		setAttr -type "string" asMoCapMatcherCreatingUnrealMannequinJoints.nameSpace $nameSpace;
 		$unrealMannequinJoints="Quinn (UE5)";
 		asCreateUnrealMannequinJoints;
 
@@ -11309,6 +11644,19 @@ if (`objExists ($moCapNs+"upperarm_r")`)
 		setAttr TPose:root.v 0;
 		namespace -setNamespace ":";
 		}
+	}
+
+if (`objExists ($moCapNs+"Right_Foot")`)
+	{
+	$altSkeletonType=2;//Unity Armature
+	addAttr -ln altSkeletonType -at long -dv 2 MotionCaptureLibraryScale;
+	$rightShoulder="Right_Shoulder";$leftShoulder="Left_Shoulder";
+	$rightArm="Right_UpperArm";$leftArm="Left_UpperArm";
+	$rightForeArm="Right_LowerArm";$leftForeArm="Left_LowerArm";
+	$rightHand="Right_Hand";$leftHand="Left_Hand";
+	$rightUpLeg="Right_UpperLeg";$leftUpLeg="Left_UpperLeg";
+	$rightLeg="Right_LowerLeg";$leftLeg="Left_LowerLeg";
+	$rightFoot="Right_Foot";$leftFoot="Left_Foot";
 	}
 
 //Rmoved, as some MoCap animations do not start with feet on the ground. e.g. Hoverboard_Hover clip
@@ -11382,6 +11730,35 @@ if ($altSkeletonType==1)
 		setAttr ($moCapJoints[$i]+".r") -type float3 $rot[0] $rot[1] $rot[2];
 		}
 	}
+
+if ($altSkeletonType==2)
+	{
+	$tempString=`listRelatives -type transform -ad $topNode`;
+	$tempString[size($tempString)]=$topNode;
+	for ($i=0;$i<size($tempString);$i++)
+		if (`getAttr -settable ($tempString[$i]+".rx")`)
+			{
+			setAttr ($tempString[$i]+".r") -type float3 0 0 0;
+			setKeyframe $tempString[$i];
+			}
+	$tempString=`listRelatives -type transform -ad ($moCapNs+"UpperChest")`;
+	for ($i=size($tempString)-1;$i>-1;$i--)
+		{
+		if (`gmatch $tempString[$i] "*Thumb*"` || `gmatch $tempString[$i] "*Shoulder"`)
+			continue;
+		if (`gmatch $tempString[$i] "*Right_*"`)
+			xform -ws -ro 0 180 90 $tempString[$i];
+		if (`gmatch $tempString[$i] "*Left_*"`)
+			xform -ws -ro 0 0 -90 $tempString[$i];
+		setKeyframe $tempString[$i];
+		}
+/*
+	xform -ws -ro 0 180 90 ($moCapNs+$rightArm);xform -ws -ro 0 0 -90 ($moCapNs+$leftArm);
+	xform -ws -ro 0 180 90 ($moCapNs+$rightForeArm);xform -ws -ro 0 0 -90 ($moCapNs+$leftForeArm);
+	xform -ws -ro 0 180 90 ($moCapNs+$rightHand);xform -ws -ro 0 0 -90 ($moCapNs+$leftHand);
+*/
+	}
+
 
 //After Straighting, legs and knee straighting probably cause the foot to be lower, so compensate
 /*
@@ -11548,7 +11925,7 @@ int $numConnected,$altSkeletonType;
 float $currentTime=`currentTime -q`;
 float $distA,$distB;
 float $posA[],$posB[],$posC[];
-string $side,$rightLeft,$rightLeftSuffix,$topNode,$asFKFinger,$moCapFingerJoint,$hip,$knee,$ankle;
+string $side,$rightLeft,$rightLeftSuffix,$topNode,$asFKFinger,$moCapFingerJoint,$hip,$knee,$ankle,$proxIntDist;
 string $moCapNs="MotionCaptureLibrary:";
 string $nameSpace=`asNameSpaceFromUIName $uiName`;
 string $tempString[],$constraintObjs[],$constraintToObjs[],$cn[];
@@ -11594,6 +11971,12 @@ for ($b=1;$b>-2;$b=$b-2)
 		if (`objExists ($moCapNs+"calf"+$rightLeftSuffix)`) $knee="calf"+$rightLeftSuffix;
 		if (`objExists ($moCapNs+"foot"+$rightLeftSuffix)`) $ankle="foot"+$rightLeftSuffix;
 		}
+	if ($altSkeletonType==2)
+		{
+		if (`objExists ($moCapNs+$rightLeft+"_UpperLeg")`) $hip=$moCapNs+$rightLeft+"_UpperLeg";
+		if (`objExists ($moCapNs+$rightLeft+"_LowerLeg")`) $knee=$moCapNs+$rightLeft+"_LowerLeg";
+		if (`objExists ($moCapNs+$rightLeft+"_Foot")`) $ankle=$moCapNs+$rightLeft+"_Foot";
+		}
 	if (`objExists $hip` && `objExists $ankle`)
 		{
 		namespace -set $moCapNs;
@@ -11631,6 +12014,8 @@ for ($b=1;$b>-2;$b=$b-2)
 		$tempString={($rightLeft+"UpLeg"),($rightLeft+"Leg"),($rightLeft+"Leg"),($rightLeft+"ToeBase"),($rightLeft+"Foot"),("PoleVectorLocator"+$side),($rightLeft+"ToeBase"),($rightLeft+"Shoulder"),($rightLeft+"Arm"),($rightLeft+"ForeArm"),($rightLeft+"Hand")};
 	if ($altSkeletonType==1)
 		$tempString={("thigh"+$rightLeftSuffix),("calf"+$rightLeftSuffix),("foot"+$rightLeftSuffix),("ball"+$rightLeftSuffix),("foot"+$rightLeftSuffix),("PoleVectorLocator"+$side),("ball"+$rightLeftSuffix),("clavicle"+$rightLeftSuffix),("upperarm"+$rightLeftSuffix),("lowerarm"+$rightLeftSuffix),("hand"+$rightLeftSuffix)};
+	if ($altSkeletonType==2)
+		$tempString={($rightLeft+"_UpperLeg"),($rightLeft+"_LowerLeg"),($rightLeft+"_Foot"),($rightLeft+"_Toes"),($rightLeft+"_Foot"),("PoleVectorLocator"+$side),($rightLeft+"_Toes"),($rightLeft+"_Shoulder"),($rightLeft+"_UpperArm"),($rightLeft+"_LowerArm"),($rightLeft+"_Hand")};
 	$constraintToObjs=`stringArrayCatenate $tempString $constraintToObjs`;
 
 	//fingers
@@ -11641,6 +12026,13 @@ for ($b=1;$b>-2;$b=$b-2)
 			$moCapFingerJoint=$rightLeft+"Hand"+$fingers[$y]+$i;
 			if ($altSkeletonType==1)
 				$moCapFingerJoint=`tolower $fingers[$y]`+"_"+`asDoPadd $i 2`+$rightLeftSuffix;
+			if ($altSkeletonType==2)
+				{
+				if ($i==1) $proxIntDist="Proximal";
+				if ($i==2) $proxIntDist="Intermediate";
+				if ($i==3) $proxIntDist="Distal";
+				$moCapFingerJoint=$rightLeft+"_"+$fingers[$y]+$proxIntDist;
+				}
 			$constraintObjs[size($constraintObjs)]=$asFKFinger;
 			$constraintToObjs[size($constraintToObjs)]=$moCapFingerJoint;
 			}
@@ -11791,7 +12183,7 @@ float $keyTimes[];
 string $ctrl,$attr,$clip,$asMotionFaceFile;
 string $nameSpace=`asNameSpaceFromUIName $uiName`;
 string $asScriptLocation=`asGetScriptLocation`;
-string $moCapFacelibDir=$asScriptLocation+"/AdvancedSkeletonFiles/faceLibrary";
+string $moCapFacelibDir=$asScriptLocation+"/AdvancedSkeletonFiles/div/motionTest/face";
 string $tempString[],$tempString2[],$animCurves[];
 
 if (!`objExists ($nameSpace+"FaceControlSet")`)
@@ -12057,7 +12449,8 @@ if ($command=="asAnimBake \"\"") {$imageOverlayLabel="Bake";$image="menuIconEdit
 if ($command=="asAutoSwitchFKIK") {$imageOverlayLabel="Switch";$image="kinHandle.png";$ann="Switch between FK & IK";}
 if ($command=="asAutoSwitchPivot") {$imageOverlayLabel="Pivot";$image="counterclockwise.png";$ann="Switch the position of the Pivot";}
 if ($command=="asQuickIK") {$imageOverlayLabel="IK";$image="smoothSkin.png";$ann="Create a Quick-IK e.g. IK for fingers.";}
-if ($command=="asTwistFlipUI \"\"") {$imageOverlayLabel="Flip";$image="srt.png";$ann="Set amount of twist before flipping (constraint-casching)";}
+//if ($command=="asTwistFlipUI \"\"") {$imageOverlayLabel="Flip";$image="srt.png";$ann="Set amount of twist before flipping (constraint-casching)";}
+if ($command=="asHumanIKUI \"\"") {$imageOverlayLabel="HIK";$image="HIKcreateControlRig.png";$ann="Create HumanIK";}
 if ($command=="asMappingUI moCapMatcher \"\"") {$imageOverlayLabel="MoCap";$image="motionPath.png";$ann="Tool for attaching rig to a MotionCapture skeleton";}
 if ($command=="asMoCapLibraryUI \"\"") {$imageOverlayLabel="Lib";$image="batchRender.png";$ann="MotionCapture library";}
 if ($command=="asConnectARKitUI \"\"") {$imageOverlayLabel="AR";$image="yawPitch.png";$ann="Connect Face-Motion-Capture ( ARKit )";}
@@ -12239,14 +12632,15 @@ if (`attributeExists exportFbxPre fbxExportOptions`) $exportFbxPre=`getAttr fbxE
 if (`attributeExists exportFbxPost fbxExportOptions`) $exportFbxPost=`getAttr fbxExportOptions.exportFbxPost`;
 if ($exportFbxPre!="") evalEcho ($exportFbxPre);
 
-if (`objExists asMannequinExporting`) //no GUIOptions for Mannequin Export 
-	$withGUIOptions=0;
+//if (`objExists asMannequinExporting`) //no GUIOptions for Mannequin Export, because we need `ExportSelection` for options, and that does not `return` $file
+//	$withGUIOptions=0;
 
-if ($withGUIOptions)
+//if ($withGUIOptions)
 	{
 	optionVar -sv "defaultFileExportActiveType" "FBX export";
 	ExportSelection;
 	}
+/*
 else
 	{
 	//FBXProperties;
@@ -12266,6 +12660,7 @@ else
 	if ($file!="")
 		FBXExport -f $file -s;
 	}
+*/
 
 if ($exportFbxPost!="") evalEcho ($exportFbxPost);
 print "// Fbx exported.\n";
@@ -12295,7 +12690,7 @@ for ($i=0;$i<size($deformJointsList);$i++)
 	connectAttr $tempString[0] ($deformJointsList[$i]+"DM.inputMatrix");
 	}
 }
-
+/*
 global proc string asCRInjectLine (string $ctrl,string $parent,string $joint,string $type,string $typeEls,string $gizmo)
 {
 int $colorIndex,$ws;
@@ -12328,7 +12723,8 @@ $injectLine+="	asAddCtrl ('"+$ctrl+"','"+$parent+"','"+$joint+"','"+$type+"',"
 
 return $injectLine;
 }
-
+*/
+/*
 global proc asExportControlRig ()
 {
 global string $ueVersion;
@@ -12566,7 +12962,10 @@ for ($y=size($deformJoints)-1;$y>-1;$y--)
 			continue;
 		if ($userAttrs[$i]=="twistJoints")
 			if (`getAttr ($fitJoint+".twistJoints")`==0)
-				continue;//LogPython: Error: ZeroDivisionError: float division by zero	
+				continue;//LogPython: Error: ZeroDivisionError: float division by zero
+		if ($userAttrs[$i]=="inbetweenJoints")
+			if (`getAttr ($fitJoint+".inbetweenJoints")`==0)
+				continue;//ALSO LogPython: Error: ZeroDivisionError: float division by zero
 		if ($arrayInfo!="{")
 			$arrayInfo+=",";
 		$value=`getAttr ($fitJoint+"."+$userAttrs[$i])`;
@@ -12670,32 +13069,7 @@ if (!$skipFaceSetup)
 			if ($ctrl=="")
 				continue;//allowing for deleted controller
 			$attrs=`asDsGetAttrs $ctrl`;
-/*
-			$arrayInfo="{";
-			for ($y=0;$y<size($attrs);$y++)
-				{
-				$arrayInfo+="'"+$attrs[$y]+"':{";
-				$animCurves=`listConnections -s 0 -d 1 ($ctrl+"."+$attrs[$y])`;
-				for ($z=0;$z<size($animCurves);$z++)
-					{
-					$tempString2=`listConnections -s 0 -d 1 -scn 1 ($animCurves[$z]+".output")`;
-					$tempString3=`listConnections -s 0 -d 1 -scn 1 -p 1 ($animCurves[$z]+".output")`;
-					if ($tempString2[0]=="")
-						continue;
-					if (`objectType $tempString2[0]`!="blendShape")
-						continue;
-					if (!`gmatch $tempString3[0] "asFaceBS[.]*"`)
-						continue;//skipping BS nodes that are not "asFaceBS", e.g. "asFaceBS_model_eyeBrowR", since Unreal have these `combined`
-					$keyXValues=`keyframe -in 0 -q -fc $animCurves[$z]`;
-					$driverValue=$keyXValues[0];
-					if ($driverValue!=-1) $driverValue=1;
-					tokenize $tempString3[0] "." $tempString4;
-					$arrayInfo+="'"+$tempString4[1]+"':'"+$driverValue+"',";
-					}
-				$arrayInfo=`asUnCommaCloseBracket $arrayInfo`+",";
-				}
-			$arrayInfo=`asUnCommaCloseBracket $arrayInfo`;
-*/
+
 			$arrayInfo=`asDSArrayInfo $ctrl`;
 			$numAttrCtrls=$numAttrCtrls+size(`asDsGetAttrs $ctrl`);
 			$injectLines+=`asCRInjectLine $ctrl "ctrlBox" "ctrlBox" "ctrlBox" $arrayInfo "Gizmo"`; 
@@ -12739,11 +13113,12 @@ fclose $fileId;
 select -cl;
 print ("// ControlRig python script exported ("+$numCtrls+" Controllers, and "+$numAttrCtrls+" AttributeSliders) (Unreal "+$fileName+".py template).\n");
 }
-
+*/
+/*
 global proc asECRLayout ()
 {
 global string $ueVersion;
-$ueVersion="5.1";
+//$ueVersion="5.1";
 string $as2crDir=`asGetScriptLocation`+"/AdvancedSkeletonFiles/div/as2cr";
 string $fileList[]=`getFileList -fld ($as2crDir+"/") -fs "*.py"`;
 $fileList=`sort $fileList`;
@@ -12762,21 +13137,25 @@ columnLayout;
 		button -l "Cancel" -c "layoutDialog -dismiss \"Cancel\"";
 		setParent..;
 	setParent..;
-optionMenu -e -sl 3 unrealControlRigVersionOptionMenu;
+optionMenu -e -sl `size($fileList)` unrealControlRigVersionOptionMenu;
+$ueVersion=`optionMenu -q -v unrealControlRigVersionOptionMenu`;
 }
-
+*/
 global proc asUMJLayout ()
 {
 global string $unrealMannequinJoints;
 $unrealMannequinJoints="Manny (UE5)";
+global string $unrealMannequinJointsMCRV;
+$unrealMannequinJointsMCRV="5.6";
 global int $unrealMannequinScale;
 global int $unrealMannequinBodyRig;
-global int $unrealMannequinFaceRig;
+global int $unrealMannequinFaceOpenFolder;
 int $hasAsFaceBS=`objExists asFaceBS`;
+$unrealMannequinFaceOpenFolder=$hasAsFaceBS;
 int $manualCreatingUnrealMannequinJoints=`objExists asManualCreatingUnrealMannequinJoints`;
 $unrealMannequinScale=1;
 $unrealMannequinBodyRig=1;
-$unrealMannequinFaceRig=$hasAsFaceBS;
+//$unrealMannequinFaceRig=$hasAsFaceBS;
 columnLayout;
 	text -l "Unreal Mannequin you wish to use:";
 	separator -st none -h 10;
@@ -12785,16 +13164,39 @@ columnLayout;
 		menuItem -l "Manny (UE5)";
 		menuItem -l "Quinn (UE5)";
 	separator -st none -h 10;
+	if (!$manualCreatingUnrealMannequinJoints)
+		text -l "Body:";
 	checkBox -v 1 -l "scale to match mannequin" -cc "$unrealMannequinScale=\"#1\"" unrealMannequinScaleCheckBox;
 	if (!$manualCreatingUnrealMannequinJoints)
 		{
 		separator -st none -h 10;
+		text -l "Face:";
+		separator -st none -h 5;
+		checkBox -v $hasAsFaceBS -en $hasAsFaceBS -l "open Face_CR.uasset folder" -cc "$unrealMannequinFaceOpenFolder=\"#1\"" unrealMannequinFaceRigCheckBox;
+		if (!$hasAsFaceBS)
+			text -fn "smallBoldLabelFont" -l "\"convert to BlendShapes\" to include Face";
+		}
+
+
+/*removed in v6.563, due to issues with import to Unreal5.6
+	if (!$manualCreatingUnrealMannequinJoints)
+		{
+		separator -st none -h 10;
 		checkBox -v 1 -l "include Modular Rig script" -cc "$unrealMannequinBodyRig=\"#1\"" unrealMannequinBodyRigCheckBox;
+		rowLayout -nc 2;
+			text -l "Unreal version:";
+			optionMenu -cc "$unrealMannequinJointsMCRV=\"#1\"" unrealMannequinJointsMCRVOptionMenu;//MCRV=ModularControlRigVersion
+				menuItem -l "5.4";
+				menuItem -l "5.5";
+				menuItem -l "5.6";
+				optionMenu -e -v "5.6" unrealMannequinJointsMCRVOptionMenu;
+			setParent..;
 	//	separator -st none -h 5;
 		checkBox -en $hasAsFaceBS -v $hasAsFaceBS -l "include Face Rig" -cc "$unrealMannequinFaceRig=\"#1\"" unrealMannequinFaceRigCheckBox;
 		if (!$hasAsFaceBS)
 			text -fn "smallBoldLabelFont" -l "\"convert to BlendShapes\" to include Face";
 		}
+*/
 	separator -st none -h 25;
 	rowLayout -nc 4;
 		separator -w 10 -st none;
@@ -12810,6 +13212,7 @@ checkBox -e -v $unrealMannequinScale unrealMannequinScaleCheckBox;
 global proc asExportRenameToUnreal ()
 {
 int $spineNr,$numChar;
+int $opm=`asGetOpm`;
 string $side,$parent,$aboveTwistParent,$nextSegJoint,$lastTwoChar,$aa,$bb;
 string $as[]={"Root_M","Hip_R","Knee_R","Ankle_R","Toes_R","Scapula_R","Shoulder_R","Elbow_R","Wrist_R","Neck_M","Head_M"};
 string $bs[]={"pelvis","thigh_r","calf_r","foot_r","ball_r","clavicle_r","upperarm_r","lowerarm_r","hand_r","neck_01","head"};
@@ -12829,6 +13232,8 @@ for ($i=0;$i<size($bs);$i++)
 		select $bs[$i];
 		error ("Selected object is named:\""+$bs[$i]+"\", which is a name required bu UnrealJoints, rename this object to use another name.");
 		}
+if ($opm)
+	error "This rig is using OPM (OffsetParentMatrix), this can not be renamed to Unreal";
 
 //Part joints
 for ($i=1;$i<10;$i++)
@@ -12875,6 +13280,7 @@ if (!`objExists root`)
 	addAttr -k 0 -ln noRootMotionJointBeforeRename -at bool -dv 1 root;
 	}
 parent -w root;
+connectAttr MainScaleMultiplyDivide.output root.s;
 
 //Spine
 $tempString=`ls -l Chest_M`;
@@ -12945,10 +13351,15 @@ for ($y=0;$y<size($twistLimbs);$y++)
 
 			if ($i>1)
 				{
-				if (!`attributeExists asParent $twistJoint`)
-					addAttr -ln asParent -dt "string" $twistJoint;
+				if (!`attributeExists asParent $twistJoint`) addAttr -ln asParent -dt "string" $twistJoint;
+				if (!`attributeExists asParentRestoreCmd $twistJoint`) addAttr -ln asParentRestoreCmd -dt "string" $twistJoint;
 				setAttr -type "string" ($twistJoint+".asParent") $parent;
+				setAttr -type "string" ($twistJoint+".asParentRestoreCmd") ("setAttr "+$twistJoint+".opm -type \"matrix\" 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;");
+				$m=`getAttr ($twistJoint+".matrix")`;
 				parent $twistJoint $aboveTwistParent;
+				//special case, incoming tx connection to be compensated for
+				setAttr ($twistJoint+".offsetParentMatrix") -type "matrix" $m[0] $m[1] $m[2] $m[3] $m[4] $m[5] $m[6] $m[7] $m[8] $m[9] $m[10] $m[11] $m[12] $m[13] $m[14] $m[15];
+				dgdirty -a;
 				}
 
 			$tempString=`listRelatives -c -type joint $twistJoint`;
@@ -12990,6 +13401,13 @@ for ($i=0;$i<size($tempString);$i++)
 	{
 	if (!`attributeExists asParent $tempString[$i]`)
 		continue;
+
+	if (`attributeExists asParentRestoreCmd $tempString[$i]`)
+		{
+		eval (`getAttr ($tempString[$i]+".asParentRestoreCmd")`);
+		dgdirty -a;
+		}
+
 	$asParent=`getAttr ($tempString[$i]+".asParent")`;
 	parent $tempString[$i] $asParent;
 	}
@@ -13592,7 +14010,7 @@ for ($i=0;$i<size($tempString);$i++)
 //addAttrs
 if (!`attributeExists RootFaceJoint $geometry`)
 	addAttr -ln RootFaceJoint -dt "string" $geometry;
-setAttr -type "string"($geometry+".RootFaceJoint") "Face";
+setAttr -type "string"($geometry+".RootFaceJoint") "FaceJoint_M";
 addAttr -ln Frame0 -dt "string" $geometry;
 setAttr -type "string" ($geometry+".Frame0") "Neutral";
 
@@ -13670,19 +14088,20 @@ xform -os -t 0 0 0 -ro 0 0 0 -s 1 1 1 $child;
 }
 */
 global proc asParentConstraint (string $parent, string $child, string $flagString)
-{
+{//print ($parent+" "+$child+" "+$flagString+"\n");
 int $opm=`checkBox -q -v asBodyOffsetParentMatrixCheckBox`;
-int $plugNr;
+int $plugNr,$skipScale;
 float $m[];
-string $name,$side;
+string $name,$side,$dm;
 string $sel[]=`ls -sl`;
 string $tempString[];
-/*
-if ($gameEngine)
-	if (`sets -im DeformSet $child`)
-		$opm=0;//DeformJoints not to use OffsetParentMatrix if $gameEngine
-ghost matrix somehow connected Root_M.worldMatrix[0] -> IKParentConstraintHip_R.offsetParentMatrix; then Error Not Found IKParentConstraintHipMM_R
-*/
+
+if (`gmatch $flagString "*-FMM*"`)//forceMultMatrix, use MM even for nonOPM
+	$opm=1;
+
+if (`gmatch $flagString "*-skipScale*"`)//forceMultMatrix, use MM even for nonOPM
+	$skipScale=1;
+
 if ($opm)
 	{
 	tokenize $child "_" $tempString;
@@ -13705,24 +14124,45 @@ if ($opm)
 		$plugNr++;
 		}
 
-	connectAttr ($parent+".worldMatrix") ($name+"MM"+$side+".matrixIn["+$plugNr+"]");
+	if (!`isConnected ($parent+".worldMatrix") ($name+"MM"+$side+".matrixIn["+$plugNr+"]")`)
+		connectAttr -f ($parent+".worldMatrix") ($name+"MM"+$side+".matrixIn["+$plugNr+"]");
 	$plugNr++;
 
 	$tempString=`listRelatives -p $child`;
 	if ($tempString[0]!="")
 		{
-		connectAttr ($tempString[0]+".worldInverseMatrix[0]") ($name+"MM"+$side+".matrixIn["+$plugNr+"]");
+		if (!`isConnected ($tempString[0]+".worldInverseMatrix[0]") ($name+"MM"+$side+".matrixIn["+$plugNr+"]")`)
+			connectAttr ($tempString[0]+".worldInverseMatrix[0]") ($name+"MM"+$side+".matrixIn["+$plugNr+"]");
 		$plugNr++;
 		}
 
-	if (`gmatch $flagString "*-includePickMatrix*"`)
+	if (`gmatch $flagString "*-includePickMatrix*"` || $skipScale)
 		{
 		createNode -n ($name+"PM"+$side) pickMatrix;
 		connectAttr ($name+"MM"+$side+".matrixSum") ($name+"PM"+$side+".inputMatrix");
-		connectAttr ($name+"PM"+$side+".outputMatrix") ($child+".offsetParentMatrix");
+		asMatrixConnectAttr ($name+"PM"+$side+".outputMatrix") ($child+".offsetParentMatrix");
 		}
+/*
+	else if (`gmatch $flagString "*-FMM*"`)//forceMultMatrix, use MM even for nonOPM
+		{
+		$dm=$name+"DM"+$side;
+		createNode -n $dm decomposeMatrix;
+		setAttr ($dm+".inputRotateOrder") `getAttr ($child+".rotateOrder")`;
+		if (`objExists ($name+"PM"+$side)`)
+			connectAttr ($name+"PM"+$side+".outputMatrix") ($dm+".inputMatrix");
+		else
+			connectAttr ($name+"MM"+$side+".matrixSum") ($dm+".inputMatrix");
+		connectAttr ($dm+".outputTranslate") ($child+".t");
+		connectAttr ($dm+".outputRotate") ($child+".r");
+		connectAttr ($dm+".outputScale") ($child+".s");
+		connectAttr ($dm+".outputShear") ($child+".sh");
+		}
+*/
 	else
-		connectAttr  ($name+"MM"+$side+".matrixSum") ($child+".offsetParentMatrix");
+		asMatrixConnectAttr ($name+"MM"+$side+".matrixSum") ($child+".offsetParentMatrix");
+
+	if ($skipScale)
+		setAttr ($name+"PM"+$side+".useScale") 0;
 
 	xform -os -t 0 0 0 -ro 0 0 0 -s 1 1 1 $child;
 	if (`objectType $child`=="joint")
@@ -13733,15 +14173,61 @@ else
 	if (`gmatch $flagString "*-mo*"`)
 		{
 		parentConstraint -mo $parent $child;
-		scaleConstraint -mo $parent $child;
+		if (!$skipScale)
+			scaleConstraint -mo $parent $child;
 		}
 	else
 		{
 		parentConstraint $parent $child;
-		scaleConstraint $parent $child;
+		if (!$skipScale)
+			scaleConstraint $parent $child;
 		}
 	}
 select $sel;
+}
+
+global proc asMatrixZeroJointOrientConnect (string $name, string $side)
+{
+string $tempString[];
+
+/*removed due to restored orientConstraint
+//Matrix nodes does not provide good solution for constranining joints, despite this techique:
+// https://youtu.be/_LNhZB8jQyo
+// as the rotation values will not be matching controller, making anything driven from the joint rotations to not work well.
+createNode -n ($name+"JOCM"+$side) composeMatrix;//JOCM JointOrientComposeMatrix
+//setAttr ($name+"JOCM"+$side+".inputRotateOrder") `getAttr ($name+$side+".rotateOrder")`;
+$jo=`getAttr ($name+$side+".jointOrient")`;
+setAttr ($name+"JOCM"+$side+".inputRotate") -type float3 $jo[0] $jo[1] $jo[2];
+createNode -n ($name+"JOMM1"+$side) multMatrix;
+
+connectAttr ($name+"JOCM"+$side+".outputMatrix") ($name+"JOMM1"+$side+".matrixIn[0]");
+$tempString=`listRelatives -p ($name+$side)`;
+connectAttr ($tempString[0]+".worldMatrix") ($name+"JOMM1"+$side+".matrixIn[1]");
+//the above migh later be overruled if in TwistSystem
+
+createNode -n ($name+"JOIM"+$side) inverseMatrix;
+connectAttr ($name+"JOMM1"+$side+".matrixSum") ($name+"JOIM"+$side+".inputMatrix");
+
+createNode -n ($name+"JOMM2"+$side) multMatrix;
+connectAttr ($name+"MM"+$side+".matrixSum") ($name+"JOMM2"+$side+".matrixIn[0]");
+$tempString=`listRelatives -p ($name+$side)`;
+connectAttr ($tempString[0]+".worldMatrix") ($name+"JOMM2"+$side+".matrixIn[1]");
+//the above could be overridden by FKX || BM
+
+createNode -n ($name+"JOMM3"+$side) multMatrix;
+connectAttr ($name+"JOMM2"+$side+".matrixSum")($name+"JOMM3"+$side+".matrixIn[0]");
+connectAttr ($name+"JOIM"+$side+".outputMatrix") ($name+"JOMM3"+$side+".matrixIn[1]");
+createNode -n ($name+"JODM"+$side) decomposeMatrix;//JOCM JointOrientComposeMatrix
+setAttr ($name+"JODM"+$side+".inputRotateOrder") `getAttr ($name+$side+".rotateOrder")`;
+connectAttr ($name+"JOMM3"+$side+".matrixSum") ($name+"JODM"+$side+".inputMatrix");
+connectAttr -f ($name+"JODM"+$side+".outputRotate") ($name+$side+".r");
+*/
+//The above workaround causes valueFlips when JointOrients values are large. use OrientConstraint 
+disconnectAttr ($name+"DM"+$side+".outputRotate") ($name+$side+".r");
+setAttr ($name+$side+".r") -type float3 0 0 0;
+$tempString=`listConnections -s 1 -d 0 ($name+"MM"+$side+".matrixIn[0]")`;
+orientConstraint $tempString[0] ($name+$side);
+select ($name+$side);
 }
 
 global proc asBlendedMatrixAim (string $baseName, string $side, int $b, string $input, string $upObj, string $target, string $obj, int $secondaryMode, int $mo)
@@ -13791,9 +14277,12 @@ string $tempString[],$tempString2[];
 
 if (`gmatch $ctrl "FK*"`) $type="FK";
 if (`gmatch $ctrl "IK*"`) $type="IK";
+if (`gmatch $ctrl "IKLocal*"`) $type="IKLocal";
 if (`gmatch $ctrl "Root*"`) $type="Root";
 if (`gmatch $ctrl "Pole*"`) $type="Pole";
 if (`gmatch $ctrl "Bend*"`) $type="Bend";
+if (`gmatch $ctrl "Tweaker*"`) $type="Tweaker";
+if (`gmatch $ctrl "BendMid*"`) $type="BendMid";
 if (`gmatch $ctrl "IKhybrid*"`) $type="IKhybrid";
 if (`gmatch $ctrl "Micro*"`) $type="Micro";
 if (`gmatch $ctrl "RootX*"`) $type="Root";
@@ -14015,6 +14504,30 @@ if (`attributeExists useOffsetParentMatrix FitSkeleton`)
 return $opm;
 }
 
+global proc int asGetSub ()
+{
+int $sub;
+if (`attributeExists subControllers FitSkeleton`)
+	$sub=`getAttr FitSkeleton.subControllers`;
+return $sub;
+}
+
+global proc int asGetExtra ()
+{
+int $extra;
+if (`attributeExists extraControllers FitSkeleton`)
+	$extra=`getAttr FitSkeleton.extraControllers`;
+return $extra;
+}
+
+global proc int asGetCyclops ()
+{
+int $cyclops;
+if (`attributeExists Cyclops FaceFitSkeleton`)
+	$cyclops=`getAttr FaceFitSkeleton.Cyclops`;
+return $cyclops;
+}
+
 global proc float[] asTransformValuesFromMatrixPlug (string $obj, string $attr, string $transformAttr)
 {
 float $transformValues[];
@@ -14050,11 +14563,13 @@ global proc float[] asInvertMatrix (float $m[])
 {
 float $invM[];
 string $tempXform;
+string $sel[]=`ls -sl`;
 
 $tempXform=`createNode -n tempTransform transform`;
 xform -m $m[0] $m[1] $m[2] $m[3] $m[4] $m[5] $m[6] $m[7] $m[8] $m[9] $m[10] $m[11] $m[12] $m[13] $m[14] $m[15] $tempXform;
 $invM=`getAttr ($tempXform+".inverseMatrix")`;
 delete $tempXform;
+select $sel;
 return $invM;
 }
 

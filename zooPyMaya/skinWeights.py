@@ -1,16 +1,16 @@
-
+﻿
 from maya.cmds import *
 
 from zooPy.misc import removeDupes
 from zooPy.binarySearchTree import BinarySearchTree
 from zooPy import presets
 
-from skinWeightsBase import *
-from mayaDecorators import d_unifyUndo, d_progress, d_showWaitCursor
-from melUtils import mel, printWarningStr
+from .skinWeightsBase import *
+from .mayaDecorators import d_unifyUndo, d_progress, d_showWaitCursor
+from .melUtils import mel, printWarningStr
 
 import maya.cmds as cmd
-import apiExtensions
+from . import apiExtensions
 
 iterParents = apiExtensions.iterParents
 VertSkinWeight = MayaVertSkinWeight
@@ -124,7 +124,7 @@ def saveWeights( geos, filepath=None ):
 
 	#generate joint hierarchy data - so if joints are missing on load we can find the best match
 	jointHierarchies = {}
-	for n, j in joints.iteritems():
+	for n, j in joints.items():
 		jointHierarchies[ n ] = getAllParents( j )
 
 	toWrite = miscData, joints, jointHierarchies, weightData
@@ -204,7 +204,7 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 
 	#remap joint names in the saved file to joint names that are in the scene - they may be namespace differences...
 	missingJoints = set()
-	for n, j in joints.iteritems():
+	for n, j in joints.items():
 		if not cmd.objExists(j):
 			#see if the joint with the same leaf name exists in the scene
 			idxA = j.rfind(':')
@@ -223,7 +223,7 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 
 	#now that we've remapped joint names, we go through the joints again and remap missing joints to their nearest parent
 	#joint in the scene - NOTE: this needs to be done after the name remap so that parent joint names have also been remapped
-	for n, j in joints.iteritems():
+	for n, j in joints.items():
 		if not cmd.objExists(j):
 			dealtWith = False
 			for jp in jointHierarchies[n]:
@@ -256,13 +256,13 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 		#using axisMult for mirroring also often means you want to swap parity tokens on joint names - if so, do that now.
 		#parity needs to be swapped in both joints and jointHierarchies
 		if swapParity:
-			for joint, target in joints.iteritems():
+			for joint, target in joints.items():
 				joints[joint] = str( names.Name(target).swap_parity() )
-			for joint, parents in jointHierarchies.iteritems():
+			for joint, parents in jointHierarchies.items():
 				jointHierarchies[joint] = [str( names.Name(p).swap_parity() ) for p in parents]
 
 
-	for geo, items in objItemsDict.iteritems():
+	for geo, items in objItemsDict.items():
 		#if the geo is None, then check for data in the verts arg - the user may just want weights
 		#loaded on a specific list of verts - we can get the geo name from those verts
 		skinCluster = ''
@@ -301,7 +301,7 @@ def loadWeights( objects, filepath=None, usePosition=True, tolerance=TOL, axisMu
 				#normalize the weights
 				weightSum = float( sum( jointWeightDict.values() ) )
 				if weightSum != 1:
-					for joint, weight in jointWeightDict.iteritems():
+					for joint, weight in jointWeightDict.items():
 						jointWeightDict[ joint ] = weight / weightSum
 
 
@@ -449,7 +449,7 @@ def autoSkinToVolumeMesh( mesh, skeletonMeshRoot ):
 		jointRemap[ t ] = j
 
 	#now do parenting
-	for t, j in jointRemap.iteritems():
+	for t, j in jointRemap.items():
 		tParent = listRelatives( t, p=True, pa=True )
 		if tParent:
 			tParent = tParent[0]
@@ -468,7 +468,7 @@ def autoSkinToVolumeMesh( mesh, skeletonMeshRoot ):
 
 	#duplicate the geometry and parent the geo to the joints in the skeleton we just created - store the duplicates so we can delete them later
 	dupes = []
-	for t, j in jointRemap.iteritems():
+	for t, j in jointRemap.items():
 		dupe = apiExtensions.asMObject( duplicate( t, returnRootsOnly=True, renameChildren=True )[0] )
 		children = listRelatives( dupe, type='transform', pa=True ) or []
 		if children:

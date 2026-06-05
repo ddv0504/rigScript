@@ -136,8 +136,6 @@ createNode joint -n "Root" -p "FitSkeleton";
 	addAttr -ci true -sn "fatZabs" -ln "fatZabs" -at "double";
 	addAttr -ci true -k true -sn "inbetweenJoints" -ln "inbetweenJoints" -dv 2 -min 
 		0 -at "long";
-	addAttr -ci true -k true -sn "centerBtwFeet" -ln "centerBtwFeet" -dv 1 -min 0 -max 
-		1 -at "bool";
 	addAttr -ci true -k true -sn "numMainExtras" -ln "numMainExtras" -min 0 -at "long";
 	addAttr -ci true -k true -sn "unTwister" -ln "unTwister" -min 0 -max 1 -at "bool";
 	setAttr ".t" -type "double3" 2.4133462603331756e-035 11.915606008834843 -2.8973267439447641 ;
@@ -163,6 +161,7 @@ createNode joint -n "Spine1" -p "Root";
 	addAttr -ci true -sn "fatZabs" -ln "fatZabs" -at "double";
 	addAttr -ci true -k true -sn "inbetweenJoints" -ln "inbetweenJoints" -dv 2 -min 
 		0 -at "long";
+	addAttr -ci true -k true -sn "cog" -ln "cog" -dv 1 -min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "unTwister" -ln "unTwister" -min 0 -max 1 -at "bool";
 	setAttr ".t" -type "double3" 2.9044202498862486 5.3290705182007514e-015 4.049910102181424e-015 ;
 	setAttr -l on ".tz";
