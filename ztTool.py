@@ -20,6 +20,7 @@ from __future__ import print_function
 from imp import reload
 import os
 import json
+import re
 
 import maya.OpenMayaUI as omui
 import maya.cmds as cmds
@@ -71,7 +72,7 @@ QWidget {
     background-color: #2b2b2b;
     color: #d4d4d4;
     font-family: "Segoe UI", Arial, sans-serif;
-    font-size: 11px;
+    font-size: 20px;
 }
 
 /* ── MainWindow / Frame ─────────────────────────────*/
@@ -353,7 +354,7 @@ class WheelScaleFilter(QObject):
     def __init__(self, window):
         super(WheelScaleFilter, self).__init__(window)
         self._window   = window
-        self._fontSize = 11          # 현재 폰트 크기 (pt)
+        self._fontSize = 20          # 현재 폰트 크기 (pt)
         window.installEventFilter(self)
 
     def eventFilter(self, obj, event):
@@ -381,6 +382,9 @@ class WheelScaleFilter(QObject):
             base
         )
         self._window.setStyleSheet(patched)
+        
+        # Sync menu check state
+        self._window._updateFontSizeMenuCheck(self._fontSize)
 
         # 상태 표시: 타이틀바에 현재 크기 표시
         self._window.setWindowTitle(
@@ -790,7 +794,11 @@ class _DirView(QTreeView):
     def _openFile(self, index):
         path = self._model.filePath(index)
         if path:
-            os.startfile(path)
+            ext = os.path.splitext(path)[1].lower()
+            if ext in ('.ma', '.mb'):
+                cmds.file(path, o=True, f=True)
+            else:
+                os.startfile(path)
 
     def setPath(self, path):
         self.path = path
@@ -868,6 +876,72 @@ class AniTab(QWidget):
         refLayout.addLayout(camLayLayout)
         toolLayout.addWidget(refGrp)
 
+        # FBX 익스포트
+        fbxGrp = QGroupBox('FBX Export')
+        fbxLayout = QVBoxLayout(fbxGrp)
+        
+        fbxAddLayout = QHBoxLayout()
+        addSelBtn = QPushButton('Add Selected Object(s)')
+        addSelBtn.clicked.connect(self._addFbxExportItem)
+        fbxAddLayout.addWidget(addSelBtn)
+        fbxLayout.addLayout(fbxAddLayout)
+        
+        self.fbxTable = QTableWidget(0, 6)
+        self.fbxTable.setHorizontalHeaderLabels(['Object', 'Clip/File Name', 'Start', 'End', 'Export Path', ''])
+        self.fbxTable.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.fbxTable.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.fbxTable.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.fbxTable.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.fbxTable.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        self.fbxTable.horizontalHeader().setSectionResizeMode(4, QHeaderView.Stretch)
+        self.fbxTable.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)
+        self.fbxTable.setMinimumHeight(150)
+        fbxLayout.addWidget(self.fbxTable)
+        
+        fbxSettingsLayout = QGridLayout()
+        
+        self.fbxMoveOriginCB = QCheckBox('Move To Origin')
+        self.fbxBakeAnimCB = QCheckBox('Bake Animation')
+        self.fbxBakeAnimCB.setChecked(True)
+        self.fbxInputConnCB = QCheckBox('Input Connections')
+        self.fbxInputConnCB.setChecked(True)
+        self.fbxEmbedMediaCB = QCheckBox('Embed Media')
+        self.fbxEmbedMediaCB.setChecked(True)
+        self.fbxOnlyJointsCB = QCheckBox('Export Only Joints')
+        self.fbxOnlyJointsCB.setChecked(True)
+        self.fbxCurvesCB = QCheckBox('Export Curves')
+        
+        fbxSettingsLayout.addWidget(self.fbxMoveOriginCB, 0, 0)
+        fbxSettingsLayout.addWidget(self.fbxBakeAnimCB, 0, 1)
+        fbxSettingsLayout.addWidget(self.fbxInputConnCB, 1, 0)
+        fbxSettingsLayout.addWidget(self.fbxEmbedMediaCB, 1, 1)
+        
+        fbxSettingsLayout.addWidget(self.fbxOnlyJointsCB, 2, 0)
+        fbxSettingsLayout.addWidget(self.fbxCurvesCB, 2, 1)
+        
+        fbxSettingsLayout.addWidget(QLabel('Up Axis:'), 3, 0)
+        self.fbxUpAxisCombo = QComboBox()
+        self.fbxUpAxisCombo.addItems(['Y', 'Z'])
+        fbxSettingsLayout.addWidget(self.fbxUpAxisCombo, 3, 1)
+        
+        fbxSettingsLayout.addWidget(QLabel('File Type:'), 4, 0)
+        self.fbxFileTypeCombo = QComboBox()
+        self.fbxFileTypeCombo.addItems(['Binary', 'ASCII'])
+        fbxSettingsLayout.addWidget(self.fbxFileTypeCombo, 4, 1)
+        
+        fbxSettingsLayout.addWidget(QLabel('FBX Version:'), 5, 0)
+        self.fbxVersionCombo = QComboBox()
+        self.fbxVersionCombo.addItems(['FBX 2020', 'FBX 2018', 'FBX 2016', 'FBX 2014'])
+        fbxSettingsLayout.addWidget(self.fbxVersionCombo, 5, 1)
+        
+        fbxLayout.addLayout(fbxSettingsLayout)
+        
+        fbxExportBtn = QPushButton('Export FBX')
+        fbxExportBtn.clicked.connect(self._exportFbx)
+        fbxLayout.addWidget(fbxExportBtn)
+        
+        toolLayout.addWidget(fbxGrp)
+
         # 키 정렬
         alignGrp = QGroupBox('Align Keys')
         alignLayout = QHBoxLayout(alignGrp)
@@ -927,16 +1001,35 @@ class AniTab(QWidget):
 
         # 플레이블라스트
         pbGrp = QGroupBox('Playblast')
-        pbLayout = QHBoxLayout(pbGrp)
+        pbLayout = QVBoxLayout(pbGrp)
+        
+        camLayout = QHBoxLayout()
         self.setCamLbl = QLabel('cam: —')
         setCamBtn = QPushButton('Set Cam')
         setCamBtn.setIcon(QIcon(':CameraDown.png'))
         setCamBtn.clicked.connect(self._setPlayblastCam)
-        pbBtn = QPushButton('Playblast (QuickTime H.264)')
-        pbBtn.clicked.connect(self._playBlast)
-        pbLayout.addWidget(self.setCamLbl)
-        pbLayout.addWidget(setCamBtn)
-        pbLayout.addWidget(pbBtn)
+        camLayout.addWidget(self.setCamLbl)
+        camLayout.addWidget(setCamBtn)
+        pbLayout.addLayout(camLayout)
+        
+        optLayout = QHBoxLayout()
+        optLayout.addWidget(QLabel('Type:'))
+        self.pbTypeCombo = QComboBox()
+        self.pbTypeCombo.addItems(['mov', 'sequence'])
+        optLayout.addWidget(self.pbTypeCombo)
+        
+        optLayout.addWidget(QLabel('Format:'))
+        self.pbFormatCombo = QComboBox()
+        optLayout.addWidget(self.pbFormatCombo)
+        pbLayout.addLayout(optLayout)
+        
+        self.pbBtn = QPushButton('Playblast')
+        self.pbBtn.clicked.connect(self._playBlast)
+        pbLayout.addWidget(self.pbBtn)
+        
+        self.pbTypeCombo.currentIndexChanged.connect(self._updatePlayblastFormats)
+        self.pbFormatCombo.currentIndexChanged.connect(self._onFormatChanged)
+        
         toolLayout.addWidget(pbGrp)
         toolLayout.addStretch()
 
@@ -966,6 +1059,55 @@ class AniTab(QWidget):
         if cam:
             self.playBlastInfo['cam'] = cam
             self.setCamLbl.setText('cam: %s' % cam)
+
+        pbType = self.pbSetting.value('pbType')
+        pbFormat = self.pbSetting.value('pbFormat')
+        
+        if pbType:
+            index = self.pbTypeCombo.findText(pbType)
+            if index != -1:
+                self.pbTypeCombo.setCurrentIndex(index)
+                
+        self._updatePlayblastFormats()
+        
+        if pbFormat:
+            index = self.pbFormatCombo.findText(pbFormat)
+            if index != -1:
+                self.pbFormatCombo.setCurrentIndex(index)
+                
+        self._updatePlayblastBtnText()
+
+    def _updatePlayblastFormats(self):
+        self.pbFormatCombo.clear()
+        pb_type = self.pbTypeCombo.currentText()
+        if pb_type == 'mov':
+            self.pbFormatCombo.addItems(['mov', 'avi', 'gif'])
+        elif pb_type == 'sequence':
+            self.pbFormatCombo.addItems(['png', 'jpg'])
+        
+        self.pbSetting.setValue('pbType', pb_type)
+        
+    def _onFormatChanged(self):
+        pb_fmt = self.pbFormatCombo.currentText()
+        if pb_fmt:
+            self.pbSetting.setValue('pbFormat', pb_fmt)
+        self._updatePlayblastBtnText()
+        
+    def _updatePlayblastBtnText(self):
+        pb_type = self.pbTypeCombo.currentText()
+        pb_fmt = self.pbFormatCombo.currentText()
+        if pb_type == 'mov':
+            if pb_fmt == 'mov':
+                self.pbBtn.setText('Playblast (QuickTime H.264)')
+            elif pb_fmt == 'avi':
+                self.pbBtn.setText('Playblast (AVI)')
+            elif pb_fmt == 'gif':
+                self.pbBtn.setText('Playblast (Animated GIF)')
+        elif pb_type == 'sequence':
+            if pb_fmt == 'png':
+                self.pbBtn.setText('Playblast (PNG Sequence)')
+            elif pb_fmt == 'jpg':
+                self.pbBtn.setText('Playblast (JPG Sequence)')
 
     # ── 카메라 목록 갱신 ─────────────────────────────────────────
     def _refreshCamList(self):
@@ -1029,7 +1171,35 @@ class AniTab(QWidget):
             QMessageBox.warning(self, 'Error', '씬을 먼저 저장하세요.')
             return
         cam     = self.playBlastInfo.get('cam', '')
-        movFile = self._getMovFileName(fileName)
+        
+        # Get selected options
+        pb_type = self.pbTypeCombo.currentText()
+        pb_fmt  = self.pbFormatCombo.currentText()
+        
+        # Determine parameters based on options
+        if pb_type == 'mov':
+            if pb_fmt == 'mov':
+                ext = '.mov'
+                pb_format = 'qt'
+                pb_compression = 'H.264'
+            elif pb_fmt == 'avi':
+                ext = '.avi'
+                pb_format = 'avi'
+                pb_compression = 'none'
+            elif pb_fmt == 'gif':
+                ext = '.gif'
+                pb_format = 'image'  # initially output to png sequence
+                pb_compression = 'png'
+        else: # sequence
+            pb_format = 'image'
+            if pb_fmt == 'png':
+                ext = '.png'
+                pb_compression = 'png'
+            else: # jpg
+                ext = '.jpg'
+                pb_compression = 'jpeg'
+
+        pbFile = self._getPlayblastFileName(fileName, ext)
         wh      = [1280, 720]
         tr      = mel.eval('timeControl -q -ra $gPlayBackSlider;')
         tc      = mel.eval('$tmpVar = $gPlayBackSlider')
@@ -1045,30 +1215,131 @@ class AniTab(QWidget):
                          displayAppearance='smoothShaded', th=True, alo=False)
         cmds.window(win, e=True, wh=wh)
         cmds.showWindow(win)
+        
+        temp_dir = None
         try:
-            cmds.playblast(epn=panel, startTime=start, endTime=end, sound=sound,
-                           format='qt', filename=movFile, forceOverwrite=True,
-                           clearCache=True, viewer=True, percent=100,
-                           compression='H.264', quality=100, widthHeight=wh)
+            if pb_type == 'mov' and pb_fmt == 'gif':
+                import tempfile
+                temp_dir = tempfile.mkdtemp()
+                temp_prefix = os.path.join(temp_dir, 'temp_pb')
+                
+                cmds.playblast(epn=panel, startTime=start, endTime=end, sound=sound,
+                               format='image', filename=temp_prefix, forceOverwrite=True,
+                               clearCache=True, viewer=False, percent=100,
+                               compression='png', quality=100, widthHeight=wh)
+                               
+                import glob
+                png_files = sorted(glob.glob(os.path.join(temp_dir, 'temp_pb.*.png')))
+                if png_files:
+                    try:
+                        from PIL import Image
+                        frames = [Image.open(f) for f in png_files]
+                        
+                        fps = 24.0
+                        try:
+                            fps_unit = cmds.currentUnit(q=True, time=True)
+                            fps_map = {
+                                'game': 15.0, 'film': 24.0, 'pal': 25.0, 'ntsc': 30.0,
+                                'show': 48.0, 'palf': 50.0, 'ntscf': 60.0
+                            }
+                            if fps_unit in fps_map:
+                                fps = fps_map[fps_unit]
+                            elif fps_unit.endswith('fps'):
+                                fps = float(fps_unit[:-3])
+                        except Exception:
+                            pass
+                            
+                        duration = int(1000.0 / fps) if fps > 0 else 40
+                        frames[0].save(
+                            pbFile,
+                            save_all=True,
+                            append_images=frames[1:],
+                            duration=duration,
+                            loop=0
+                        )
+                        
+                        if os.name == 'nt':
+                            os.startfile(pbFile)
+                        else:
+                            import subprocess
+                            subprocess.call(('open', pbFile))
+                    except ImportError:
+                        QMessageBox.warning(
+                            self, 'Pillow Missing',
+                            'GIF 변환을 위해 Pillow 라이브러리가 필요합니다.\n'
+                            'Maya Python 환경에 Pillow를 설치해 주세요.\n'
+                            '명령어: mayapy -m pip install Pillow'
+                        )
+                    except Exception as e:
+                        print('GIF conversion error:', e)
+                        QMessageBox.critical(self, 'GIF Error', 'GIF 생성 중 오류 발생:\n%s' % e)
+            else:
+                pb_args = {
+                    'epn': panel,
+                    'startTime': start,
+                    'endTime': end,
+                    'sound': sound,
+                    'format': pb_format,
+                    'filename': pbFile,
+                    'forceOverwrite': True,
+                    'clearCache': True,
+                    'viewer': True,
+                    'percent': 100,
+                    'quality': 100,
+                    'widthHeight': wh
+                }
+                if pb_compression:
+                    pb_args['compression'] = pb_compression
+                cmds.playblast(**pb_args)
         except Exception as e:
             print('Playblast error:', e)
-        cmds.deleteUI(win)
+        finally:
+            cmds.deleteUI(win)
+            if temp_dir and os.path.isdir(temp_dir):
+                import glob
+                for f in glob.glob(os.path.join(temp_dir, '*')):
+                    try:
+                        os.remove(f)
+                    except Exception:
+                        pass
+                try:
+                    os.rmdir(temp_dir)
+                except Exception:
+                    pass
 
-    def _getMovFileName(self, scenePath):
+    def _getPlayblastFileName(self, scenePath, ext):
         dirName  = os.path.dirname(scenePath)
         base     = os.path.splitext(os.path.basename(scenePath))[0]
-        existing = [
-            '%s/%s' % (dirName, i.split('.mov')[0])
-            for i in os.listdir(dirName)
-            if (os.path.splitext(i)[1] == '.mov'
-                and base in i
-                and i.split('_')[-1].startswith('P'))
-        ]
-        if not existing:
-            return '%s_P01.mov' % os.path.splitext(scenePath)[0]
-        last    = sorted(existing)[-1]
-        nextVer = int(last.split('_P')[-1]) + 1
-        return '%s_P%s.mov' % (last[:-4], str(nextVer).zfill(2))
+        
+        if ext.lower() in ('.jpg', '.jpeg'):
+            ext_pattern = r'\.jpe?g'
+        else:
+            ext_pattern = re.escape(ext)
+            
+        pattern = re.compile(
+            r'^' + re.escape(base) + r'_P(\d+)(?:\.\d+)?' + ext_pattern + r'$',
+            re.IGNORECASE
+        )
+        
+        existing_versions = []
+        try:
+            for item in os.listdir(dirName):
+                m = pattern.match(item)
+                if m:
+                    existing_versions.append(int(m.group(1)))
+        except Exception:
+            pass
+            
+        if not existing_versions:
+            nextVer = 1
+        else:
+            nextVer = max(existing_versions) + 1
+            
+        pb_type = self.pbTypeCombo.currentText()
+        if pb_type == 'sequence':
+            return '%s/%s_P%s' % (dirName, base, str(nextVer).zfill(2))
+        else:
+            return '%s/%s_P%s%s' % (dirName, base, str(nextVer).zfill(2), ext)
 
     # ── 키 이동 ───────────────────────────────────────────────────
     def _moveKeys(self):
@@ -1115,6 +1386,280 @@ class AniTab(QWidget):
     def _refreshAll(self):
         self.playBlastInfo = {}
         self.setLocalList()
+
+    # ── FBX Export ───────────────────────────────────────────────
+    def _addFbxExportItem(self):
+        sel = cmds.ls(sl=True)
+        if not sel:
+            QMessageBox.warning(self, 'Selection Empty', '선택된 오브젝트가 없습니다.')
+            return
+            
+        scenePath = cmds.file(sn=True, q=True)
+        if scenePath:
+            sceneDir = os.path.dirname(scenePath).replace('\\', '/')
+            sceneBase = os.path.splitext(os.path.basename(scenePath))[0]
+        else:
+            sceneDir = os.path.expanduser('~/Desktop').replace('\\', '/')
+            sceneBase = 'Untitled'
+            
+        start_frame = int(cmds.playbackOptions(q=True, min=True))
+        end_frame = int(cmds.playbackOptions(q=True, max=True))
+        
+        for obj in sel:
+            obj_name = obj.split('|')[-1]
+            clip_name = '%s_%s' % (sceneBase, obj_name)
+            
+            row = self.fbxTable.rowCount()
+            self.fbxTable.insertRow(row)
+            
+            # Col 0: Object Name
+            objItem = QTableWidgetItem(obj)
+            objItem.setFlags(objItem.flags() ^ Qt.ItemIsEditable)
+            self.fbxTable.setItem(row, 0, objItem)
+            
+            # Col 1: Clip/File Name
+            clipLE = QLineEdit(clip_name)
+            self.fbxTable.setCellWidget(row, 1, clipLE)
+            
+            # Col 2: Start
+            startSB = QSpinBox()
+            startSB.setRange(-999999, 999999)
+            startSB.setValue(start_frame)
+            self.fbxTable.setCellWidget(row, 2, startSB)
+            
+            # Col 3: End
+            endSB = QSpinBox()
+            endSB.setRange(-999999, 999999)
+            endSB.setValue(end_frame)
+            self.fbxTable.setCellWidget(row, 3, endSB)
+            
+            # Col 4: Path Widget
+            pathWidget = QWidget()
+            pathLayout = QHBoxLayout(pathWidget)
+            pathLayout.setContentsMargins(2, 2, 2, 2)
+            pathLE = QLineEdit(sceneDir)
+            pathBrowseBtn = QPushButton('...')
+            pathBrowseBtn.setFixedWidth(24)
+            pathBrowseBtn.clicked.connect(lambda *args, le=pathLE: self._browseExportPath(le))
+            pathLayout.addWidget(pathLE)
+            pathLayout.addWidget(pathBrowseBtn)
+            pathWidget.pathLE = pathLE
+            self.fbxTable.setCellWidget(row, 4, pathWidget)
+            
+            # Col 5: Delete button
+            delBtn = QPushButton('Del')
+            delBtn.clicked.connect(self._deleteFbxRow)
+            self.fbxTable.setCellWidget(row, 5, delBtn)
+
+    def _browseExportPath(self, pathLE):
+        path = cmds.fileDialog2(fileMode=3, caption="Select Export Folder")
+        if path:
+            pathLE.setText(path[0].replace('\\', '/'))
+
+    def _deleteFbxRow(self):
+        button = self.sender()
+        if button:
+            for r in range(self.fbxTable.rowCount()):
+                if self.fbxTable.cellWidget(r, 5) == button:
+                    self.fbxTable.removeRow(r)
+                    break
+
+    def _exportFbx(self):
+        if not cmds.pluginInfo('fbxmaya', q=True, loaded=True):
+            try:
+                cmds.loadPlugin('fbxmaya')
+            except Exception as e:
+                QMessageBox.critical(self, 'FBX Plugin Error', 'FBX 플러그인을 로드할 수 없습니다:\n%s' % e)
+                return
+                
+        rowCount = self.fbxTable.rowCount()
+        if rowCount == 0:
+            QMessageBox.information(self, 'Information', '익스포트할 항목이 없습니다. Add Selected Object(s) 버튼으로 추가하세요.')
+            return
+            
+        move_to_origin = self.fbxMoveOriginCB.isChecked()
+        bake_anim = self.fbxBakeAnimCB.isChecked()
+        input_connections = self.fbxInputConnCB.isChecked()
+        embed_media = self.fbxEmbedMediaCB.isChecked()
+        export_only_joints = self.fbxOnlyJointsCB.isChecked()
+        export_curves = self.fbxCurvesCB.isChecked()
+        up_axis = self.fbxUpAxisCombo.currentText().lower()
+        file_type = self.fbxFileTypeCombo.currentText()
+        fbx_ver = self.fbxVersionCombo.currentText()
+        
+        ver_map = {
+            'FBX 2020': 'FBX202000',
+            'FBX 2018': 'FBX201800',
+            'FBX 2016': 'FBX201600',
+            'FBX 2014': 'FBX201400'
+        }
+        fbx_ver_str = ver_map.get(fbx_ver, 'FBX202000')
+        
+        try:
+            mel.eval("FBXResetExport;")
+            mel.eval("FBXExportScaleFactor 1;")
+            mel.eval("FBXExportShapes -v true;")
+            mel.eval("FBXExportSkins -v true;")
+            mel.eval("FBXExportInputConnections -v %s;" % ('true' if input_connections else 'false'))
+            mel.eval("FBXExportAnimationOnly -v false;")
+            mel.eval('FBXExportBakeComplexAnimation -v true')
+            mel.eval("FBXExportConstraints -v false;")
+            mel.eval("FBXExportCameras -v true;")
+            mel.eval("FBXExportLights -v false;")
+            mel.eval("FBXExportEmbeddedTextures -v %s;" % ('true' if embed_media else 'false'))
+            
+            # Up Axis
+            mel.eval("FBXExportUpAxis %s;" % up_axis)
+            
+            # File Type (Binary/ASCII)
+            is_ascii = 1 if file_type == 'ASCII' else 0
+            mel.eval("FBXExportInAscii -v %d;" % is_ascii)
+            
+            # FBX Version
+            mel.eval("FBXExportFileVersion -v %s;" % fbx_ver_str)
+            
+            # Curves Exclude/Include
+            mel.eval("FBXProperty Export|IncludeGrp|Geometry|NurbsCurves -v %d;" % (1 if export_curves else 0))
+        except Exception as e:
+            print("FBX configuration warning:", e)
+            
+        # Turn off viewport refresh to optimize performance
+        cmds.refresh(suspend=True)
+        try:
+            exported_files = []
+            for r in range(rowCount):
+                obj_item = self.fbxTable.item(r, 0)
+                if not obj_item:
+                    continue
+                obj = obj_item.text()
+                
+                if not cmds.objExists(obj):
+                    cmds.warning("오브젝트가 존재하지 않습니다: %s" % obj)
+                    continue
+                    
+                clip_le = self.fbxTable.cellWidget(r, 1)
+                clip_name = clip_le.text() if clip_le else "exported_clip"
+                
+                start_sb = self.fbxTable.cellWidget(r, 2)
+                start_val = start_sb.value() if start_sb else 1
+                
+                end_sb = self.fbxTable.cellWidget(r, 3)
+                end_val = end_sb.value() if end_sb else 100
+                
+                path_widget = self.fbxTable.cellWidget(r, 4)
+                path_le = getattr(path_widget, 'pathLE', None) if path_widget else None
+                if not path_le:
+                    path_le = path_widget.findChild(QLineEdit) if path_widget else None
+                export_dir = path_le.text() if path_le else ""
+                
+                if not export_dir:
+                    cmds.warning("경로가 비어 있습니다.")
+                    continue
+                    
+                if not os.path.isdir(export_dir):
+                    try:
+                        os.makedirs(export_dir)
+                    except Exception as e:
+                        cmds.warning("폴더를 생성할 수 없습니다: %s\nError: %s" % (export_dir, e))
+                        continue
+                    
+                export_path = '%s/%s.fbx' % (export_dir.rstrip('/'), clip_name)
+                
+                try:
+                    if bake_anim:
+                        mel.eval("FBXExportBakeComplexAnimation -v true;")
+                        mel.eval("FBXExportBakeComplexStart -v %d;" % start_val)
+                        mel.eval("FBXExportBakeComplexEnd -v %d;" % end_val)
+                        mel.eval("FBXExportBakeComplexStep -v 1;")
+                        mel.eval("FBXExportBakeResampleAnimation -v true;")
+                    else:
+                        mel.eval("FBXExportBakeComplexAnimation -v false;")
+                except Exception as e:
+                    print("FBX bake settings warning:", e)
+                    
+                cmds.select(obj, r=True)
+                
+                original_parent = cmds.listRelatives(obj, parent=True)
+                temp_grp = None
+                if move_to_origin:
+                    try:
+                        temp_grp = cmds.group(em=True, name="temp_fbx_origin_grp")
+                        cmds.parent(obj, temp_grp)
+                        pos = cmds.xform(obj, q=True, ws=True, rp=True)
+                        cmds.xform(temp_grp, ws=True, t=[-pos[0], -pos[1], -pos[2]])
+                    except Exception as e:
+                        print("Move to origin grouping warning:", e)
+                        
+                export_sel = [obj]
+                if export_only_joints:
+                    joints = cmds.listRelatives(obj, type='joint', ad=True, fullPath=True) or []
+                    if cmds.objectType(obj) == 'joint':
+                        joints.append(obj)
+                    if joints:
+                        export_sel = joints
+                    else:
+                        cmds.warning("오브젝트 하위에 조인트가 존재하지 않습니다: %s" % obj)
+                        
+                cmds.select(export_sel, r=True)
+                
+                # Ensure undo is enabled
+                undo_state = cmds.undoInfo(q=True, state=True)
+                if not undo_state:
+                    cmds.undoInfo(state=True)
+                
+                # Temporary timeline adjustment
+                orig_min = cmds.playbackOptions(q=True, minTime=True)
+                orig_max = cmds.playbackOptions(q=True, maxTime=True)
+                orig_ast = cmds.playbackOptions(q=True, animationStartTime=True)
+                orig_aet = cmds.playbackOptions(q=True, animationEndTime=True)
+                
+                changed_timeline = False
+                if orig_min != start_val or orig_max != end_val:
+                    cmds.playbackOptions(minTime=start_val, maxTime=end_val)
+                    changed_timeline = True
+                if orig_ast != start_val or orig_aet != end_val:
+                    cmds.playbackOptions(animationStartTime=start_val, animationEndTime=end_val)
+                    changed_timeline = True
+                
+                cmds.undoInfo(openChunk=True)
+                try:
+                    # Cut keyframes outside range to restrict export duration
+                    cmds.cutKey(export_sel, time=(-999999, start_val - 1))
+                    cmds.cutKey(export_sel, time=(end_val + 1, 999999))
+                    
+                    mel.eval('FBXExport -f "%s" -s' % export_path.replace('\\', '/'))
+                    exported_files.append(export_path)
+                except Exception as e:
+                    cmds.error("FBX Export failed for %s:\n%s" % (obj, e))
+                finally:
+                    cmds.undoInfo(closeChunk=True)
+                    cmds.undo()
+                    if not undo_state:
+                        cmds.undoInfo(state=False)
+                    
+                    # Restore playback options
+                    if changed_timeline:
+                        cmds.playbackOptions(minTime=orig_min, maxTime=orig_max)
+                        cmds.playbackOptions(animationStartTime=orig_ast, animationEndTime=orig_aet)
+                    
+                    if temp_grp:
+                        try:
+                            if original_parent:
+                                cmds.parent(obj, original_parent[0])
+                            else:
+                                cmds.parent(obj, w=True)
+                            cmds.delete(temp_grp)
+                        except Exception as e:
+                            print("Restore grouping warning:", e)
+                    try:
+                        cmds.select(obj, r=True)
+                    except Exception:
+                        pass
+        finally:
+            cmds.refresh(suspend=False)
+                        
+        if exported_files:
+            QMessageBox.information(self, 'Success', 'FBX 익스포트 완료:\n%s' % '\n'.join(exported_files))
 
 
 # ═════════════════════════════════════════════════════════════════
@@ -1719,9 +2264,10 @@ class ZTMainTool(MayaQWidgetDockableMixin, QMainWindow):
         self.setStyleSheet(_DARK_STYLE)
         self._build()
         self._buildMenuBar()
-
+        
         # Ctrl+휠 폰트 스케일 필터
         self._wheelFilter = WheelScaleFilter(self)
+        self._wheelFilter._applyScale()
 
         # Ctrl+0 → 폰트 크기 초기화
         resetShortcut = QShortcut(QKeySequence('Ctrl+0'), self)
@@ -1730,7 +2276,8 @@ class ZTMainTool(MayaQWidgetDockableMixin, QMainWindow):
     def _resetFontSize(self):
         self.setStyleSheet(_DARK_STYLE)
         self.setWindowTitle('ZT Tool Suite')
-        self._wheelFilter._fontSize = 11
+        self._wheelFilter._fontSize = 20
+        self._updateFontSizeMenuCheck(20)
 
     def _build(self):
         centralWidget = QWidget()
@@ -1767,6 +2314,22 @@ class ZTMainTool(MayaQWidgetDockableMixin, QMainWindow):
         fileMenu.addAction(saveShelvesAct)
         fileMenu.addAction(shelfMgrAct)
 
+        # ── View ──────────────────────────────────────────────────
+        viewMenu = menubar.addMenu('View')
+        fontSizeMenu = viewMenu.addMenu('Font Size')
+        
+        self.fontSizeGroup = QActionGroup(self)
+        for size in range(9, 21):
+            act = QAction('%d px' % size, self, checkable=True)
+            act.setData(size)
+            act.triggered.connect(self._changeFontSizeFromMenu)
+            fontSizeMenu.addAction(act)
+            self.fontSizeGroup.addAction(act)
+            
+        resetFontAct = QAction('Reset (Ctrl+0)', self)
+        resetFontAct.triggered.connect(self._resetFontSize)
+        viewMenu.addAction(resetFontAct)
+
         # ── Scene ─────────────────────────────────────────────────
         sceneMenu = menubar.addMenu('Scene')
         checkAct = QAction('Check Malware', self)
@@ -1779,6 +2342,20 @@ class ZTMainTool(MayaQWidgetDockableMixin, QMainWindow):
             self._sceneTab._fixAll()))
         sceneMenu.addAction(checkAct)
         sceneMenu.addAction(fixAct)
+
+    def _changeFontSizeFromMenu(self):
+        act = self.sender()
+        if act:
+            size = act.data()
+            self._wheelFilter._fontSize = size
+            self._wheelFilter._applyScale()
+
+    def _updateFontSizeMenuCheck(self, size):
+        if hasattr(self, 'fontSizeGroup'):
+            for act in self.fontSizeGroup.actions():
+                if act.data() == size:
+                    act.setChecked(True)
+                    break
 
     def _saveAllShelves(self):
         for f in os.listdir(_SHELF_PATH):
